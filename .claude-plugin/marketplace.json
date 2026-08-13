@@ -1,6 +1,6 @@
 {
   "name": "spec-grill-flow-marketplace",
-  "owner": { "name": "YOUR_NAME" },
+  "owner": { "name": "Yezhi Chen" },
   "plugins": [
     {
       "name": "spec-grill-flow",
