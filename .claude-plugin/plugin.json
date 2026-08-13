@@ -2,8 +2,8 @@
   "name": "spec-grill-flow",
   "version": "0.1.0",
   "description": "團隊 AI 交辦任務流程：Spec-Kit 文件骨架 + grill 需求錘鍊 + Superpowers 實作紀律。含分流快速通道與合併後 retro。",
-  "author": { "name": "YOUR_NAME" },
-  "repository": "https://github.com/YOUR_GITHUB_USER/spec-grill-flow",
+  "author": { "name": "Yezhi Chen" },
+  "repository": "https://github.com/yezhi780625/spec-grill-flow",
   "license": "MIT",
   "keywords": ["workflow", "spec-driven", "tdd", "verification"],
   "dependencies": ["superpowers@superpowers-marketplace"]
