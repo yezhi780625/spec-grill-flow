@@ -6,5 +6,5 @@
   "repository": "https://github.com/yezhi780625/spec-grill-flow",
   "license": "MIT",
   "keywords": ["workflow", "spec-driven", "tdd", "verification"],
-  "dependencies": ["superpowers@superpowers-marketplace"]
+  "dependencies": ["superpowers@claude-plugins-official"]
 }
