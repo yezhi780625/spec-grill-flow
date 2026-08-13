@@ -1,0 +1,11 @@
+{
+  "name": "spec-grill-flow-marketplace",
+  "owner": { "name": "YOUR_NAME" },
+  "plugins": [
+    {
+      "name": "spec-grill-flow",
+      "source": "./",
+      "description": "團隊 AI 交辦任務流程：Spec-Kit + grill + Superpowers"
+    }
+  ]
+}
