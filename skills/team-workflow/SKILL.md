@@ -40,7 +40,7 @@ description: 團隊 AI 交辦任務流程（Spec-Kit + grill + Superpowers）。
 - 需求之間有無矛盾？
 - 「不做什麼」明確了嗎？
 
-grill 的產出只寫回 spec 本身（不產 ADR、glossary 或其他文件）。作者可駁回追問，但被駁回的追問由 grill 執行者記入 spec「未解事項」段——不得刪除，Phase 5 reviewer 會檢視。
+grill 的產出只寫回 spec 本身（不產 ADR、glossary 或其他文件）。作者可駁回追問，但被駁回的追問由 grill 執行者記入 spec「未解事項」段——不得刪除，Phase 5 reviewer 會檢視。真人主持時可主動補充作者不掌握的事實（寫入 spec 標注來源，拍板仍屬作者）；一次 grill 出現 ≥3 項此類補充 → retro 備註記「領域知識未文件化」，該領域後續任務分流偏向完整通道，並考慮補文件。
 
 **完成條件**：spec 頂部的 grill 檢核清單四項全勾：
 
