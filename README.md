@@ -14,7 +14,7 @@
 ## 安裝
 
 ```
-/plugin marketplace add YOUR_GITHUB_USER/spec-grill-flow
+/plugin marketplace add yezhi780625/spec-grill-flow
 /plugin install spec-grill-flow@spec-grill-flow-marketplace
 ```
 
