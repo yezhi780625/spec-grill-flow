@@ -13,7 +13,7 @@ description: 團隊 AI 交辦任務流程（Spec-Kit + grill + Superpowers）。
       └─ 快速通道：──────────────────────→ 實作 → 驗收 → Retro
 ```
 
-**運作模式**（Phase 0 已宣告，見 constitution Governance）：Team 模式的「非本人」角色由真人擔任；Solo 模式由 **fresh-context 獨立 subagent** 代位——只餵文件產物（spec、diff），不共享產生它的對話脈絡，prompt 指定挑錯立場。
+**運作模式**（Phase 0 已宣告，見 constitution Governance）：Team 模式的「非本人」角色由真人擔任；Solo 模式由 **fresh-context 獨立 subagent** 代位——可自由讀取 repo，但不共享產生受審產物的對話脈絡，prompt 指定挑錯立場。
 
 ## 分流（每個任務的第一步）
 
@@ -33,14 +33,14 @@ description: 團隊 AI 交辦任務流程（Spec-Kit + grill + Superpowers）。
 
 ## Phase 2：錘鍊（grill）
 
-**執行者不得是 spec 作者**（team：他人主持；solo：fresh-context subagent，只餵 spec 文件、不帶 Phase 1 對話脈絡、adversarial 立場）。用 `grill-me` 對著 spec 逼問，每一輪修正**直接改 spec 並 commit**——git log 就是訪談紀錄。追問至少涵蓋：
+**執行者不得是 spec 作者**（team：他人主持；solo：fresh-context subagent，不帶 Phase 1 對話脈絡、repo 可查、adversarial 立場）。用 `grill-me` 對著 spec 逼問，每一輪修正**直接改 spec 並 commit**——git log 就是訪談紀錄。追問至少涵蓋：
 
 - 每條驗收標準怎麼量測？由誰／什麼工具判定通過？
 - Edge cases 與失敗路徑列了嗎？
 - 需求之間有無矛盾？
 - 「不做什麼」明確了嗎？
 
-grill 的產出只寫回 spec 本身（不產 ADR、glossary 或其他文件）。
+grill 的產出只寫回 spec 本身（不產 ADR、glossary 或其他文件）。作者可駁回追問，但被駁回的追問由 grill 執行者記入 spec「未解事項」段——不得刪除，Phase 5 reviewer 會檢視。
 
 **完成條件**：spec 頂部的 grill 檢核清單四項全勾：
 
@@ -70,13 +70,14 @@ grill 的產出只寫回 spec 本身（不產 ADR、glossary 或其他文件）�
 
 ## Phase 5：驗收
 
-開 PR，reviewer（非實作者本人；solo 模式由 fresh-context agent 代位，只餵 diff 與 spec）將 spec 驗收標準貼入 PR 逐條驗收：
+開 PR，reviewer（非實作者本人；solo 模式由 fresh-context agent 代位，可自由讀取 repo、僅不帶實作過程的對話脈絡）將 spec 驗收標準貼入 PR 逐條驗收：
 
 ```markdown
 ## Spec 驗收（對照 specs/xxx/spec.md）
 - [ ] 每條驗收標準有證據（自動測試連結，或人工驗證步驟與結果）
 - [ ] 所有 edge cases 有對應測試
 - [ ] 未實作 spec 範圍外的功能（scope creep 檢查）
+- [ ] spec「未解事項」段已檢視——各項皆為明知的取捨，而非遺漏
 ```
 
 任一條不過 → 打回 Phase 4；根因在 spec → 退回 Phase 2。全過 → 合併。抽查測試品質：revert 對應實作後測試必須轉紅，空測試視同無測試。
@@ -88,7 +89,7 @@ grill 的產出只寫回 spec 本身（不產 ADR、glossary 或其他文件）�
 
 ## 退回與熔斷
 
-- 同一 feature **累計退回 Phase 2 達 2 次** → 熔斷：停止流程，回 Phase 1 重寫或拆分該 feature（team：專案級討論；solo：換 fresh agent 從問題定義重新開始）。retro 症狀記「熔斷」。
+- 同一 feature **累計退回 Phase 2 達 2 次** → 熔斷：停止流程，**強制拆分**——已想清楚的部分保留成獨立 spec 續行，只把糾纏不清的部分回 Phase 1 重新定義（team：拆分決策拉高為專案級討論；solo：換 fresh agent 從問題定義主導拆分）。retro 症狀記「熔斷」。
 - **Phase 5→4 打回達 2 次** → 第三次實作前強制先做根因分析並寫入 PR。
 
 ## Phase 6：Retro（合併後，2 分鐘內完成）
@@ -96,7 +97,7 @@ grill 的產出只寫回 spec 本身（不產 ADR、glossary 或其他文件）�
 合併後立即在 `specs/retro-log.md` 回填一行（欄位：合併日、feature、通道、開工日、退回次數＝P3→P2＋P4→P2、打回次數＝P5→P4＋P5→P2、症狀分類、一句話備註）。症狀分類使用下方失效模式表的既有分類；新型症狀在失效模式表新增一列並在備註標注「新增」。
 
 - 快速／輕量通道與零退回零打回的任務同樣回填——前者偵測分流條件是否太寬，後者是打回率的分母。
-- 回填時數列數：**每累積 10 筆**，由回填該筆的人當週執行一次檢視（constitution 原則是否攔過違規、分流條件鬆緊、cycle time 是否惡化、grill-me 上游同步、附錄 B 條件）。
+- 檢視雙保險：**每累積 10 筆或滿一季**（先到者），由回填觸發筆的人當週執行一次檢視——繞過偵測（merged PR 數 − retro-log 新增列數，差值即繞過數）、constitution 原則與流程條款是否攔過違規（連續兩次零攔截 → 刪除候選）、分流條件鬆緊、cycle time 是否惡化、grill-me 上游同步、附錄 B 條件。
 
 **完成條件**：retro-log 已回填；若剛好是第 10n 筆，檢視已排入當週。
 
@@ -116,11 +117,12 @@ grill 的產出只寫回 spec 本身（不產 ADR、glossary 或其他文件）�
 | 做出來的不是想要的 | 檢查 grill 執行者是否獨立於 spec 作者（非作者主持／fresh-context agent） |
 | 回報完成但驗收失敗 | Phase 3 起驗收標準就要對應測試任務 |
 | spec 和程式碼對不上 | 執行「改需求必退 Phase 2」 |
-| 同一 feature 反覆退回繞圈 | 觸發熔斷：回 Phase 1 重寫或拆分 |
+| 同一 feature 反覆退回繞圈 | 觸發熔斷：強制拆分，糾纏部分回 Phase 1 重新定義 |
 | 測試存在但形同虛設 | 抽查「revert 實作測試須轉紅」；適用豁免就走豁免程序，不寫假測試 |
 | 成員產出品質落差 | PR review 檢查 spec 的 grill 檢核與 commit 歷史 |
 | 快速／輕量通道打回率升高 | 分流條件太寬，收緊任務類型白名單 |
 | 打回率漂亮但交付變慢 | 檢視 cycle time（開工日→合併日），放寬非關鍵關卡 |
+| 流程被私下繞過（retro-log 看不見） | 檢視時比對 merged PR 數與 retro-log 列數，差值擴大 → 優先刪流程 |
 | 測試都過但仍有安全／架構問題 | 缺獨立驗收——引入 ECC reviewer，條件見 [full-workflow.md](full-workflow.md) 附錄 B |
 
 ## 完整版文件

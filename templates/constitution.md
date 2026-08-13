@@ -75,6 +75,6 @@
 - 本 constitution 效力高於其他慣例文件；與 CLAUDE.md 或 skill 衝突時，以本文件為準。
 - 修訂須經 PR review，由上列核准人核准；修訂需附動機（通常是 PR 驗收中反覆出現的同類問題）。
 - 標註 NON-NEGOTIABLE 的原則，修訂需 <更高門檻，例：全隊同意>。
-- 檢視節奏採數據量驅動：retro-log 每累積 10 筆檢視一次（取代日曆制季檢，觸發規則見 team-workflow Phase 6）。連續兩次檢視未攔下任何違反的原則，評估是否已成空話、應精煉或移除。
+- 檢視節奏雙保險：retro-log 每累積 10 筆**或滿一季**，先到者觸發（規則見 team-workflow Phase 6）。連續兩次檢視未攔下任何違反的原則或流程條款，評估是否已成空話、應精煉或移除。
 
 **Version**: 0.1.0 | **Ratified**: <日期> | **Last Amended**: <日期>
