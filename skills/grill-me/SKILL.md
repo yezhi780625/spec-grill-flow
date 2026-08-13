@@ -3,7 +3,8 @@ name: grill-me
 description: 對一份計畫、spec 或設計進行不留情的逼問訪談，直到達成共同理解。本流程中主要用於 Phase 2：對著 spec 文件錘鍊。
 ---
 
-<!-- Vendored from mattpocock-skills (grill-me + grilling), MIT. 定期對照上游更新。 -->
+<!-- Vendored from mattpocock-skills (grill-me + grilling), MIT.
+     上游同步：每次 retro 檢視（retro-log 每累積 10 筆）時，由 Phase 0 指定的 owner 對照上游差異。 -->
 
 Interview the user relentlessly until you reach a shared understanding. Map this as a **design tree**: every decision branches into the decisions that hang off it.
 
@@ -25,6 +26,7 @@ The session is done when the frontier is empty: every branch of the design tree 
 
 ## 本流程的附加規則（team-workflow Phase 2）
 
+- **grill 執行者不得是 spec 作者**：team 模式由非作者成員主持；solo 模式由 fresh-context 的獨立 subagent 執行——只餵 spec 文件本身，不帶產生該 spec 的對話脈絡，prompt 明確指定挑錯立場。
 - 逼問對象是 spec 文件時，每一輪定案的答案**立即寫回 spec 並 commit**，再進下一輪——git log 即訪談紀錄。
 - 追問至少涵蓋四個維度：驗收標準可量測性、edge cases 與失敗路徑、需求矛盾、「不做什麼」。
 - 產出只寫回 spec 本身，不另產 ADR、glossary 或其他文件。

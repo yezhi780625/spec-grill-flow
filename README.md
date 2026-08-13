@@ -5,9 +5,12 @@
 ## 流程總覽
 
 ```
-分流 ─┬─ 完整通道：定義 → 錘鍊 → 規劃 → 實作 → 驗收 → Retro
-      └─ 快速通道：────────────────→ 實作 → 驗收 → Retro
+分流 ─┬─ 完整通道：[P1 定義] → [P2 錘鍊] → [P3 規劃] → [P4 實作] → [P5 驗收] → [P6 Retro]
+      ├─ 輕量通道：[P1+P2 寫入即錘鍊] ──→ [P3 簡化] → [P4 實作] → [P5 驗收] → [P6 Retro]
+      └─ 快速通道：──────────────────────────────→ [P4 實作] → [P5 驗收] → [P6 Retro]
 ```
+
+支援 Solo（個人＋AI，「非本人」角色由 fresh-context agent 代位）與 Team 兩種運作模式，內建退回熔斷與數據量驅動的 retro 檢視節奏。
 
 核心原則：spec 文件是唯一真相源。完整說明見 [skills/team-workflow/full-workflow.md](skills/team-workflow/full-workflow.md)。
 
@@ -24,7 +27,7 @@
 /spec-grill-flow:setup
 ```
 
-前置需求：Claude Code v2.1.219+（Opus 5 / Fable 5）、Node.js、Python 3.10+ 與 uv（spec-kit 用）。
+必要環境：Node.js、Python 3.10+ 與 uv（spec-kit 用）。建議配置：Claude Code v2.1.219+ 與 Opus 5 / Fable 5（setup 會先徵詢再套用模型設定，無對應存取權也能使用本流程）。
 
 ## 內容
 
@@ -35,4 +38,4 @@
 
 ## License
 
-MIT。grill-me skill 源自 mattpocock-skills（MIT），見檔內標注。
+MIT（見 [LICENSE](LICENSE)）。grill-me skill 源自 mattpocock-skills（MIT），見檔內標注。
