@@ -26,7 +26,7 @@ The session is done when the frontier is empty: every branch of the design tree 
 
 ## 本流程的附加規則（team-workflow Phase 2）
 
-- **grill 執行者不得是 spec 作者**：team 模式由非作者成員主持；solo 模式由 fresh-context 的獨立 subagent 執行——受審對象是 spec 文件本身，不帶產生該 spec 的對話脈絡（repo 與事實查證照常可用），prompt 明確指定挑錯立場。
+- **grill 執行者不得是 spec 作者**，依通道決定：完整通道且專案有真人時由非作者成員主持（兼知識擴散）；其餘（輕量通道或無真人）由 fresh-context 的獨立 subagent 執行——受審對象是 spec 文件本身，不帶產生該 spec 的對話脈絡（repo 與事實查證照常可用），prompt 明確指定挑錯立場。
 - 逼問對象是 spec 文件時，每一輪定案的答案**立即寫回 spec 並 commit**，再進下一輪——git log 即訪談紀錄。
 - 作者可駁回追問，但被駁回的追問記入 spec 的「未解事項」段——不得刪除，Phase 5 reviewer 會檢視。
 - 追問至少涵蓋四個維度：驗收標準可量測性、edge cases 與失敗路徑、需求矛盾、「不做什麼」。

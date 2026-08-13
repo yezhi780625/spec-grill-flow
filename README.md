@@ -10,7 +10,7 @@
       └─ 快速通道：──────────────────────────────→ [P4 實作] → [P5 驗收] → [P6 Retro]
 ```
 
-支援 Solo（個人＋AI，「非本人」角色由 fresh-context agent 代位）與 Team 兩種運作模式，內建退回熔斷與數據量驅動的 retro 檢視節奏。
+Phase 0 宣告專案有無真人協作者，何時用人由分流決定——完整通道真人 grill（兼知識擴散）、輕量通道與無真人時由 fresh-context agent 代位。內建退回熔斷與數據量驅動的 retro 檢視節奏。
 
 核心原則：spec 文件是唯一真相源。完整說明見 [skills/team-workflow/full-workflow.md](skills/team-workflow/full-workflow.md)。
 

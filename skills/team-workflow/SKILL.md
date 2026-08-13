@@ -13,14 +13,14 @@ description: 團隊 AI 交辦任務流程（Spec-Kit + grill + Superpowers）。
       └─ 快速通道：──────────────────────→ 實作 → 驗收 → Retro
 ```
 
-**運作模式**（Phase 0 已宣告，見 constitution Governance）：Team 模式的「非本人」角色由真人擔任；Solo 模式由 **fresh-context 獨立 subagent** 代位——可自由讀取 repo，但不共享產生受審產物的對話脈絡，prompt 指定挑錯立場。
+**人力與 grill 執行者**（Phase 0 宣告專案有無真人；用不用人由分流決定）：完整通道且有真人 → 真人 grill（非作者主持，兼知識擴散——同事從此知道這個 feature 為什麼存在，AI 無法替代）；其餘 → **fresh-context 獨立 subagent** 代位——可自由讀取 repo，但不共享產生受審產物的對話脈絡，prompt 指定挑錯立場。通道升級時 grill 執行者自動升級。
 
 ## 分流（每個任務的第一步）
 
 依**任務性質**判斷，不需先讀完 spec 預測差異。猶豫時一律選更完整的通道：
 
 - **快速通道**：任務是 typo／依賴升級／bug fix（回到 spec 已描述的行為）／不改外部行為的重構，且不引入新依賴、不新增抽象層 → 直接進 Phase 4。「約 3 個檔案」是絆線非門檻：事前免精算，PR diff 超過 3 檔時由 reviewer 判斷是否升級。
-- **輕量通道**：只新增或修改 **1 條**驗收標準，不引入新依賴、不新增抽象層 → 直接在 spec 增修該條並 commit，立刻只針對它跑 grill 四維度各至少一問（執行者規則同 Phase 2），tasks 補一條含測試任務的描述（免完整 plan），進 Phase 4。
+- **輕量通道**：只新增或修改 **1 條**驗收標準，不引入新依賴、不新增抽象層 → 直接在 spec 增修該條並 commit，立刻只針對它跑 grill 四維度各至少一問（AI 代位執行），tasks 補一條含測試任務的描述（免完整 plan），進 Phase 4。
 - **完整通道**：其餘一切（新 feature、動多條標準、新依賴／抽象層、拿不準）→ Phase 1 起走完。
 
 **升級規則（單向）**：進行中發現超出通道資格——立即停手，升級（快速→輕量或完整；輕量→完整）。**已寫的測試與程式碼不作廢**，帶入 Phase 4 繼續，只回頭補 spec 與規劃。猶豫一律升級，不得反向降級。
@@ -33,7 +33,7 @@ description: 團隊 AI 交辦任務流程（Spec-Kit + grill + Superpowers）。
 
 ## Phase 2：錘鍊（grill）
 
-**執行者不得是 spec 作者**（team：他人主持；solo：fresh-context subagent，不帶 Phase 1 對話脈絡、repo 可查、adversarial 立場）。用 `grill-me` 對著 spec 逼問，每一輪修正**直接改 spec 並 commit**——git log 就是訪談紀錄。追問至少涵蓋：
+**執行者不得是 spec 作者**——完整通道且有真人：非作者成員主持；其餘：fresh-context subagent（不帶 Phase 1 對話脈絡、repo 可查、adversarial 立場）。用 `grill-me` 對著 spec 逼問，每一輪修正**直接改 spec 並 commit**——git log 就是訪談紀錄。追問至少涵蓋：
 
 - 每條驗收標準怎麼量測？由誰／什麼工具判定通過？
 - Edge cases 與失敗路徑列了嗎？
@@ -70,7 +70,7 @@ grill 的產出只寫回 spec 本身（不產 ADR、glossary 或其他文件）�
 
 ## Phase 5：驗收
 
-開 PR，reviewer（非實作者本人；solo 模式由 fresh-context agent 代位，可自由讀取 repo、僅不帶實作過程的對話脈絡）將 spec 驗收標準貼入 PR 逐條驗收：
+開 PR，reviewer（非實作者本人；無真人可用時由 fresh-context agent 代位，可自由讀取 repo、僅不帶實作過程的對話脈絡）將 spec 驗收標準貼入 PR 逐條驗收：
 
 ```markdown
 ## Spec 驗收（對照 specs/xxx/spec.md）
@@ -89,7 +89,7 @@ grill 的產出只寫回 spec 本身（不產 ADR、glossary 或其他文件）�
 
 ## 退回與熔斷
 
-- 同一 feature **累計退回 Phase 2 達 2 次** → 熔斷：停止流程，**強制拆分**——已想清楚的部分保留成獨立 spec 續行，只把糾纏不清的部分回 Phase 1 重新定義（team：拆分決策拉高為專案級討論；solo：換 fresh agent 從問題定義主導拆分）。retro 症狀記「熔斷」。
+- 同一 feature **累計退回 Phase 2 達 2 次** → 熔斷：停止流程，**強制拆分**——已想清楚的部分保留成獨立 spec 續行，只把糾纏不清的部分回 Phase 1 重新定義（有真人：拆分決策拉高為專案級討論；無真人：換 fresh agent 從問題定義主導拆分）。retro 症狀記「熔斷」。
 - **Phase 5→4 打回達 2 次** → 第三次實作前強制先做根因分析並寫入 PR。
 
 ## Phase 6：Retro（合併後，2 分鐘內完成）

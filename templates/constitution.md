@@ -63,15 +63,15 @@
 
 | Gate | 放行條件 | 依據原則 |
 |---|---|---|
-| specify → plan | grill 檢核四項全勾，且 grill 由非作者（team）或 fresh-context agent（solo）執行 | III |
+| specify → plan | grill 檢核四項全勾，且 grill 執行者符合通道規則（完整通道有真人則非作者真人主持；否則 fresh-context agent） | III |
 | plan → tasks | 新增複雜度皆附書面理由 | V |
 | tasks → implement | 每條驗收標準有對應測試任務 | I, II |
 | implement → merge | 驗收清單全勾、由非實作者 review | II, IV |
 
 ## Governance
 
-- **運作模式**：<Solo（個人＋AI）或 Team>。Solo 模式下所有「非作者／非實作者」角色由 fresh-context 獨立 AI agent 代位（代位規則見 team-workflow skill）。
-- **Owner**（Phase 0 填齊，不留空）：constitution 修訂核准人 <姓名>；grill-me 上游同步 <姓名>；ECC agent（若引入）<姓名>。Solo 模式三者皆為本人，職責由 retro 檢視節奏觸發。
+- **人力宣告**：<專案有／無真人協作者>。用不用人由分流決定：完整通道且有真人時，grill 由非作者真人主持（兼知識擴散）；其餘場合由 fresh-context 獨立 AI agent 代位（規則見 team-workflow skill）。
+- **Owner**（Phase 0 填齊，不留空）：constitution 修訂核准人 <姓名>；grill-me 上游同步 <姓名>；ECC agent（若引入）<姓名>。無真人協作者時三者皆為本人，職責由 retro 檢視節奏觸發。
 - 本 constitution 效力高於其他慣例文件；與 CLAUDE.md 或 skill 衝突時，以本文件為準。
 - 修訂須經 PR review，由上列核准人核准；修訂需附動機（通常是 PR 驗收中反覆出現的同類問題）。
 - 標註 NON-NEGOTIABLE 的原則，修訂需 <更高門檻，例：全隊同意>。
