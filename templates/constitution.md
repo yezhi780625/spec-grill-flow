@@ -1,6 +1,6 @@
 # 專案 Constitution
 
-> **用法**：把本檔放到 `.specify/memory/constitution.md` 直接使用，或作為 `/speckit.constitution` 的輸入讓 agent 填合專案脈絡。
+> **用法**：把本檔放到 `.specify/memory/constitution.md` 直接使用，或作為 `/speckit-constitution` 的輸入讓 agent 填合專案脈絡。
 > 每條原則採「Rule（規則）→ Rationale（理由）→ Verification（如何判定違反）」三段式。
 > Rule 寫給 agent 執行，Verification 寫給 reviewer 判定——**寫不出 Verification 的原則就是空話，不要收錄**。
 > `<角括號>` 為需依專案填寫的參數。
@@ -24,7 +24,7 @@
 
 ### III. Grill Gate
 
-**Rule**：spec 通過 grill 檢核四項（驗收標準可量測／edge cases 與失敗路徑已列／無矛盾需求／「不做什麼」已明確）並全數勾選後，才得執行 `/speckit.plan`。
+**Rule**：spec 通過 grill 檢核四項（驗收標準可量測／edge cases 與失敗路徑已列／無矛盾需求／「不做什麼」已明確）並全數勾選後，才得執行 `/speckit-plan`。
 **Rationale**：模板只保證格式完整，不保證想法正確；grill 是 spec 品質的唯一壓力測試。
 **Verification**：spec 文件頂部檢核清單四項全勾，且 git log 顯示 grill 修正的 commit 歷史。無修正紀錄的「一次過」spec 應被質疑。
 

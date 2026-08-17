@@ -80,12 +80,12 @@ Phase 0 只宣告一件事：**專案有沒有可用的真人協作者**。用�
 ## Phase 0：專案初始化（一次性）
 
 1. `specify init` 建立專案骨架。
-2. `/speckit.constitution` 定義專案原則，至少包含：
+2. `/speckit-constitution` 定義專案原則，至少包含：
    - 核心函式必須附單元測試（測試先於實作，豁免條款見 constitution I）
    - 每條驗收標準必須可量測（可自動驗證優先）
    - Spec 未通過 grill 檢核不得進入 plan 階段
 3. 安裝 Superpowers plugin；在 CLAUDE.md 明確寫入：
-   - 「Spec 與 plan 一律使用 /speckit.* 指令，**禁用** /brainstorm 與 /write-plan」
+   - 「Spec 與 plan 一律使用 /speckit-* 指令（spec-kit ≥0.8.10 的 skill 形式），**禁用** /brainstorm 與 /write-plan」
    - 「Superpowers 僅負責實作階段（TDD、除錯、執行）」
 4. 從 mattpocock-skills 只抽 `grill-me` 一個 skill 放入團隊的 `.claude/skills/`，**不安裝整包**（to-spec、tdd、code-review 等與現有工具職責重疊）。
 5. 在 PR template 加入 spec 驗收清單區塊（見 Phase 5）。
@@ -97,7 +97,7 @@ Phase 0 只宣告一件事：**專案有沒有可用的真人協作者**。用�
 
 **負責人**：需求發起者（工程師或 PM）
 
-1. 執行 `/speckit.specify`，把原始需求丟進去，產出 spec 草稿。
+1. 執行 `/speckit-specify`，把原始需求丟進去，產出 spec 草稿。
 2. 草稿 commit 進 feature branch——**先有文件，再有討論**。
 
 > 此時的 spec 只是「格式化的初稿」，品質未經檢驗，不得直接進入 Phase 3。
@@ -138,8 +138,8 @@ Phase 0 只宣告一件事：**專案有沒有可用的真人協作者**。用�
 
 **負責人**：實作者
 
-1. `/speckit.plan` 產出技術計畫（架構選擇、依賴、資料流）。
-2. `/speckit.tasks` 拆解為可交辦的任務清單。
+1. `/speckit-plan` 產出技術計畫（架構選擇、依賴、資料流）。
+2. `/speckit-tasks` 拆解為可交辦的任務清單。
 3. Plan 與 tasks 一併 commit。若 plan 過程發現 spec 有洞 → **退回 Phase 2 補 grill**，改完 spec 再回來（退回計數見「退回與熔斷」）。
 
 ---
@@ -232,7 +232,7 @@ owner 不是頭銜，是「觸發筆的人執行」這個機制。
 
 | 動作 | 用什麼 | 禁用什麼 |
 |---|---|---|
-| 產 spec / plan / tasks | `/speckit.*` | Superpowers 的 /brainstorm、/write-plan |
+| 產 spec / plan / tasks | `/speckit-*` | Superpowers 的 /brainstorm、/write-plan |
 | 錘鍊需求 | grill-me（對 spec 文件） | grill-with-docs（會另產文件） |
 | 實作、TDD、除錯 | Superpowers | mattpocock 的 tdd／diagnosing-bugs |
 | 驗收 | PR spec 對照清單 | — |

@@ -27,7 +27,7 @@ description: 團隊 AI 交辦任務流程（Spec-Kit + grill + Superpowers）。
 
 ## Phase 1：定義
 
-用 `/speckit.specify` 把原始需求產成 spec 草稿，commit 進 feature branch。
+用 `/speckit-specify` 把原始需求產成 spec 草稿，commit 進 feature branch。
 
 **完成條件**：spec 草稿已 commit。此時 spec 未經檢驗，直接進 Phase 3 是流程違規。
 
@@ -54,7 +54,7 @@ grill 的產出只寫回 spec 本身（不產 ADR、glossary 或其他文件）�
 
 ## Phase 3：規劃
 
-`/speckit.plan` 產技術計畫 → `/speckit.tasks` 拆任務，一併 commit。過程中發現 spec 有洞 → 退回 Phase 2 補 grill 後再回來（計入退回次數）。
+`/speckit-plan` 產技術計畫 → `/speckit-tasks` 拆任務，一併 commit。過程中發現 spec 有洞 → 退回 Phase 2 補 grill 後再回來（計入退回次數）。
 
 **完成條件**：每條驗收標準在 tasks 中有對應的測試任務。
 
@@ -105,7 +105,7 @@ grill 的產出只寫回 spec 本身（不產 ADR、glossary 或其他文件）�
 
 | 動作 | 用 | 附註 |
 |---|---|---|
-| spec / plan / tasks | `/speckit.*` | Superpowers 的 /brainstorm、/write-plan 不在本流程使用 |
+| spec / plan / tasks | `/speckit-*` | Superpowers 的 /brainstorm、/write-plan 不在本流程使用 |
 | 錘鍊需求 | `grill-me` 對 spec 文件 | 產出只寫回 spec |
 | 實作、TDD、除錯 | Superpowers | — |
 | 品質門檻 | `.specify/memory/constitution.md` | speckit 各階段自動引用 |
