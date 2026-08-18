@@ -1,0 +1,14 @@
+{
+  "repo": "mattpocock/skills",
+  "note": "grill-me skill vendored 自上游。此檔記錄上次人工對照過的上游 commit;GitHub Actions 每週比對,有差異時開 issue 提醒。完成對照後請手動把 sha 更新為對照到的版本。",
+  "paths": [
+    {
+      "path": "skills/productivity/grill-me",
+      "sha": "fcf0071560d32913c9d4f820e0d7ca467c881619"
+    },
+    {
+      "path": "skills/productivity/grilling",
+      "sha": "86cba45f4244b2545112d13e77ba82eb2bfad325"
+    }
+  ]
+}

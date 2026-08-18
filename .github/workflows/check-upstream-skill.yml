@@ -1,0 +1,67 @@
+name: Check upstream skill updates
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'   # 每週一 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compare pinned upstream SHAs
+        id: compare
+        run: |
+          baseline=skills/grill-me/.upstream.json
+          repo=$(jq -r .repo "$baseline")
+          changed=""
+          while IFS= read -r row; do
+            path=$(echo "$row" | jq -r .path)
+            pinned=$(echo "$row" | jq -r .sha)
+            latest=$(curl -sf "https://api.github.com/repos/$repo/commits?path=$path&per_page=1" | jq -r '.[0].sha // empty')
+            if [ -z "$latest" ]; then
+              echo "::warning::無法取得 $repo/$path 的最新 commit,略過"
+              continue
+            fi
+            if [ "$latest" != "$pinned" ]; then
+              changed="$changed- \`$path\`:\`${pinned:0:7}\` → \`${latest:0:7}\`([diff](https://github.com/$repo/compare/$pinned...$latest))"$'\n'
+            fi
+          done < <(jq -c '.paths[]' "$baseline")
+
+          if [ -n "$changed" ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            {
+              echo "body<<EOF"
+              echo "上游 \`$repo\` 的 vendored 來源有新 commit:"
+              echo ""
+              echo "$changed"
+              echo "請對照差異,決定是否吸收進 \`skills/grill-me/SKILL.md\`,完成後更新 \`skills/grill-me/.upstream.json\` 的 sha 並關閉本 issue。"
+              echo "EOF"
+            } >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "上游無變更"
+          fi
+
+      - name: Open issue if changed
+        if: steps.compare.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BODY: ${{ steps.compare.outputs.body }}
+        run: |
+          gh label create upstream-sync --description "vendored skill 上游有更新" --color FBCA04 --force || true
+          existing=$(gh issue list --label upstream-sync --state open --json number --jq 'length')
+          if [ "$existing" -gt 0 ]; then
+            echo "已有 open 的 upstream-sync issue,不重複開"
+            exit 0
+          fi
+          gh issue create \
+            --title "grill-me skill 上游有更新" \
+            --label upstream-sync \
+            --body "$BODY"

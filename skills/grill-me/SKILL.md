@@ -4,7 +4,8 @@ description: 對一份計畫、spec 或設計進行不留情的逼問訪談，�
 ---
 
 <!-- Vendored from mattpocock-skills (grill-me + grilling), MIT.
-     上游同步：每次 retro 檢視（每 10 筆或每季，先到者）時，由 Phase 0 指定的 owner 對照上游差異。 -->
+     上游同步：GitHub Actions（.github/workflows/check-upstream-skill.yml）每週比對 .upstream.json 釘住的
+     commit，有差異即開 issue；由 Phase 0 指定的 owner 對照差異，決定是否吸收，完成後更新 .upstream.json。 -->
 
 Interview the user relentlessly until you reach a shared understanding. Map this as a **design tree**: every decision branches into the decisions that hang off it.
 
