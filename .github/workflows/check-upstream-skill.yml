@@ -70,8 +70,8 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           show_full_output: 'true'
           claude_args: |
-            --max-turns 30
-            --allowedTools "Read,Write,Edit,Glob,Grep,Bash(git:*),Bash(gh:*),Bash(curl:*),Bash(jq:*)"
+            --max-turns 60
+            --allowedTools "Read,Write,Edit,Glob,Grep,WebFetch,Bash"
           prompt: |
             上游 vendored 來源有新 commit:
 
