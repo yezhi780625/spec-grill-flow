@@ -68,9 +68,10 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          show_full_output: 'true'
           claude_args: |
             --max-turns 30
-            --allowedTools "Bash(git:*),Bash(gh:*),Bash(curl:*),Bash(jq:*)"
+            --allowedTools "Read,Write,Edit,Glob,Grep,Bash(git:*),Bash(gh:*),Bash(curl:*),Bash(jq:*)"
           prompt: |
             上游 vendored 來源有新 commit:
 
