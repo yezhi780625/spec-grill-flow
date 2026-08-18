@@ -92,10 +92,6 @@ jobs:
                PR 描述必須說明:上游改了什麼、吸收了什麼、略過了什麼與原因,
                讓 reviewer 不用自己去讀上游 diff。
 
-      - name: Dump Claude execution log on failure
-        if: failure()
-        run: cat /home/runner/work/_temp/claude-execution-output.json || true
-
       - name: Fallback issue if automation failed
         if: failure() && steps.compare.outputs.changed == 'true'
         env:
