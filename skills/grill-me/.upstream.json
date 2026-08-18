@@ -1,6 +1,6 @@
 {
   "repo": "mattpocock/skills",
-  "note": "grill-me skill vendored 自上游。此檔記錄上次人工對照過的上游 commit;GitHub Actions 每週比對,有差異時開 issue 提醒。完成對照後請手動把 sha 更新為對照到的版本。",
+  "note": "grill-me skill vendored 自上游。此檔記錄上次對照過的上游 commit;GitHub Actions 每週比對,有差異時由 Claude 自動改寫並開 PR(PR 內一併更新此處 sha),失敗則退回開 issue 由人工處理。",
   "paths": [
     {
       "path": "skills/productivity/grill-me",

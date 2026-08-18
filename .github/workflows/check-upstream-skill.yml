@@ -6,7 +6,8 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
+  pull-requests: write
   issues: write
 
 jobs:
@@ -30,18 +31,15 @@ jobs:
               continue
             fi
             if [ "$latest" != "$pinned" ]; then
-              changed="$changed- \`$path\`:\`${pinned:0:7}\` → \`${latest:0:7}\`([diff](https://github.com/$repo/compare/$pinned...$latest))"$'\n'
+              changed="$changed- \`$path\`:pinned \`$pinned\` → latest \`$latest\`(diff:https://github.com/$repo/compare/$pinned...$latest)"$'\n'
             fi
           done < <(jq -c '.paths[]' "$baseline")
 
           if [ -n "$changed" ]; then
             echo "changed=true" >> "$GITHUB_OUTPUT"
             {
-              echo "body<<EOF"
-              echo "上游 \`$repo\` 的 vendored 來源有新 commit:"
-              echo ""
+              echo "summary<<EOF"
               echo "$changed"
-              echo "請對照差異,決定是否吸收進 \`skills/grill-me/SKILL.md\`,完成後更新 \`skills/grill-me/.upstream.json\` 的 sha 並關閉本 issue。"
               echo "EOF"
             } >> "$GITHUB_OUTPUT"
           else
@@ -49,11 +47,54 @@ jobs:
             echo "上游無變更"
           fi
 
-      - name: Open issue if changed
+      - name: Skip if a sync PR is already open
+        id: dedupe
         if: steps.compare.outputs.changed == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
-          BODY: ${{ steps.compare.outputs.body }}
+        run: |
+          gh label create upstream-sync --description "vendored skill 上游有更新" --color FBCA04 --force || true
+          open_prs=$(gh pr list --label upstream-sync --state open --json number --jq 'length')
+          if [ "$open_prs" -gt 0 ]; then
+            echo "已有 open 的 upstream-sync PR,本次不重複處理"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Claude adapts vendored skill and opens PR
+        if: steps.compare.outputs.changed == 'true' && steps.dedupe.outputs.skip == 'false'
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          claude_args: |
+            --max-turns 30
+            --allowedTools "Bash(git:*),Bash(gh:*),Bash(curl:*),Bash(jq:*)"
+          prompt: |
+            上游 vendored 來源有新 commit:
+
+            ${{ steps.compare.outputs.summary }}
+
+            本地檔 skills/grill-me/SKILL.md 是上游 mattpocock/skills 的 grill-me + grilling
+            兩個 skill 的中文化合併改寫版。你的任務:
+
+            1. 用 `gh api` 或 `curl` 取得上面 diff 連結中的上游變更內容。
+            2. 對照本地 skills/grill-me/SKILL.md,判斷哪些上游變更值得吸收。硬性限制:
+               必須保留中文 metadata(frontmatter 的 description)、
+               「## 本流程的附加規則(team-workflow Phase 2)」整段,
+               以及本地的全形標點風格。純標點或措辭微調若不影響語意可略過不吸收。
+            3. 把值得吸收的變更改寫進本地檔;無論吸收與否,都把
+               skills/grill-me/.upstream.json 中對應路徑的 sha 更新為上面列出的 latest SHA。
+            4. 建立以 upstream-sync/ 開頭的分支,commit(訊息風格參照 git log),
+               然後用 `gh pr create --label upstream-sync` 開 PR。
+               PR 描述必須說明:上游改了什麼、吸收了什麼、略過了什麼與原因,
+               讓 reviewer 不用自己去讀上游 diff。
+
+      - name: Fallback issue if automation failed
+        if: failure() && steps.compare.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SUMMARY: ${{ steps.compare.outputs.summary }}
         run: |
           gh label create upstream-sync --description "vendored skill 上游有更新" --color FBCA04 --force || true
           existing=$(gh issue list --label upstream-sync --state open --json number --jq 'length')
@@ -62,6 +103,6 @@ jobs:
             exit 0
           fi
           gh issue create \
-            --title "grill-me skill 上游有更新" \
+            --title "grill-me skill 上游有更新(自動開 PR 失敗)" \
             --label upstream-sync \
-            --body "$BODY"
+            --body "$(printf '上游有新 commit,但 Claude 自動開 PR 的步驟失敗,請人工對照:\n\n%s\n完成後更新 skills/grill-me/.upstream.json 的 sha 並關閉本 issue。' "$SUMMARY")"

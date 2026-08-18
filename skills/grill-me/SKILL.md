@@ -5,7 +5,7 @@ description: 對一份計畫、spec 或設計進行不留情的逼問訪談，�
 
 <!-- Vendored from mattpocock-skills (grill-me + grilling), MIT.
      上游同步：GitHub Actions（.github/workflows/check-upstream-skill.yml）每週比對 .upstream.json 釘住的
-     commit，有差異即開 issue；由 Phase 0 指定的 owner 對照差異，決定是否吸收，完成後更新 .upstream.json。 -->
+     commit，有差異時由 Claude 自動改寫並開 PR（失敗則退回開 issue）；由 Phase 0 指定的 owner review 該 PR。 -->
 
 Interview the user relentlessly until you reach a shared understanding. Map this as a **design tree**: every decision branches into the decisions that hang off it.
 
