@@ -87,7 +87,7 @@ Phase 0 只宣告一件事：**專案有沒有可用的真人協作者**。用�
 3. 安裝 Superpowers plugin；在 CLAUDE.md 明確寫入：
    - 「Spec 與 plan 一律使用 /speckit-* 指令（spec-kit ≥0.8.10 的 skill 形式），**禁用** /brainstorm 與 /write-plan」
    - 「Superpowers 僅負責實作階段（TDD、除錯、執行）」
-4. 從 mattpocock-skills 只抽 `grill-me` 一個 skill 放入團隊的 `.claude/skills/`，**不安裝整包**（to-spec、tdd、code-review 等與現有工具職責重疊）。
+4. `grill-me` skill 已 vendored 於本 plugin（`skills/grill-me/`，附 `.upstream.json`，CI 每週比對上游、有差異自動開 PR），安裝 plugin 即有。**勿再手動從 mattpocock-skills 複製進專案的 `.claude/skills/`**——那會形成第二份不受 CI 同步保護的複本，違反單一真相源；也**不安裝 mattpocock-skills 整包**（to-spec、tdd、code-review 等與現有工具職責重疊）。
 5. 在 PR template 加入 spec 驗收清單區塊（見 Phase 5）。
 6. **宣告人力與 owner**：在 constitution 的 Governance 段寫明專案有無真人協作者（用不用人由分流決定，見「人力宣告」），並填齊三個 owner——constitution 修訂核准人、grill-me 上游同步 owner、（若日後引入）ECC agent owner。無真人時三者皆為本人；owner 的職責統一由 retro 檢視節奏觸發（見 Phase 6），不靠自覺。
 
@@ -234,7 +234,7 @@ owner 不是頭銜，是「觸發筆的人執行」這個機制。
 |---|---|---|
 | 產 spec / plan / tasks | `/speckit-*` | Superpowers 的 /brainstorm、/write-plan |
 | 錘鍊需求 | grill-me（對 spec 文件） | grill-with-docs（會另產文件） |
-| 實作、TDD、除錯 | Superpowers | mattpocock 的 tdd／diagnosing-bugs |
+| 實作、TDD、除錯 | Superpowers | mattpocock-skills 的 tdd／diagnosing-bugs（整包本就不安裝，見 Phase 0） |
 | 驗收 | PR spec 對照清單 | — |
 
 ## 附錄 B：ECC reviewer 引入條件（第二階段）
