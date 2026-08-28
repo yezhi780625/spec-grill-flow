@@ -8,14 +8,23 @@ description: 團隊 AI 交辦任務流程（Spec-Kit + grill + Superpowers）。
 > 本檔是濃縮版；與 [full-workflow.md](full-workflow.md) 不一致時，以 full-workflow.md 為準。
 
 ```
-分流 ─┬─ 完整通道：定義 → 錘鍊 → 規劃 → 實作 → 驗收 → Retro
-      ├─ 輕量通道：寫入即錘鍊 ──→ 簡化規劃 → 實作 → 驗收 → Retro
-      └─ 快速通道：──────────────────────→ 實作 → 驗收 → Retro
+提案（feature request／PRD／自發 feature）── steelman（挖目標→確認）──確認──┐ （撤回／擋下：記「攔下」）
+回報與無新行為任務（bug fix／typo／重構…）───────────────────────────────┤
+                                                                         ▼
+                                     分流 ─┬─ 完整通道：定義 → 錘鍊 → 規劃 → 實作 → 驗收 → Retro
+                                           ├─ 輕量通道：寫入即錘鍊 ──→ 簡化規劃 → 實作 → 驗收 → Retro
+                                           └─ 快速通道：──────────────────────→ 實作 → 驗收 → Retro
 ```
 
 **人力與 grill 執行者**（Phase 0 宣告專案有無真人；用不用人由分流決定）：完整通道且有真人 → 真人 grill（非作者主持，兼知識擴散——同事從此知道這個 feature 為什麼存在，AI 無法替代）；其餘 → **fresh-context 獨立 subagent** 代位——可自由讀取 repo，但不共享產生受審產物的對話脈絡，prompt 指定挑錯立場。通道升級時 grill 執行者自動升級。
 
-## 分流（每個任務的第一步）
+## 目標確認（分流之前，僅限提案）
+
+只攔**提案**（要求新行為：feature request、PRD、方案性需求、內部自發 feature），不攔**回報**。判別式：對方期望的行為，spec（或現有明確行為）已描述了嗎？已描述 → bug 回報，目標自明，免跑直接分流（即快速通道的 bug fix）；未描述 → 是包裝成 bug 的需求變更，照跑。拿不準 → 跑（成本只是一則回覆）。內部無新行為任務（typo、重構等）同樣免跑。
+
+提案先跑 `steelman-requirement`：挖出需求背後的目標、重建最強版本、給意見、以確認句核對目標（由 RD 向 PM 代為轉達——是轉達不是代拍板）。本站不裁決「該不該做」（那是產品決策，RD 無否決權），保證的是**目標確認完成才寫 spec**：目標已確認 → 進分流，「需求背後的目標」段落隨需求原文帶入 Phase 1 作 spec 動機雛形，未被採納的疑慮以「已知取捨」寫入 spec 未解事項；目標未確認 → 不寫 spec。PM 經 steelman 後撤回或改寫需求，或內部提案被擋下（內部自發 feature 保留擋下語義——RD 有裁量權；其 steelman 執行者不得是提案者本人：同事或 fresh-context subagent 代位）→ retro-log 回填一行（通道「攔下」、觸發條款「steelman」）。steelman 確立「為什麼做」，不取代 Phase 2 grill 的「怎麼做才驗收得了」——不可互抵。
+
+## 分流（每個任務的第一步；提案先過目標確認）
 
 依**任務性質**判斷，不需先讀完 spec 預測差異。猶豫時一律選更完整的通道：
 
@@ -27,7 +36,7 @@ description: 團隊 AI 交辦任務流程（Spec-Kit + grill + Superpowers）。
 
 ## Phase 1：定義
 
-用 `/speckit-specify` 把原始需求產成 spec 草稿，commit 進 feature branch。
+用 `/speckit-specify` 把原始需求產成 spec 草稿，commit 進 feature branch。經目標確認的任務，把 steelman 定案的「需求背後的目標」段落連同需求原文一起輸入，作為 spec 動機雛形。
 
 **完成條件**：spec 草稿已 commit。此時 spec 未經檢驗，直接進 Phase 3 是流程違規。
 
@@ -97,7 +106,7 @@ grill 的產出只寫回 spec 本身（不產 ADR、glossary 或其他文件）�
 合併後立即在 `specs/retro-log.md` 回填一行（欄位：合併日、feature、通道、開工日、退回次數＝P3→P2＋P4→P2、打回次數＝P5→P4＋P5→P2、觸發條款＝本次真正攔下問題或改變決定的條款（絆線／豁免／熔斷／未解事項／grill 修正，無則留空）、症狀分類、一句話備註）。症狀分類使用下方失效模式表的既有分類；新型症狀在失效模式表新增一列並在備註標注「新增」。
 
 - 快速／輕量通道與零退回零打回的任務同樣回填——前者偵測分流條件是否太寬，後者是打回率的分母。
-- 檢視雙保險：**每累積 10 筆或滿一季**（先到者），由回填觸發筆的人當週執行一次檢視——繞過偵測（merged feature PR 數 − retro-log 新增列數，分子排除自動化／docs-only／revert／CI 修正）、條款有效性（以「觸發條款」欄為準，連續兩次零觸發 → 刪除候選）、分流條件鬆緊、cycle time 是否惡化、grill-me 上游同步、附錄 B 條件。
+- 檢視雙保險：**每累積 10 筆或滿一季**（先到者），由回填觸發筆的人當週執行一次檢視——繞過偵測（merged feature PR 數 − retro-log 新增列數，分子排除自動化／docs-only／revert／CI 修正，列數排除「攔下」列）、條款有效性（以「觸發條款」欄為準，連續兩次零觸發 → 刪除候選）、分流條件鬆緊、cycle time 是否惡化、grill-me 上游同步、附錄 B 條件。
 
 **完成條件**：retro-log 已回填；若剛好是第 10n 筆，檢視已排入當週。
 
@@ -105,6 +114,7 @@ grill 的產出只寫回 spec 本身（不產 ADR、glossary 或其他文件）�
 
 | 動作 | 用 | 附註 |
 |---|---|---|
+| 目標確認（分流前） | `steelman-requirement` 對提案 | bug 回報免；「需求背後的目標」帶入 spec 動機 |
 | spec / plan / tasks | `/speckit-*` | Superpowers 的 /brainstorm、/write-plan 不在本流程使用 |
 | 錘鍊需求 | `grill-me` 對 spec 文件 | 產出只寫回 spec |
 | 實作、TDD、除錯 | Superpowers | — |
@@ -114,6 +124,7 @@ grill 的產出只寫回 spec 本身（不產 ADR、glossary 或其他文件）�
 
 | 症狀 | 對策 |
 |---|---|
+| 把解決方案當目標，做完才發現不是 PM 要的 | 提案一律先過目標確認（`steelman-requirement`）；「bug」但 spec 未描述該期望行為 → 視為提案照跑 |
 | 做出來的不是想要的 | 檢查 grill 執行者是否獨立於 spec 作者（非作者主持／fresh-context agent） |
 | 回報完成但驗收失敗 | Phase 3 起驗收標準就要對應測試任務 |
 | spec 和程式碼對不上 | 執行「改需求必退 Phase 2」 |

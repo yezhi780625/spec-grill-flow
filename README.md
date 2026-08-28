@@ -1,13 +1,16 @@
 # spec-grill-flow
 
-團隊 AI 交辦任務流程 plugin：**Spec-Kit**（文件骨架）＋ **grill**（需求錘鍊）＋ **Superpowers**（實作紀律），含分流快速通道與合併後 retro。
+團隊 AI 交辦任務流程 plugin：**steelman**（目標確認）＋ **Spec-Kit**（文件骨架）＋ **grill**（需求錘鍊）＋ **Superpowers**（實作紀律），含分流快速通道與合併後 retro。
 
 ## 流程總覽
 
 ```
-分流 ─┬─ 完整通道：[P1 定義] → [P2 錘鍊] → [P3 規劃] → [P4 實作] → [P5 驗收] → [P6 Retro]
-      ├─ 輕量通道：[P1+P2 寫入即錘鍊] ──→ [P3 簡化] → [P4 實作] → [P5 驗收] → [P6 Retro]
-      └─ 快速通道：──────────────────────────────→ [P4 實作] → [P5 驗收] → [P6 Retro]
+提案（feature request／PRD／自發 feature）──[目標確認 steelman：挖目標→PM 確認]──┐ （撤回／擋下：記「攔下」）
+回報與無新行為任務（bug fix／typo／重構…）───────────────────────────────────────┤
+                                                                                 ▼
+                                             分流 ─┬─ 完整通道：[P1 定義] → [P2 錘鍊] → [P3 規劃] → [P4 實作] → [P5 驗收] → [P6 Retro]
+                                                   ├─ 輕量通道：[P1+P2 寫入即錘鍊] ──→ [P3 簡化] → [P4 實作] → [P5 驗收] → [P6 Retro]
+                                                   └─ 快速通道：──────────────────────────────→ [P4 實作] → [P5 驗收] → [P6 Retro]
 ```
 
 Phase 0 宣告專案有無真人協作者，何時用人由分流決定——完整通道真人 grill（兼知識擴散）、輕量通道與無真人時由 fresh-context agent 代位。內建退回熔斷與數據量驅動的 retro 檢視節奏。
@@ -32,6 +35,7 @@ Phase 0 宣告專案有無真人協作者，何時用人由分流決定——完
 ## 內容
 
 - `skills/team-workflow/` — 流程 skill（agent 讀）＋ full-workflow.md（人讀：負責人、Phase 0、ECC 引入條件）
+- `skills/steelman-requirement/` — 分流前的目標確認站：提案先 steelman（挖目標、最強論證、確認句），目標確認才寫 spec；bug 回報免
 - `skills/grill-me/` — spec 錘鍊訪談（vendored from [mattpocock-skills](https://github.com/mattpocock)，MIT）
 - `commands/setup.md` — 一次性專案初始化
 - `templates/` — constitution、CLAUDE.md 鐵律段落、PR template、retro-log
