@@ -1,0 +1,76 @@
+name: Claude PR review
+
+on:
+  pull_request:
+    # 要每次 push 都重審就加上 synchronize(每次都會消耗訂閱額度並多一則留言)
+    types: [opened, ready_for_review, reopened]
+
+concurrency:
+  group: claude-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    # 略過 draft、fork 來的 PR(拿不到 secret)與 bot 開的 PR(如 upstream-sync,由 owner 人工 review)
+    if: >-
+      github.event.pull_request.draft == false &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.user.type != 'Bot'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      pull-requests: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          claude_args: |
+            --model opus
+            --max-turns 30
+            --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*)"
+          prompt: |
+            REPO: ${{ github.repository }}
+            PR NUMBER: ${{ github.event.pull_request.number }}
+
+            你是這個 PR 的 reviewer。PR 分支已 checkout 在目前目錄;用 `gh pr view` 與 `gh pr diff` 讀 PR 描述與 diff,
+            並自行讀取 repo 內相關檔案作為脈絡。
+
+            這個 repo 是 Claude Code plugin(spec-grill-flow),內容幾乎全是寫給 agent 與人讀的流程文件,
+            不是應用程式碼。請審「流程與文件的正確性」,不要用審程式碼的標準。
+
+            ## 要檢查的事
+
+            1. **單一真相源是否走鐘**:skills/team-workflow/full-workflow.md 是長版真相源,SKILL.md 是濃縮版。
+               本 PR 改了其中一份,另一份是否同步?README.md、commands/setup.md、templates/ 裡描述同一件事的地方
+               是否仍一致?指出具體的不一致處,兩邊各引一句。
+            2. **流程邏輯**:新增或修改的規則是否與既有規則矛盾(通道資格、升級單向、退回與熔斷、
+               「執行者不得是作者本人」、未解事項須定案)?新規則違反時看得出來嗎——寫不出判定方式的規則是空話。
+               該進 retro-log「觸發條款」或失效模式表的,有沒有漏?
+            3. **commands/setup.md**:每一步是否仍冪等、覆蓋既有檔案前是否先徵詢、指令與路徑是否正確、
+               重跑時對已套用舊版設定的專案會發生什麼事。
+            4. **.github/workflows/**:權限是否超過需要、是否把不受信任的內容(PR 標題、上游 diff)
+               直接插進 shell 或 prompt。
+            5. **未經驗證的宣稱**:文件把推論寫成事實、或引用了會過期的資訊(版本號、價格、方案內容)
+               卻沒標明來源與時間的地方。
+
+            ## 不要回報的事
+
+            - 標點、用字、措辭偏好,以及全形／半形標點的風格差異。
+            - 你無法從 repo 或 PR 內容佐證的猜測。每一項發現都要能指到檔案與行。
+            - 與本 PR 改動無關的既有問題——除非本 PR 讓它變得更糟。
+
+            ## 回報方式
+
+            - 用繁體中文。
+            - 具體到某一行的問題,用 `mcp__github_inline_comment__create_inline_comment`(帶 `confirmed: true`)
+              留 inline comment:一句話講問題,一句話講建議的改法。
+            - 最後用 `gh pr comment` 留**一則**總結:第一行是結論(例如「2 項建議修正、1 項小問題」
+              或「沒有發現需要修正的問題」),接著依嚴重度列出各項。小問題最多列 5 項,其餘只報數量。
+            - 沒有發現問題就只留那一行結論,不要為了有東西可說而湊數。
+            - 只透過 GitHub 留言回報,不要修改任何檔案。
