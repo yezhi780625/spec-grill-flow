@@ -61,7 +61,34 @@ Phase 0 只宣告一件事：**專案有沒有可用的真人協作者**。用�
 
 **真人 grill 有兩個功能，這條規則靠第二個立足**：(1) 獨立挑錯——這部分 AI 代位做得不差；(2) **知識擴散**——grill 過這份 spec 的同事，從此知道這個 feature 存在、為什麼做、邊界在哪，這是 bus factor 與後續 review 品質的來源，AI 無法替代。所以「完整通道找真人」不會被「agent 也審得很好啊」侵蝕：審得好只覆蓋功能 (1)。
 
-**AI 代位規則**（適用於所有由 agent 擔任「非本人」角色的場合）：fresh-context 的獨立 subagent。關鍵不是換個名字，而是換個脈絡——**不得共享產生受審產物的對話脈絡**（撰寫 spec、實作程式的過程對話），但**可自由讀取 repo**：codebase 認識是審查的合法輸入，該擋的只有附和傾向，不是知識。prompt 明確指定挑錯立場。參與過推理的 agent 會順著自己的假設附和，等於沒審。
+**AI 代位規則**（適用於所有由 agent 擔任「非本人」角色的場合）：fresh-context 的獨立 subagent。關鍵不是換個名字，而是換個脈絡——**不得共享產生受審產物的對話脈絡**（撰寫 spec、實作程式的過程對話），但**可自由讀取 repo**：codebase 認識是審查的合法輸入，該擋的只有附和傾向，不是知識。prompt 明確指定挑錯立場。參與過推理的 agent 會順著自己的假設附和，等於沒審。派出代位 subagent 時**指定模型**（見「模型配置」）——不指定就繼承主對話的模型，而主對話是為實作配的。
+
+---
+
+## 模型配置（建議配置，非流程條款）
+
+原則：**模型強度跟著「想錯的代價」配，不跟著 token 量配**。上游環節（錘鍊、定義、技術計畫）token 量小，但漏掉一個問題會在實作階段放大好幾倍，用該方案內最強的模型；實作量大、方向已定、錯了有測試擋，用較省的模型。grill 是其中最吃判斷力的一步——要找到「沒人想到要問」的問題並一路追下去——最值得用最強的模型。
+
+配置依訂閱方案分兩套。Fable 的計費方式因方案而異（2026-09 的資訊，以帳號用量頁面為準）：Max 含在週額度內但最多佔一半，Pro 則從第一次請求就以 usage credits 另外計費。
+
+| 環節 | 執行方式 | Max | Pro |
+|---|---|---|---|
+| 目標確認（steelman） | inline | Opus | Opus（主對話是 Sonnet，先 `/model opus`） |
+| P1 `/speckit-specify` | fork（setup 寫入 frontmatter） | Fable／high | Opus／high |
+| P2 AI 代位 grill | subagent（派出時指定模型） | Fable | Opus |
+| P2 真人主持 grill | inline（互動式，不能 fork） | 開始前 `/model fable` | 開始前 `/model opus` |
+| P3 `/speckit-plan` | fork | Fable／high | Opus／high |
+| P3 `/speckit-tasks` | fork | Opus／medium | Sonnet／medium |
+| 主對話（分流、P4 實作） | `.claude/settings.json` | Opus／medium | Sonnet／medium |
+| P5 代位 reviewer | subagent（派出時指定模型） | Opus | Opus |
+
+- **手動切模型的環節結束後切回主對話模型**——尤其 Max 上別帶著 Fable 進 Phase 4：實作量大，會把 Fable 那一半週額度燒在最不需要它的地方，輪到下一份 spec 的 grill 時就沒得用了。
+- **Phase 4 預設用主對話模型，卡住才升**：同一個 task 試兩次沒過，或遇到並發、效能、難重現的 bug、要跨很多檔案理解既有 codebase 才能下手 → 升一級（Sonnet→Opus，或 effort 調到 high），該 task 結束後降回。
+- **常常需要升級，先檢查 tasks 是否拆得太粗**——task 粗到實作時還要自己做設計判斷，根因在 Phase 3，回頭把 tasks 拆細比全面換模型有效。
+- **小功能整條降一檔無妨**：輕量通道的單條標準，代位 grill 用 Opus 已足夠（Max 亦然）。
+- **Pro 上想為大功能的 plan 付 credits 用 Fable** 是合理的單點升級：這一步 token 量小、決定難回頭。小功能不必。
+
+本段是建議配置而非流程條款：不進 constitution、不計入 Phase 6 的條款觸發檢視，團隊可依 retro-log 的退回／打回數據自行調整。各檔的分工是依任務性質的推論，未經本流程實測——若調整後退回次數沒變，就把省下的額度留著。寫入方式與個人出口見 `/spec-grill-flow:setup` 步驟 5。
 
 ---
 
@@ -137,7 +164,7 @@ Phase 0 只宣告一件事：**專案有沒有可用的真人協作者**。用�
 
 **負責人**：**非 spec 作者**——與 Phase 5「非實作者 review」同構。需求誤解的成本高於實作瑕疵，自己 grill 自己寫的需求是流程最早、也最貴的盲點。執行者依通道決定（見「人力宣告」）：
 
-- **完整通道且專案有真人**：由非作者成員主持 grill，spec 作者作答——同時完成知識擴散。
+- **完整通道且專案有真人**：由非作者成員主持 grill，spec 作者作答——同時完成知識擴散。grill-me 在主對話 inline 執行，開始前先手動切到「模型配置」表列的模型。
 - **其餘情況**（輕量通道，或無真人可用）：由 fresh-context 的獨立 subagent 執行——受審對象是 spec 文件本身，不帶 Phase 1 的對話脈絡（repo 與事實查證照常可用），prompt 明確指定 adversarial 立場；作者本人作答。
 
 真人 grill 時，主持人可主動補充作者不掌握的事實（既有行為、歷史決策、其他系統的限制），寫入 spec 並標注來源；但取捨與拍板仍屬作者。**若一次 grill 出現三項以上此類補充，retro 備註標記「領域知識未文件化」**——代表該領域的事實只存在同事腦中：後續同領域任務分流時應偏向完整通道（AI 代位會漏掉這些事實），並考慮把該領域知識補進專案文件，償還後就不必每次消耗真人。
@@ -177,7 +204,7 @@ Phase 0 只宣告一件事：**專案有沒有可用的真人協作者**。用�
 
 **負責人**：實作者＋AI agent
 
-1. 依 tasks 逐項交辦給 agent 實作。
+1. 依 tasks 逐項交辦給 agent 實作。用主對話模型，卡住才升級（見「模型配置」）。
 2. 強制 TDD 循環（red-green-refactor）：測試必須先寫、先失敗，才准實作。這是 constitution 條款，agent 跳過即打回。豁免類別（純 UI 樣式、一次性 migration、無邏輯膠水碼）走 constitution I 的豁免程序——附替代驗證方式，禁止空測試充數。
 3. 遇到 bug 走 Superpowers 的除錯法：先找根因，才准修。
 4. **實作中發現需求問題 → 停手，退回 Phase 2**，改 spec、過 grill，再繼續。禁止「順手改一下需求」——spec 和實作不同步是整個流程最大的失效模式。

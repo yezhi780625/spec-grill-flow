@@ -18,6 +18,13 @@ description: 團隊 AI 交辦任務流程（Spec-Kit + grill + Superpowers）。
 
 **人力與 grill 執行者**（Phase 0 宣告專案有無真人；用不用人由分流決定）：完整通道且有真人 → 真人 grill（非作者主持，兼知識擴散——同事從此知道這個 feature 為什麼存在，AI 無法替代）；其餘 → **fresh-context 獨立 subagent** 代位——可自由讀取 repo，但不共享產生受審產物的對話脈絡，prompt 指定挑錯立場。通道升級時 grill 執行者自動升級。
 
+**模型配置**（建議配置，非流程條款；依訂閱方案，Max／Pro）：模型強度跟著「想錯的代價」配，不跟著 token 量配。
+
+- 派出**代位 subagent 時指定模型**，不指定會繼承為實作配的主對話模型：代位 grill 用 Fable／Opus；Phase 5 代位 reviewer 兩方案皆 Opus。
+- **inline 互動環節要手動切模型，結束後切回**：真人主持的 grill 開始前 `/model fable`／`/model opus`；steelman 用 Opus（Pro 的主對話是 Sonnet，先 `/model opus`）。
+- `/speckit-specify`、`/speckit-plan`（Fable／Opus，high）與 `/speckit-tasks`（Opus／Sonnet，medium）由 setup 寫入 frontmatter，自動生效。
+- **Phase 4 用主對話模型**（Opus／Sonnet，medium），卡住才升一級：同一 task 試兩次沒過、或遇到並發／效能／難重現的 bug。常常需要升級 → 先檢查 tasks 是否拆得太粗。
+
 ## 目標確認（分流之前，僅限提案）
 
 只攔**提案**（要求新行為：feature request、PRD、方案性需求、內部自發 feature），不攔**回報**。判別式：對方期望的行為，spec（或現有明確行為）已描述了嗎？已描述 → bug 回報，目標自明，免跑直接分流（即快速通道的 bug fix）；未描述 → 是包裝成 bug 的需求變更，照跑。拿不準 → 跑（成本只是一則回覆）。內部無新行為任務（typo、重構等）同樣免跑。
@@ -69,7 +76,7 @@ grill 的產出只寫回 spec 本身（不產 ADR、glossary 或其他文件）�
 
 ## Phase 4：實作
 
-依 tasks 逐項實作，走 Superpowers 紀律：
+依 tasks 逐項實作（用主對話模型，卡住才升級），走 Superpowers 紀律：
 
 - TDD 強制：測試先寫、先失敗，才准實作。豁免類別（純 UI 樣式／一次性 migration／無邏輯膠水碼）走 constitution I 豁免程序：PR 明寫理由＋替代驗證方式，禁止空測試充數。
 - 除錯：先找根因，才准修。
@@ -138,4 +145,4 @@ grill 的產出只寫回 spec 本身（不產 ADR、glossary 或其他文件）�
 
 ## 完整版文件
 
-各階段負責人與代位規則、Phase 0 專案初始化、熔斷細節、ECC reviewer 引入條件（附錄 B）見 [full-workflow.md](full-workflow.md)。
+各階段負責人與代位規則、模型配置對照表、Phase 0 專案初始化、熔斷細節、ECC reviewer 引入條件（附錄 B）見 [full-workflow.md](full-workflow.md)。
