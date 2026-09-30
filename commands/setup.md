@@ -12,7 +12,7 @@ disable-model-invocation: true
 3. **部署 constitution**：`.specify/memory/constitution.md` 若為預設模板或不存在 → 以本 plugin `templates/constitution.md` 為底，詢問使用者填入 `<角括號>` 參數後寫入；若已有客製化內容 → 先備份為 `constitution-backup.md` 再詢問是否合併。
 4. **宣告人力與 owner**：詢問專案有無真人協作者（用不用人由分流決定——完整通道真人 grill、其餘 AI 代位，見 team-workflow），寫入 constitution 的 Governance 段，並填齊三個 owner（constitution 修訂核准人、grill-me 上游同步、ECC agent 若引入）。無真人時三者皆為使用者本人。**不得留 placeholder**——這是 retro 檢視機制的觸發依據。
 5. **模型設定（建議配置，先徵詢再寫入）**：設計理由——模型強度跟著「想錯的代價」配，不跟著 token 量配。spec 與技術計畫想錯的成本高於實作瑕疵，且 token 量小，用該方案內最強的模型與 `effort: high`；tasks 是把已定案的 plan 拆成步驟，屬執行層，降一級；主對話（分流、實作）量大，用中階 effort。向使用者說明時勿把任何一檔描述為「快且便宜」。
-   - **先問訂閱方案**，因為 Fable 的計費方式因方案而異（以下為 2026-09 的資訊，請使用者以自己帳號的用量頁面為準）：**Max** 的 Fable 含在週額度內，但最多佔一半，且消耗比其他模型快；**Pro** 的 Fable 從第一次請求就以 usage credits 另外計費（單價約為 Opus 的 2.5 倍），方案內含的最強模型是 Opus。**團隊成員方案不一時，以最低方案為準**——下列 frontmatter 寫在版控內的共用檔，`settings.local.json` 蓋不到它（見本步驟末的個人出口）。
+   - **先問訂閱方案**，因為 Fable 的計費方式因方案而異（2026-09 的資訊，整理自第三方文章而非 Anthropic 官方頁面；套用前以官方定價頁與帳號用量頁面為準）：**Max** 的 Fable 含在週額度內，但最多佔一半，且消耗比其他模型快；**Pro** 的 Fable 從第一次請求就以 usage credits 另外計費（單價約為 Opus 的 2.5 倍），方案內含的最強模型是 Opus。**團隊成員方案不一時，以最低方案為準**——下列 frontmatter 寫在版控內的共用檔，`settings.local.json` 蓋不到它（見本步驟末的個人出口）。
    - **配置表**（使用者同意才寫入；婉拒 → 跳過，流程照常可用）：
 
      | 寫入位置 | Max | Pro |
@@ -22,7 +22,7 @@ disable-model-invocation: true
      | `speckit-tasks` 的 frontmatter | `model: opus`, `effort: medium` | `model: sonnet`, `effort: medium` |
 
      Pro 使用者若明確表示願意為大功能的 plan 付 credits，可只把 `speckit-plan` 設為 `model: fable`，其餘維持 Pro 欄。
-   - **寫入方式**：`.claude/settings.json` 合併寫入，勿覆蓋既有鍵。frontmatter 寫在 spec-kit 產出的 `.claude/skills/speckit-specify/SKILL.md`、`speckit-plan/SKILL.md`、`speckit-tasks/SKILL.md`，除上表的 `model`、`effort` 外一律加上 `context: fork`、`background: false`。鍵已存在且值與所選配置相同 → 跳過；值不同（例如舊版 setup 寫入的三指令一律 `model: fable`／`effort: medium`）→ 列出差異，徵詢後才更新。
+   - **寫入方式**：`.claude/settings.json` 合併寫入，只動 `model` 與 `effortLevel` 兩個鍵，其他既有鍵勿覆蓋。frontmatter 寫在 spec-kit 產出的 `.claude/skills/speckit-specify/SKILL.md`、`speckit-plan/SKILL.md`、`speckit-tasks/SKILL.md`，除上表的 `model`、`effort` 外一律加上 `context: fork`、`background: false`。**settings.json 的兩個鍵與 frontmatter 適用同一條比對規則**：鍵已存在且值與所選配置相同 → 跳過；值不同（例如舊版 setup 寫入的 `"effortLevel": "high"`，或三指令一律 `model: fable`／`effort: medium`）→ 列出差異，徵詢後才更新，不得靜默保留也不得靜默覆蓋。唯一例外：選 Pro 配置而 `speckit-plan` 已是 `model: fable` → 視為先前選定的單點升級，算相符、不再詢問；使用者本次明確說要改回才更新。
    - **必須有 `context: fork`**——實測 `model` 在 inline 執行時不會切換模型（與文件宣稱不符），只有 fork 進 subagent 時保證生效；`background: false` 讓主對話等待產出文件後再繼續（v2.1.218+ 起 fork 預設背景執行）。已知取捨：fork 後 skill 無法中途向使用者提問，但 speckit 三指令是單向產文件操作，影響有限。spec-kit ≥0.8.10 已將 custom commands 併入 skills；若專案是舊版 spec-kit 產出的 `.claude/commands/speckit*.md`，patch 該處（僅 `model`/`effort`）並建議升級。
    - **setup 寫不進檔案的環節**：AI 代位 grill、Phase 5 代位 reviewer 的模型在派出 subagent 時指定；真人主持的 grill 與 steelman 是 inline 互動，要手動切模型。對照表見 team-workflow 的「模型配置」，寫入後向使用者指出這一段。
    - **個人出口與其限制**：`.claude/settings.json` 是**團隊共用基準**，個人要換主對話模型在自己的 `.claude/settings.local.json` 蓋回去即可（優先權高於前者），與下一步的 ignore 成套；CI 不跑 Claude Code，不受影響。**此出口只涵蓋主對話**：skill frontmatter 沒有已知的個人層覆寫，改它就是改全隊的設定。Max 的 Fable 用量達上限後，`model: fable` 的 fork 會如何表現未經實測——屆時暫時把該 frontmatter 改為 `model: opus`。

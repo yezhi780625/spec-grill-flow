@@ -20,7 +20,7 @@ description: 團隊 AI 交辦任務流程（Spec-Kit + grill + Superpowers）。
 
 **模型配置**（建議配置，非流程條款；依訂閱方案，Max／Pro）：模型強度跟著「想錯的代價」配，不跟著 token 量配。
 
-- 派出**代位 subagent 時指定模型**，不指定會繼承為實作配的主對話模型：代位 grill 用 Fable／Opus；Phase 5 代位 reviewer 兩方案皆 Opus。
+- 派出**代位 subagent 時指定模型**，不指定會繼承為實作配的主對話模型：代位 grill 用 Fable／Opus（輕量通道可降為 Opus）；代位 steelman（內部自發 feature、無真人）與 Phase 5 代位 reviewer 兩方案皆 Opus。
 - **inline 互動環節要手動切模型，結束後切回**：真人主持的 grill 開始前 `/model fable`／`/model opus`；steelman 用 Opus（Pro 的主對話是 Sonnet，先 `/model opus`）。
 - `/speckit-specify`、`/speckit-plan`（Fable／Opus，high）與 `/speckit-tasks`（Opus／Sonnet，medium）由 setup 寫入 frontmatter，自動生效。
 - **Phase 4 用主對話模型**（Opus／Sonnet，medium），卡住才升一級：同一 task 試兩次沒過、或遇到並發／效能／難重現的 bug。常常需要升級 → 先檢查 tasks 是否拆得太粗。

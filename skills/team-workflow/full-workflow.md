@@ -69,11 +69,12 @@ Phase 0 只宣告一件事：**專案有沒有可用的真人協作者**。用�
 
 原則：**模型強度跟著「想錯的代價」配，不跟著 token 量配**。上游環節（錘鍊、定義、技術計畫）token 量小，但漏掉一個問題會在實作階段放大好幾倍，用該方案內最強的模型；實作量大、方向已定、錯了有測試擋，用較省的模型。grill 是其中最吃判斷力的一步——要找到「沒人想到要問」的問題並一路追下去——最值得用最強的模型。
 
-配置依訂閱方案分兩套。Fable 的計費方式因方案而異（2026-09 的資訊，以帳號用量頁面為準）：Max 含在週額度內但最多佔一半，Pro 則從第一次請求就以 usage credits 另外計費。
+配置依訂閱方案分兩套。Fable 的計費方式因方案而異（2026-09 的資訊，整理自第三方文章而非 Anthropic 官方頁面；套用前以官方定價頁與帳號用量頁面為準）：Max 含在週額度內但最多佔一半，Pro 則從第一次請求就以 usage credits 另外計費。
 
 | 環節 | 執行方式 | Max | Pro |
 |---|---|---|---|
 | 目標確認（steelman） | inline | Opus | Opus（主對話是 Sonnet，先 `/model opus`） |
+| 目標確認代位（內部自發 feature、無真人） | subagent（派出時指定模型） | Opus | Opus |
 | P1 `/speckit-specify` | fork（setup 寫入 frontmatter） | Fable／high | Opus／high |
 | P2 AI 代位 grill | subagent（派出時指定模型） | Fable | Opus |
 | P2 真人主持 grill | inline（互動式，不能 fork） | 開始前 `/model fable` | 開始前 `/model opus` |
@@ -85,7 +86,7 @@ Phase 0 只宣告一件事：**專案有沒有可用的真人協作者**。用�
 - **手動切模型的環節結束後切回主對話模型**——尤其 Max 上別帶著 Fable 進 Phase 4：實作量大，會把 Fable 那一半週額度燒在最不需要它的地方，輪到下一份 spec 的 grill 時就沒得用了。
 - **Phase 4 預設用主對話模型，卡住才升**：同一個 task 試兩次沒過，或遇到並發、效能、難重現的 bug、要跨很多檔案理解既有 codebase 才能下手 → 升一級（Sonnet→Opus，或 effort 調到 high），該 task 結束後降回。
 - **常常需要升級，先檢查 tasks 是否拆得太粗**——task 粗到實作時還要自己做設計判斷，根因在 Phase 3，回頭把 tasks 拆細比全面換模型有效。
-- **小功能整條降一檔無妨**：輕量通道的單條標準，代位 grill 用 Opus 已足夠（Max 亦然）。
+- **輕量通道的代位 grill 可降為 Opus**（Max 亦然）：單條標準的誤解成本低。能逐次調整的只有派出 subagent 時指定的模型——speckit 三指令的模型寫在共用 frontmatter，改它就是改全隊的設定；輕量通道本來也不跑 `/speckit-specify` 與完整 plan。
 - **Pro 上想為大功能的 plan 付 credits 用 Fable** 是合理的單點升級：這一步 token 量小、決定難回頭。小功能不必。
 
 本段是建議配置而非流程條款：不進 constitution、不計入 Phase 6 的條款觸發檢視，團隊可依 retro-log 的退回／打回數據自行調整。各檔的分工是依任務性質的推論，未經本流程實測——若調整後退回次數沒變，就把省下的額度留著。寫入方式與個人出口見 `/spec-grill-flow:setup` 步驟 5。
