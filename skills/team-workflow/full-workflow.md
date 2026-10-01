@@ -87,6 +87,7 @@ Phase 0 只宣告一件事：**專案有沒有可用的真人協作者**。用�
 - **Phase 4 預設用主對話模型，卡住才升**：同一個 task 試兩次沒過，或遇到並發、效能、難重現的 bug、要跨很多檔案理解既有 codebase 才能下手 → 升一級（Sonnet→Opus，或 effort 調到 high），該 task 結束後降回。
 - **常常需要升級，先檢查 tasks 是否拆得太粗**——task 粗到實作時還要自己做設計判斷，根因在 Phase 3，回頭把 tasks 拆細比全面換模型有效。
 - **輕量通道的代位 grill 可降為 Opus**（Max 亦然）：單條標準的誤解成本低。能逐次調整的只有派出 subagent 時指定的模型——speckit 三指令的模型寫在共用 frontmatter，改它就是改全隊的設定；輕量通道本來也不跑 `/speckit-specify` 與完整 plan。
+- **團隊成員方案不一**：共用檔用 Max 配置，Pro 成員在自己的 shell 設定 `ANTHROPIC_DEFAULT_FABLE_MODEL` 把 `fable` 別名改指向 Opus，主對話模型則用 `settings.local.json` 蓋成 Sonnet。之後照 Max 欄操作即可——`model: fable` 的 fork 與派出時指定 `fable` 的 subagent，在 Pro 成員的機器上實際跑的是 Opus（v2.1.286 實測）。唯一落差是 `/speckit-tasks` 在 Pro 成員那邊用 Opus 而非 Sonnet，這一步 token 量小。設定方式與驗證指令見 setup 步驟 5。
 - **Pro 上想為大功能的 plan 付 credits 用 Fable** 是合理的單點升級：這一步 token 量小、決定難回頭。小功能不必。
 
 本段是建議配置而非流程條款：不進 constitution、不計入 Phase 6 的條款觸發檢視，團隊可依 retro-log 的退回／打回數據自行調整。各檔的分工是依任務性質的推論，未經本流程實測——若調整後退回次數沒變，就把省下的額度留著。寫入方式與個人出口見 `/spec-grill-flow:setup` 步驟 5。
