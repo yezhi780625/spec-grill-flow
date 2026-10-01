@@ -30,7 +30,7 @@ Phase 0 宣告專案有無真人協作者，何時用人由分流決定——完
 /spec-grill-flow:setup
 ```
 
-必要環境：Node.js、Python 3.10+ 與 uv（spec-kit ≥0.8.10——指令為 `/speckit-*` skill 形式）。建議配置：Claude Code v2.1.219+ 與 Opus 5 / Fable 5（setup 會先徵詢再套用模型設定，無對應存取權也能使用本流程）。
+必要環境：Node.js、Python 3.10+ 與 uv（spec-kit ≥0.8.10——指令為 `/speckit-*` skill 形式）。建議配置：Claude Code v2.1.219+；模型依訂閱方案分兩套——Max 用 Fable（spec、plan、grill）＋ Opus，Pro 用 Opus（spec、plan、grill）＋ Sonnet。setup 會先問方案、徵詢後才套用，婉拒也能使用本流程；對照表見 full-workflow.md 的「模型配置」。
 
 ## 內容
 
