@@ -27,9 +27,12 @@ disable-model-invocation: true
    - **setup 寫不進檔案的環節**：AI 代位 grill、Phase 5 代位 reviewer 的模型在派出 subagent 時指定；真人主持的 grill 與 steelman 是 inline 互動，要手動切模型。對照表見 team-workflow 的「模型配置」，寫入後向使用者指出這一段。
    - **個人出口（方案不一的團隊靠這個）**：共用檔寫的是團隊基準，個人差異不進版控，分兩處設定。
      - **主對話模型**：寫在自己的 `.claude/settings.local.json`（優先權高於 `settings.json`，與下一步的 ignore 成套）。Pro 成員在 Max 基準的專案裡加 `"model": "sonnet"`。
-     - **frontmatter 與代位 subagent 的 `fable`**：skill frontmatter 沒有個人層的檔案覆寫，但 `fable` 這個別名解析成哪個模型可由環境變數 `ANTHROPIC_DEFAULT_FABLE_MODEL` 決定。Pro 成員在自己的 shell 設定檔（`~/.zshrc`、`~/.bashrc`）加 `export ANTHROPIC_DEFAULT_FABLE_MODEL=claude-opus-5-5`，之後 `model: fable` 的 fork 與派出時指定 `fable` 的 subagent 都會改用 Opus，不觸發 credits 計費。Opus 出新版時這一行要自己更新。
-     - **必須設在啟動 Claude Code 的 shell 環境裡，不要寫進 settings 檔的 `env`**：v2.1.286 實測，設為 process 環境變數時 fork skill 與 subagent 都改用 Opus；寫在 `settings.local.json`、專案 `settings.json`、使用者層 `settings.json` 的 `env` 時，同檔其他變數有生效，唯獨這個變數沒有套用，模型仍是 Fable（與文件宣稱不符）。
-     - **Pro 成員設定後自行驗證一次**：`claude -p "hi" --model fable --output-format json`，輸出的 `modelUsage` 應只出現 Opus 的模型 ID；出現 Fable 就代表環境變數沒生效。
+     - **frontmatter 與代位 subagent 的 `fable`**：skill frontmatter 沒有個人層的檔案覆寫，但 `fable` 這個別名解析成哪個模型可由環境變數 `ANTHROPIC_DEFAULT_FABLE_MODEL` 決定。Pro 成員把它設為 `claude-opus-5-5` 後，`model: fable` 的 fork、派出時指定 `fable` 的 subagent、`/model fable` 都改用 Opus，不觸發 credits 計費。兩種設法擇一：
+       - **shell 設定檔**（`~/.zshrc`、`~/.bashrc`）加 `export ANTHROPIC_DEFAULT_FABLE_MODEL=claude-opus-5-5`。對該成員的所有專案生效；測過的環境都有效，優先用這個。
+       - **專案的 `.claude/settings.local.json`** 加 `"env": {"ANTHROPIC_DEFAULT_FABLE_MODEL": "claude-opus-5-5"}`。只影響本專案；從終端機啟動的 Claude Code 有效，但由宿主管理 provider 的工作階段（如雲端工作階段）會忽略 settings 檔裡的這個變數，模型仍是 Fable（debug 紀錄會有 `Ignoring ANTHROPIC_DEFAULT_FABLE_MODEL from localSettings`）。
+     - **兩個會讓改指向失效的寫法**：變數值要用完整模型 ID，寫別名 `opus` 時 fork 有效但 `/model fable` 會報 `unrecognized_model`；共用檔的 frontmatter 要寫別名 `fable`，寫成完整 ID（`claude-fable-5-1`）就不會被改指向。Opus 出新版時這個變數值要自己更新。
+     - **Pro 成員設定後自行驗證一次**：在專案目錄跑 `claude -p "hi" --model fable --output-format json`，輸出的 `modelUsage` 不應出現 Fable 的模型 ID；出現就代表改指向沒生效，先不要跑 speckit。
+     - 以上為 v2.1.286 實測：Max 與 Pro 兩種設定各重複跑 `speckit-specify`／`plan`／`tasks` 的 fork 與 subagent 派出，Pro 設定下沒有任何一次用到 Fable。
      - CI 不跑 Claude Code，不受影響。Max 的 Fable 用量達上限後，`model: fable` 的 fork 會如何表現未經實測——屆時同樣可用上述環境變數暫時改指向 Opus，不必動共用檔。
 6. **.gitignore 保護 settings 分層**：`.claude/settings.json` 是**追蹤中的團隊共用基準**（只放非敏感的共用鍵，如 model／effortLevel）；`.claude/settings.local.json` 是**個人覆寫**（模型偏好、權限允許規則），優先權更高，一律不進版控。此步**無條件執行**，不依附步驟 5 是否套用模型設定——權限允許規則與模型設定無關，任何專案都會長出 local 檔。判斷原則：偵測一律以 git 本身為準（`git check-ignore -v`），勿只做 `.gitignore` 字面比對——等效樣式（`.claude` 無斜線、`**/.claude/`、上層目錄的 .gitignore）字面比對抓不到，而已用負向樣式（`!.claude/settings.json`）修好的配置又會被誤判；也勿只看 `git status` 乾不乾淨——`-v` 會指出命中規則來自哪個檔案，若來自機器層全域 ignore（`core.excludesFile`、`~/.config/git/ignore`），那只保護該台機器，團隊其他成員沒有，repo 層仍須補上。**依序判斷**：
    - **衝突閘門**：`git check-ignore -v .claude/settings.json` 有輸出且命中規則在 repo 層 → **停下徵詢，且不得先 append**（團隊基準被忽略，補 local 那行只是無效噪音）：步驟 5 寫入的團隊基準永遠進不了版控，建議改為只忽略 `settings.local.json`；使用者同意才調整，不擅自改既有規則。婉拒 → 總結表標注待補、跳過下一條的 append，**但最後一條（已追蹤檔案）檢查仍須執行**——它與 .gitignore 內容無關。
