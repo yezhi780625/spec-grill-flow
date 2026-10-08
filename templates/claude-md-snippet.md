@@ -5,6 +5,12 @@
 - Spec、plan、tasks 一律使用 `/speckit-*` 指令產出（spec-kit ≥0.8.10 的 skill 形式，連字號；不使用 /brainstorm、/write-plan）。
 - `specs/` 下的 spec 文件是唯一真相源；需求變更先改 spec 並通過 grill 檢核，再繼續實作。
 - 實作採 TDD：測試先寫、先失敗，才寫實作（豁免類別與程序見 constitution I，禁止空測試充數）。
+- **Pro 方案成員先做個人設定**：`.claude/agents/spec-challenger.md` 的 `model` 是 `fable`，代表本專案採 Max 基準；Pro 成員在這種專案裡，用到 `fable` 的環節（`/speckit-specify`、`/speckit-plan`、代位 grill、`/model fable`）會以 usage credits 計費。開工前做以下設定（都不進版控）：
+  1. shell 設定檔加 `export ANTHROPIC_DEFAULT_FABLE_MODEL=claude-opus-5-5`（或在 `.claude/settings.local.json` 的 `env` 設同一個變數，僅從終端機啟動時有效）。
+  2. `.claude/settings.local.json` 加 `"model": "sonnet"`。
+  3. 驗證（不計費）：`claude -p "/cost" --model fable --output-format stream-json --verbose | grep -o '"model":"[^"]*"' | head -1` 應輸出 `claude-opus-5-5`。
+
+  雲端工作階段讀不到上述個人設定；驗證通過前，Pro 成員不要在雲端跑上述環節。細節見 `/spec-grill-flow:setup` 步驟 5。
 - 完整流程與驗收清單見 team-workflow skill。**規則書不在本 repo 內**——隨 spec-grill-flow plugin 散佈，未安裝就查不到。先跑：
 
   ```
