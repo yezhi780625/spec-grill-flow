@@ -18,12 +18,13 @@ description: 團隊 AI 交辦任務流程（Spec-Kit + grill + Superpowers）。
 
 **人力與 grill 執行者**（Phase 0 宣告專案有無真人；用不用人由分流決定）：完整通道且有真人 → 真人 grill（非作者主持，兼知識擴散——同事從此知道這個 feature 為什麼存在，AI 無法替代）；其餘 → **fresh-context 獨立 subagent** 代位——可自由讀取 repo，但不共享產生受審產物的對話脈絡，prompt 指定挑錯立場。通道升級時 grill 執行者自動升級。
 
-**模型配置**（建議配置，非流程條款；依訂閱方案，Max／Pro）：模型強度跟著「想錯的代價」配，不跟著 token 量配。團隊成員方案不一時共用檔用 Max 配置，Pro 成員以個人環境變數把 `fable` 改指向 Opus（見 setup 步驟 5），照 Max 欄操作即可。
+**模型配置**（建議配置，非流程條款；依訂閱方案分 Max／Pro 兩欄，對照表見 full-workflow.md）：模型強度跟著「想錯的代價」配，不跟著 token 量配。
 
-- 派出**代位 subagent 時指定模型**，不指定會繼承為實作配的主對話模型：代位 grill 用 Fable／Opus（輕量通道可降為 Opus）；代位 steelman（內部自發 feature、無真人）與 Phase 5 代位 reviewer 兩方案皆 Opus。
-- **inline 互動環節要手動切模型，結束後切回**：真人主持的 grill 開始前 `/model fable`／`/model opus`；steelman 用 Opus（Pro 的主對話是 Sonnet，先 `/model opus`）。
-- `/speckit-specify`、`/speckit-plan`（Fable／Opus，high）與 `/speckit-tasks`（Opus／Sonnet，medium）由 setup 寫入 frontmatter，自動生效。
-- **Phase 4 用主對話模型**（Opus／Sonnet，medium），卡住才升一級：同一 task 試兩次沒過、或遇到並發／效能／難重現的 bug。常常需要升級 → 先檢查 tasks 是否拆得太粗。
+- **判斷欄位**：`.claude/agents/spec-challenger.md` 的 `model` 是 `fable` → Max 欄（成員方案不一的團隊亦同，Pro 成員以個人設定把 `fable` 改指向 Opus，見專案 CLAUDE.md）；`opus` → Pro 欄；檔案不存在 → 問使用者。
+- **上游代位**（AI 代位 grill、熔斷拆分）以 `subagent_type: spec-challenger` 派出，**不另外指定 model**——模型與 effort high 由定義檔決定；只有輕量通道要把代位 grill 降為 Opus 時才指定 `model: opus`。代位 grill 每輪把問題轉給作者，作答後續用同一個 subagent，不要另開新的。代位 steelman 與 Phase 5 代位 reviewer 派出時指定 `opus`；不指定會繼承為實作配的主對話模型。
+- **inline 環節要請使用者手動 `/model`，結束後切回**（agent 無法自己切）：真人主持的 grill 開始前 `/model fable`（Max 欄）／`/model opus`（Pro 欄）；steelman 用 Opus，主對話不是 Opus 時先 `/model opus`。
+- `/speckit-specify`、`/speckit-plan`（Max 欄 Fable／Pro 欄 Opus，high）與 `/speckit-tasks`（Opus／Sonnet，medium）由 setup 寫入 frontmatter，自動生效。
+- **Phase 4 用主對話模型**（Opus／Sonnet，預設 medium），卡住才請使用者升一級：同一 task 試兩次沒過、或遇到並發／效能／難重現的 bug；該 task 結束後降回。常常需要升級 → 先檢查 tasks 是否拆得太粗。
 
 ## 目標確認（分流之前，僅限提案）
 
@@ -105,7 +106,7 @@ grill 的產出只寫回 spec 本身（不產 ADR、glossary 或其他文件）�
 
 ## 退回與熔斷
 
-- 同一 feature **累計退回 Phase 2 達 2 次** → 熔斷：停止流程，**強制拆分**——已想清楚的部分保留成獨立 spec 續行，只把糾纏不清的部分回 Phase 1 重新定義（有真人：拆分決策拉高為專案級討論；無真人：換 fresh agent 從問題定義主導拆分）。retro 症狀記「熔斷」。
+- 同一 feature **累計退回 Phase 2 達 2 次** → 熔斷：停止流程，**強制拆分**——已想清楚的部分保留成獨立 spec 續行，只把糾纏不清的部分回 Phase 1 重新定義（有真人：拆分決策拉高為專案級討論；無真人：換 fresh agent（`spec-challenger`）從問題定義主導拆分）。retro 症狀記「熔斷」。
 - **Phase 5→4 打回達 2 次** → 第三次實作前強制先做根因分析並寫入 PR。
 
 ## Phase 6：Retro（合併後，2 分鐘內完成）

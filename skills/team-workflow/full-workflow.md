@@ -61,7 +61,7 @@ Phase 0 只宣告一件事：**專案有沒有可用的真人協作者**。用�
 
 **真人 grill 有兩個功能，這條規則靠第二個立足**：(1) 獨立挑錯——這部分 AI 代位做得不差；(2) **知識擴散**——grill 過這份 spec 的同事，從此知道這個 feature 存在、為什麼做、邊界在哪，這是 bus factor 與後續 review 品質的來源，AI 無法替代。所以「完整通道找真人」不會被「agent 也審得很好啊」侵蝕：審得好只覆蓋功能 (1)。
 
-**AI 代位規則**（適用於所有由 agent 擔任「非本人」角色的場合）：fresh-context 的獨立 subagent。關鍵不是換個名字，而是換個脈絡——**不得共享產生受審產物的對話脈絡**（撰寫 spec、實作程式的過程對話），但**可自由讀取 repo**：codebase 認識是審查的合法輸入，該擋的只有附和傾向，不是知識。prompt 明確指定挑錯立場。參與過推理的 agent 會順著自己的假設附和，等於沒審。派出代位 subagent 時**指定模型**（見「模型配置」）——不指定就繼承主對話的模型，而主對話是為實作配的。
+**AI 代位規則**（適用於所有由 agent 擔任「非本人」角色的場合）：fresh-context 的獨立 subagent。關鍵不是換個名字，而是換個脈絡——**不得共享產生受審產物的對話脈絡**（撰寫 spec、實作程式的過程對話），但**可自由讀取 repo**：codebase 認識是審查的合法輸入，該擋的只有附和傾向，不是知識。prompt 明確指定挑錯立場。參與過推理的 agent 會順著自己的假設附和，等於沒審。代位 subagent 的模型見「模型配置」：上游代位（grill、熔斷拆分）以 setup 寫入的 `spec-challenger` 定義檔派出、不另外指定 model；其餘代位派出時指定 `opus`——不指定就繼承主對話的模型，而主對話是為實作配的。
 
 ---
 
@@ -74,21 +74,26 @@ Phase 0 只宣告一件事：**專案有沒有可用的真人協作者**。用�
 | 環節 | 執行方式 | Max | Pro |
 |---|---|---|---|
 | 目標確認（steelman） | inline | Opus | Opus（主對話是 Sonnet，先 `/model opus`） |
-| 目標確認代位（內部自發 feature、無真人） | subagent（派出時指定模型） | Opus | Opus |
+| 目標確認代位（內部自發 feature、無真人） | subagent（派出時指定 `opus`） | Opus | Opus |
 | P1 `/speckit-specify` | fork（setup 寫入 frontmatter） | Fable／high | Opus／high |
-| P2 AI 代位 grill | subagent（派出時指定模型） | Fable | Opus |
+| P2 AI 代位 grill | subagent `spec-challenger`（setup 寫入定義檔；派出時不指定 model） | Fable／high | Opus／high |
 | P2 真人主持 grill | inline（互動式，不能 fork） | 開始前 `/model fable` | 開始前 `/model opus` |
 | P3 `/speckit-plan` | fork | Fable／high | Opus／high |
 | P3 `/speckit-tasks` | fork | Opus／medium | Sonnet／medium |
-| 主對話（分流、P4 實作） | `.claude/settings.json` | Opus／medium | Sonnet／medium |
-| P5 代位 reviewer | subagent（派出時指定模型） | Opus | Opus |
+| 主對話（分流、P4 實作） | `.claude/settings.json`（只寫 `model`，effort 用模型預設） | Opus／medium | Sonnet／medium |
+| P5 代位 reviewer | subagent（派出時指定 `opus`） | Opus | Opus |
+| 熔斷拆分代位（無真人） | subagent `spec-challenger` | Fable／high | Opus／high |
+
+- **判斷本專案用哪一欄**：看 `.claude/agents/spec-challenger.md` 的 `model`——`fable` 是 Max 欄（成員方案不一的團隊也是），`opus` 是 Pro 欄。沒有這個檔，代表 setup 時婉拒了模型配置：代位 grill 改派 `general-purpose`，先問使用者要用哪個模型。
+- **`/model` 只能由使用者下**：agent 無法自己切模型，遇到 inline 環節要提醒使用者切換。
+- **effort**：真人 grill 切到 Fable 後用的是 Fable 的預設 high；若曾用 `/effort` 為該模型存過較低的值，開始前先 `/effort high`。共用的 `settings.json` 不寫 `effortLevel`——它會套用到所有模型，把 Fable 壓到同一檔。代位 subagent 的 effort 寫在 `spec-challenger` 定義檔，不受主對話影響。
 
 - **手動切模型的環節結束後切回主對話模型**——尤其 Max 上別帶著 Fable 進 Phase 4：實作量大，會把 Fable 那一半週額度燒在最不需要它的地方，輪到下一份 spec 的 grill 時就沒得用了。
-- **Phase 4 預設用主對話模型，卡住才升**：同一個 task 試兩次沒過，或遇到並發、效能、難重現的 bug、要跨很多檔案理解既有 codebase 才能下手 → 升一級（Sonnet→Opus，或 effort 調到 high），該 task 結束後降回。
+- **Phase 4 預設用主對話模型，卡住才升**：同一個 task 試兩次沒過，或遇到並發、效能、難重現的 bug、要跨很多檔案理解既有 codebase 才能下手 → 請使用者升一級（Sonnet→Opus，或 `/effort high`），該 task 結束後降回。
 - **常常需要升級，先檢查 tasks 是否拆得太粗**——task 粗到實作時還要自己做設計判斷，根因在 Phase 3，回頭把 tasks 拆細比全面換模型有效。
-- **輕量通道的代位 grill 可降為 Opus**（Max 亦然）：單條標準的誤解成本低。能逐次調整的只有派出 subagent 時指定的模型——speckit 三指令的模型寫在共用 frontmatter，改它就是改全隊的設定；輕量通道本來也不跑 `/speckit-specify` 與完整 plan。
-- **團隊成員方案不一**：共用檔用 Max 配置，Pro 成員以環境變數 `ANTHROPIC_DEFAULT_FABLE_MODEL`（設在 shell 設定檔或個人的 `settings.local.json`）把 `fable` 別名改指向 Opus，主對話模型則用 `settings.local.json` 蓋成 Sonnet。之後照 Max 欄操作即可——`model: fable` 的 fork 與派出時指定 `fable` 的 subagent，在 Pro 成員的機器上實際跑的是 Opus（v2.1.286 實測）。唯一落差是 `/speckit-tasks` 在 Pro 成員那邊用 Opus 而非 Sonnet，這一步 token 量小。設定方式與驗證指令見 setup 步驟 5。
-- **Pro 上想為大功能的 plan 付 credits 用 Fable** 是合理的單點升級：這一步 token 量小、決定難回頭。小功能不必。
+- **輕量通道的代位 grill 可降為 Opus**（Max 亦然）：單條標準的誤解成本低。派出 `spec-challenger` 時指定 `model: opus` 即可——派出時的 model 會蓋過定義檔，effort 仍是定義檔的 high。能逐次調整的只有派出時的模型；speckit 三指令與 `spec-challenger` 的定義寫在共用檔，改它就是改全隊的設定。
+- **團隊成員方案不一**：共用檔用 Max 配置。Pro 成員以環境變數 `ANTHROPIC_DEFAULT_FABLE_MODEL` 把 `fable` 別名改指向 Opus，並用 `settings.local.json` 把主對話蓋成 Sonnet；設法與不計費的驗證指令寫在專案 CLAUDE.md 的段落，細節見 setup 步驟 5。改指向後，Max 欄寫 Fable 的環節在 Pro 成員那邊實際跑 Opus（v2.1.286–2.1.293 實測）。與 Pro 欄仍有兩處不同：主對話是 Sonnet，steelman 要照 Pro 欄先 `/model opus`；`/speckit-tasks` 用 Opus 而非 Sonnet，這一步 token 量小。雲端工作階段讀不到個人設定，驗證通過前 Pro 成員不要在雲端跑用到 `fable` 的環節。
+- **Pro 上想為大功能的 plan 付 credits 用 Fable** 是合理的單點升級：這一步 token 量小、決定難回頭。小功能不必。設了全域改指向的 Pro 成員，要在該專案的 `settings.local.json` 把變數設回 `claude-fable-5-1`，否則會被靜默改成 Opus。
 
 本段是建議配置而非流程條款：不進 constitution、不計入 Phase 6 的條款觸發檢視，團隊可依 retro-log 的退回／打回數據自行調整。各檔的分工是依任務性質的推論，未經本流程實測——若調整後退回次數沒變，就把省下的額度留著。寫入方式與個人出口見 `/spec-grill-flow:setup` 步驟 5。
 
@@ -242,7 +247,7 @@ Phase 0 只宣告一件事：**專案有沒有可用的真人協作者**。用�
 
 退回不是免費的——反覆繞圈是「需求本身沒想清楚」的訊號，流程必須主動熔斷，而不是讓人在迴圈裡耗：
 
-- **同一 feature 累計退回 Phase 2 達 2 次** → 熔斷：停止流程，**強制拆分**——已想清楚的部分保留成獨立 spec 照常前進，只把糾纏不清的部分回 Phase 1 重新定義。與升級規則同一哲學：成本是重新組織，不是作廢；探索性需求退回兩次很正常，熔斷懲罰的是糾纏，不是探索。有真人：拆分決策拉高為專案級討論；無真人：換 fresh agent 從**問題定義**（而非現有 spec）主導拆分。retro-log 症狀分類記「熔斷」。
+- **同一 feature 累計退回 Phase 2 達 2 次** → 熔斷：停止流程，**強制拆分**——已想清楚的部分保留成獨立 spec 照常前進，只把糾纏不清的部分回 Phase 1 重新定義。與升級規則同一哲學：成本是重新組織，不是作廢；探索性需求退回兩次很正常，熔斷懲罰的是糾纏，不是探索。有真人：拆分決策拉高為專案級討論；無真人：換 fresh agent（以 `spec-challenger` 派出，見「模型配置」）從**問題定義**（而非現有 spec）主導拆分。retro-log 症狀分類記「熔斷」。
 - **Phase 5→4 打回達 2 次** → 第三次實作前，強制先做根因分析（constitution VI）並寫入 PR，才准再動手。
 
 ---
