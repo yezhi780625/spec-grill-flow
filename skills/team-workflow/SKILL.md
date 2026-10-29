@@ -44,7 +44,7 @@ description: 團隊 AI 交辦任務流程（Spec-Kit + grill + Superpowers）。
 
 ## Phase 2：錘鍊（grill）
 
-**執行者不得是 spec 作者**——完整通道且有真人：非作者成員主持；其餘：fresh-context subagent（不帶 Phase 1 對話脈絡、repo 可查、adversarial 立場；它無法直接向作者提問，每輪問題由主對話轉給作者，作答後交回同一個 subagent 續問）。用 `grill-me` 對著 spec 逼問，每一輪修正**直接改 spec 並 commit**——git log 就是訪談紀錄。追問至少涵蓋：
+**執行者不得是 spec 作者**——完整通道且有真人：非作者成員主持；其餘：fresh-context subagent（不帶 Phase 1 對話脈絡、repo 可查、adversarial 立場；它無法直接向作者提問，每輪問題由主對話轉給作者，作答後交回同一個 subagent 續問；主對話只能原文轉送，不得改寫、加註或代答，問答原文寫進該輪 commit message）。用 `grill-me` 對著 spec 逼問，每一輪修正**直接改 spec 並 commit**——git log 就是訪談紀錄。追問至少涵蓋：
 
 - 每條驗收標準怎麼量測？由誰／什麼工具判定通過？
 - Edge cases 與失敗路徑列了嗎？
@@ -127,7 +127,7 @@ grill 的產出只寫回 spec 本身（不產 ADR、glossary 或其他文件）�
 | 症狀 | 對策 |
 |---|---|
 | 把解決方案當目標，做完才發現不是 PM 要的 | 提案一律先過目標確認（`steelman-requirement`）；「bug」但 spec 未描述該期望行為 → 視為提案照跑 |
-| 做出來的不是想要的 | 檢查 grill 執行者是否獨立於 spec 作者（非作者主持／fresh-context agent） |
+| 做出來的不是想要的 | 檢查 grill 執行者是否獨立於 spec 作者（非作者主持／fresh-context agent）；執行者合規、同一次檢視仍 ≥2 筆 → 評估為代位 grill 指定模型或 effort |
 | 回報完成但驗收失敗 | Phase 3 起驗收標準就要對應測試任務 |
 | spec 和程式碼對不上 | 執行「改需求必退 Phase 2」 |
 | 同一 feature 反覆退回繞圈 | 觸發熔斷：強制拆分，糾纏部分回 Phase 1 重新定義 |
