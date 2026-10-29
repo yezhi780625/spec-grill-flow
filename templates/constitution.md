@@ -71,7 +71,6 @@
 ## Governance
 
 - **人力宣告**：<專案有／無真人協作者>。用不用人由分流決定：完整通道且有真人時，grill 由非作者真人主持（兼知識擴散）；其餘場合由 fresh-context 獨立 AI agent 代位（規則見 team-workflow skill）。
-- **模型決議**：無。（本流程不指定模型與 effort；僅當 Phase 6 檢視依失效模式表門檻決議為代位 grill 指定時，在此記錄指定的模型或 effort、檢視日期與理由，見 team-workflow「模型與 effort」。）
 - **Owner**（Phase 0 填齊，不留空）：constitution 修訂核准人 <姓名>；grill-me 上游同步 <姓名>；ECC agent（若引入）<姓名>。無真人協作者時三者皆為本人，職責由 retro 檢視節奏觸發。
 - 本 constitution 效力高於其他慣例文件；與 CLAUDE.md 或 skill 衝突時，以本文件為準。
 - 修訂須經 PR review，由上列核准人核准；修訂需附動機（通常是 PR 驗收中反覆出現的同類問題）。
