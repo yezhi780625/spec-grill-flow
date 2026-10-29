@@ -18,6 +18,8 @@ description: 團隊 AI 交辦任務流程（Spec-Kit + grill + Superpowers）。
 
 **人力與 grill 執行者**（Phase 0 宣告專案有無真人；用不用人由分流決定）：完整通道且有真人 → 真人 grill（非作者主持，兼知識擴散——同事從此知道這個 feature 為什麼存在，AI 無法替代）；其餘 → **fresh-context 獨立 subagent** 代位——可自由讀取 repo，但不共享產生受審產物的對話脈絡，prompt 指定挑錯立場。通道升級時 grill 執行者自動升級。
 
+**模型與 effort 不由本流程指定**：由使用者以 `/model`、`/effort` 選擇，個人偏好寫在 `.claude/settings.local.json`。派出代位 subagent 時不指定 model（繼承主對話）；agent 不得自行改用會另外計費的模型，使用者明確要求時除外。
+
 ## 目標確認（分流之前，僅限提案）
 
 只攔**提案**（要求新行為：feature request、PRD、方案性需求、內部自發 feature），不攔**回報**。判別式：對方期望的行為，spec（或現有明確行為）已描述了嗎？已描述 → bug 回報，目標自明，免跑直接分流（即快速通道的 bug fix）；未描述 → 是包裝成 bug 的需求變更，照跑。拿不準 → 跑（成本只是一則回覆）。內部無新行為任務（typo、重構等）同樣免跑。
@@ -42,7 +44,7 @@ description: 團隊 AI 交辦任務流程（Spec-Kit + grill + Superpowers）。
 
 ## Phase 2：錘鍊（grill）
 
-**執行者不得是 spec 作者**——完整通道且有真人：非作者成員主持；其餘：fresh-context subagent（不帶 Phase 1 對話脈絡、repo 可查、adversarial 立場）。用 `grill-me` 對著 spec 逼問，每一輪修正**直接改 spec 並 commit**——git log 就是訪談紀錄。追問至少涵蓋：
+**執行者不得是 spec 作者**——完整通道且有真人：非作者成員主持；其餘：fresh-context subagent（不帶 Phase 1 對話脈絡、repo 可查、adversarial 立場；它無法直接向作者提問，每輪問題由主對話轉給作者，作答後交回同一個 subagent 續問）。用 `grill-me` 對著 spec 逼問，每一輪修正**直接改 spec 並 commit**——git log 就是訪談紀錄。追問至少涵蓋：
 
 - 每條驗收標準怎麼量測？由誰／什麼工具判定通過？
 - Edge cases 與失敗路徑列了嗎？
