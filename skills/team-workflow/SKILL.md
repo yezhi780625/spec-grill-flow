@@ -18,7 +18,7 @@ description: 團隊 AI 交辦任務流程（Spec-Kit + grill + Superpowers）。
 
 **人力與 grill 執行者**（Phase 0 宣告專案有無真人；用不用人由分流決定）：完整通道且有真人 → 真人 grill（非作者主持，兼知識擴散——同事從此知道這個 feature 為什麼存在，AI 無法替代）；其餘 → **fresh-context 獨立 subagent** 代位——可自由讀取 repo，但不共享產生受審產物的對話脈絡，prompt 指定挑錯立場。通道升級時 grill 執行者自動升級。
 
-**模型與 effort 不由本流程指定**：由使用者以 `/model`、`/effort` 選擇，個人偏好寫在 `.claude/settings.local.json`。派出代位 subagent 時不指定 model（繼承主對話）；agent 不得自行改用會另外計費的模型，使用者明確要求時除外。
+**模型與 effort 不由本流程指定**：由使用者以 `/model`、`/effort` 選擇，個人偏好寫在 `.claude/settings.local.json`。派出代位 subagent 時不指定 model（繼承主對話），除非 constitution Governance 段有 Phase 6 檢視決議另行指定；agent 不得自行改用會另外計費的模型，使用者明確要求時除外。
 
 ## 目標確認（分流之前，僅限提案）
 
@@ -89,6 +89,7 @@ grill 的產出只寫回 spec 本身（不產 ADR、glossary 或其他文件）�
 - [ ] 所有 edge cases 有對應測試
 - [ ] 未實作 spec 範圍外的功能（scope creep 檢查）
 - [ ] spec「未解事項」各項已定案——標「已接受取捨（凍結）」或轉 issue 移出 spec
+- [ ] 代位 grill（AI 執行時）：每輪 grill 修正的 commit message 含該輪問題與作者答案原文
 ```
 
 任一條不過 → 打回 Phase 4；根因在 spec → 退回 Phase 2。全過 → 合併（合併前「未解事項」每項須定案：凍結或轉 issue，不得無狀態滾入下一次修改）。抽查測試品質：revert 對應實作後測試必須轉紅，空測試視同無測試。
