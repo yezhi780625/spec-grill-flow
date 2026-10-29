@@ -65,7 +65,7 @@ Phase 0 只宣告一件事：**專案有沒有可用的真人協作者**。用�
 
 **模型與 effort（不由本流程指定）**：模型交給使用者選擇——主對話用 `/model`、`/effort` 切換，個人偏好寫在 `.claude/settings.local.json`，不寫進團隊共用的 `settings.json` 或 skill frontmatter。理由：模型之間的強弱排序幾個月就會變，寫死在流程裡的建議很快過期；agent 也無法切換自己的模型與 effort，那是使用者的指令。流程只規定兩件事：
 
-- **派出代位 subagent 時不指定 model**。未設定環境變數 `CLAUDE_CODE_SUBAGENT_MODEL`、也沒有使用自帶 `model` 的 subagent 定義時，subagent 會繼承主對話的模型（v2.1.312 以 general-purpose 實測）。
+- **派出代位 subagent 時不指定 model 與 effort**。未設定環境變數 `CLAUDE_CODE_SUBAGENT_MODEL`、也沒有使用自帶 `model` 的 subagent 定義時，subagent 會繼承主對話的模型（v2.1.312 以 general-purpose 實測）。
 - **agent 不得自行改用會另外計費的模型**（依訂閱方案，部分模型會在方案額度外另外計費），使用者明確要求時除外。agent 對模型強弱的認知來自訓練資料，同樣會過期，不能拿來當升級的理由。
 
 要為特定環節指定模型或 effort，走一般的流程修訂：PR 修改本文件，附上 retro-log 的證據（例如代位 grill 的任務反覆出現「AI 做出來的不是想要的」），並寫明對方案外另計費或無存取權成員的處理方式。
@@ -145,7 +145,7 @@ Phase 0 只宣告一件事：**專案有沒有可用的真人協作者**。用�
 **負責人**：**非 spec 作者**——與 Phase 5「非實作者 review」同構。需求誤解的成本高於實作瑕疵，自己 grill 自己寫的需求是流程最早、也最貴的盲點。執行者依通道決定（見「人力宣告」）：
 
 - **完整通道且專案有真人**：由非作者成員主持 grill，spec 作者作答——同時完成知識擴散。
-- **其餘情況**（輕量通道，或無真人可用）：由 fresh-context 的獨立 subagent 執行——受審對象是 spec 文件本身，不帶 Phase 1 的對話脈絡（repo 與事實查證照常可用），prompt 明確指定 adversarial 立場；作者本人作答。代位 subagent 無法直接向作者提問：每一輪的問題由主對話轉給作者，作答後把答案交回**同一個** subagent 續問（保留訪談脈絡），不要每輪另開新的。主對話帶著 Phase 1 的脈絡，所以**只能原文轉送**：不得改寫問題、加註說明或代作者作答。每輪的 commit message 由代位 subagent 撰寫，含它提出的問題原文與主對話原文轉交的作者答案；該輪沒有改 spec 時用空 commit（`git commit --allow-empty`）記錄；結束時在 spec 的 Grill 檢核段寫一行「代位 grill：共 N 輪」，Phase 5 reviewer 比對 N 與帶問答的 commit 數。
+- **其餘情況**（輕量通道，或無真人可用）：由 fresh-context 的獨立 subagent 執行——受審對象是 spec 文件本身，不帶 Phase 1 的對話脈絡（repo 與事實查證照常可用），prompt 明確指定 adversarial 立場；作者本人作答。代位 subagent 無法直接向作者提問：每一輪的問題由主對話轉給作者，作答後把答案交回**同一個** subagent 續問（保留訪談脈絡），不要每輪另開新的。主對話帶著 Phase 1 的脈絡，所以**只能原文轉送**：不得改寫問題、加註說明或代作者作答。每輪由代位 subagent commit，message 以 `grill:` 開頭，含它提出的問題原文與主對話原文轉交的作者答案；該輪沒有改 spec 時用空 commit（`git commit --allow-empty`）記錄，供 Phase 5 查核。
 
 真人 grill 時，主持人可主動補充作者不掌握的事實（既有行為、歷史決策、其他系統的限制），寫入 spec 並標注來源；但取捨與拍板仍屬作者。**若一次 grill 出現三項以上此類補充，retro 備註標記「領域知識未文件化」**——代表該領域的事實只存在同事腦中：後續同領域任務分流時應偏向完整通道（AI 代位會漏掉這些事實），並考慮把該領域知識補進專案文件，償還後就不必每次消耗真人。
 
@@ -204,13 +204,13 @@ Phase 0 只宣告一件事：**專案有沒有可用的真人協作者**。用�
 - [ ] 所有 edge cases 有對應測試
 - [ ] 未實作 spec 範圍外的功能（scope creep 檢查）
 - [ ] spec「未解事項」各項已定案——標「已接受取捨（凍結）」或轉 issue 移出 spec
-- [ ] 代位 grill（AI 執行時）：帶問答原文的 commit 數（含空 commit）與 spec Grill 檢核段的「代位 grill：共 N 輪」相符
+- [ ] 代位 grill（AI 執行時）：本分支有 `grill:` 開頭的 commit，且每個都含該輪問題與作者答案原文
 ```
 
 2. 每條驗收標準優先附上自動測試作為證據；無法自動化的，寫明人工驗證步驟與結果。抽查測試品質：revert 對應實作後測試必須轉紅（constitution I），空測試視同無測試。
 3. 任一條打不了勾 → 打回 Phase 4；若原因是 spec 本身有問題 → 退回 Phase 2（計數見「退回與熔斷」）。代位 grill 問答紀錄那一勾例外，處理方式見下方第 5 點。
 4. 快速通道 PR 加驗：實際 diff 超過 3 檔時，判斷是否應升級通道。
-5. **代位 grill 問答紀錄**：AI 代位執行的 grill（輕量通道一律適用），比對 spec Grill 檢核段的「代位 grill：共 N 輪」與帶問答原文的 commit 數（含空 commit）。缺「共 N 輪」這行、或 commit 數少於 N → 打不了勾：由新的 fresh-context subagent 對該 spec 的驗收標準重跑一輪 grill 四維度，以新的 commit 記錄問答後再驗收。補問只補紀錄，不計入退回／打回次數與熔斷；若補問導致 spec 修改，依原規則計為 P5→P2 退回。retro-log 觸發條款欄記「grill 紀錄補問」。真人主持的 grill 不適用本項。
+5. **代位 grill 問答紀錄**：AI 代位執行的 grill（輕量通道一律適用），用 `git log origin/main..HEAD --grep '^grill:'` 列出本分支的 grill commit：至少要有一個，且每個 message 都含該輪問題與作者答案原文。不符 → 由新的 fresh-context subagent 對該 spec 重跑一輪 grill 四維度，以合規的 `grill:` commit 記錄，之後以補問的 commit 為準驗收。補問只補紀錄，不計入退回／打回次數與熔斷（觸發條款記「grill 紀錄補問」）；補問導致 spec 修改則依原規則計為 P5→P2。本項只能確認紀錄存在且格式正確，無法證明沒有漏掉的輪次。真人主持的 grill 不適用本項。
 6. **未解事項定案**：合併前，spec「未解事項」段每一項必須定案——標記「已接受的取捨（凍結）」留在 spec，或轉成 issue 移出 spec。不得無狀態滾入下一次修改：未定案的項目會累積成墓地，第十次檢視三十項時 checkbox 就變蓋章了。
 7. 全數通過 → 合併。Spec 文件與程式碼同 repo 留存，作為未來變更的基準。
 
