@@ -89,10 +89,10 @@ grill 的產出只寫回 spec 本身（不產 ADR、glossary 或其他文件）�
 - [ ] 所有 edge cases 有對應測試
 - [ ] 未實作 spec 範圍外的功能（scope creep 檢查）
 - [ ] spec「未解事項」各項已定案——標「已接受取捨（凍結）」或轉 issue 移出 spec
-- [ ] 代位 grill（AI 執行時）：本分支有 `grill:` 開頭的 commit，且每個都含該輪問題與作者答案原文
+- [ ] 代位 grill（AI 執行時）：本分支有 `grill:` 開頭的 commit，且每個都含該輪問題與作者答案原文；有 `grill: [補問]` commit 時只檢查補問的 commit
 ```
 
-任一條不過 → 打回 Phase 4；根因在 spec → 退回 Phase 2；代位 grill 問答紀錄不符（本分支沒有 `grill:` commit，或有 commit 缺問答原文）→ 由新的 fresh-context subagent 重跑一輪 grill 四維度並以合規的 `grill:` commit 記錄，之後以補問的 commit 為準；只補紀錄不計入退回／打回與熔斷（觸發條款記「grill 紀錄補問」），導致 spec 修改則計為 P5→P2。全過 → 合併（合併前「未解事項」每項須定案：凍結或轉 issue，不得無狀態滾入下一次修改）。抽查測試品質：revert 對應實作後測試必須轉紅，空測試視同無測試。
+任一條不過 → 打回 Phase 4；根因在 spec → 退回 Phase 2；代位 grill 問答紀錄不符（本分支沒有 `grill:` commit，或有 commit 缺問答原文）→ 由新的 fresh-context subagent 重跑一輪 grill 四維度並commit message 以 `grill: [補問]` 開頭並含問答原文，之後只檢查補問的 commit；只補紀錄不計入退回／打回與熔斷（觸發條款記「grill 紀錄補問」），導致 spec 修改則計為 P5→P2。全過 → 合併（合併前「未解事項」每項須定案：凍結或轉 issue，不得無狀態滾入下一次修改）。抽查測試品質：revert 對應實作後測試必須轉紅，空測試視同無測試。
 
 - 快速通道：免逐條對照，確認「失敗測試→修正→綠燈」證據鏈；diff 超過 3 檔時判斷是否應升級通道。
 - 輕量通道：逐條對照僅限本次增修的標準與其 edge cases。

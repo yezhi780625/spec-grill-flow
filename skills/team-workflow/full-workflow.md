@@ -204,13 +204,13 @@ Phase 0 只宣告一件事：**專案有沒有可用的真人協作者**。用�
 - [ ] 所有 edge cases 有對應測試
 - [ ] 未實作 spec 範圍外的功能（scope creep 檢查）
 - [ ] spec「未解事項」各項已定案——標「已接受取捨（凍結）」或轉 issue 移出 spec
-- [ ] 代位 grill（AI 執行時）：本分支有 `grill:` 開頭的 commit，且每個都含該輪問題與作者答案原文
+- [ ] 代位 grill（AI 執行時）：本分支有 `grill:` 開頭的 commit，且每個都含該輪問題與作者答案原文；有 `grill: [補問]` commit 時只檢查補問的 commit
 ```
 
 2. 每條驗收標準優先附上自動測試作為證據；無法自動化的，寫明人工驗證步驟與結果。抽查測試品質：revert 對應實作後測試必須轉紅（constitution I），空測試視同無測試。
 3. 任一條打不了勾 → 打回 Phase 4；若原因是 spec 本身有問題 → 退回 Phase 2（計數見「退回與熔斷」）。代位 grill 問答紀錄那一勾例外，處理方式見下方第 5 點。
 4. 快速通道 PR 加驗：實際 diff 超過 3 檔時，判斷是否應升級通道。
-5. **代位 grill 問答紀錄**：AI 代位執行的 grill（輕量通道一律適用），用 `git log origin/main..HEAD --grep '^grill:'` 列出本分支的 grill commit：至少要有一個，且每個 message 都含該輪問題與作者答案原文。不符 → 由新的 fresh-context subagent 對該 spec 重跑一輪 grill 四維度，以合規的 `grill:` commit 記錄，之後以補問的 commit 為準驗收。補問只補紀錄，不計入退回／打回次數與熔斷（觸發條款記「grill 紀錄補問」）；補問導致 spec 修改則依原規則計為 P5→P2。本項只能確認紀錄存在且格式正確，無法證明沒有漏掉的輪次。真人主持的 grill 不適用本項。
+5. **代位 grill 問答紀錄**：AI 代位執行的 grill（輕量通道一律適用），用 `git log origin/main..HEAD --grep '^grill:'` 列出本分支的 grill commit：至少要有一個，且每個 message 都含該輪問題與作者答案原文。不符 → 由新的 fresh-context subagent 對該 spec 重跑一輪 grill 四維度，commit message 以 `grill: [補問]` 開頭並含問答原文。之後只檢查補問的 commit（`git log origin/main..HEAD --grep '^grill: \[補問\]'`）：缺問答原文的舊 commit 無法改寫，不再計入。補問只補紀錄，不計入退回／打回次數與熔斷（觸發條款記「grill 紀錄補問」）；補問導致 spec 修改則依原規則計為 P5→P2。本項只能確認紀錄存在且格式正確，無法證明沒有漏掉的輪次。真人主持的 grill 不適用本項。
 6. **未解事項定案**：合併前，spec「未解事項」段每一項必須定案——標記「已接受的取捨（凍結）」留在 spec，或轉成 issue 移出 spec。不得無狀態滾入下一次修改：未定案的項目會累積成墓地，第十次檢視三十項時 checkbox 就變蓋章了。
 7. 全數通過 → 合併。Spec 文件與程式碼同 repo 留存，作為未來變更的基準。
 
