@@ -33,7 +33,7 @@ The session is done when the frontier is empty: every branch of the design tree 
 
 ## 本流程的附加規則（team-workflow Phase 2）
 
-- **grill 執行者不得是 spec 作者**，依通道決定：完整通道且專案有真人時由非作者成員主持（兼知識擴散）；其餘（輕量通道或無真人）由 fresh-context 的獨立 subagent 執行——受審對象是 spec 文件本身，不帶產生該 spec 的對話脈絡（repo 與事實查證照常可用），prompt 明確指定挑錯立場。代位 subagent 無法直接向作者提問：每一輪的問題由主對話轉給作者，作答後把答案交回**同一個** subagent 續問（保留訪談脈絡），不要每輪另開新的。主對話帶著 Phase 1 的脈絡，所以**只能原文轉送**：不得改寫問題、加註說明或代作者作答；該輪的問題與作者答案原文寫進該輪的 commit message，Phase 5 reviewer 可從 git log 查核。
+- **grill 執行者不得是 spec 作者**，依通道決定：完整通道且專案有真人時由非作者成員主持（兼知識擴散）；其餘（輕量通道或無真人）由 fresh-context 的獨立 subagent 執行——受審對象是 spec 文件本身，不帶產生該 spec 的對話脈絡（repo 與事實查證照常可用），prompt 明確指定挑錯立場。代位 subagent 無法直接向作者提問：每一輪的問題由主對話轉給作者，作答後把答案交回**同一個** subagent 續問（保留訪談脈絡），不要每輪另開新的。主對話帶著 Phase 1 的脈絡，所以**只能原文轉送**：不得改寫問題、加註說明或代作者作答。每輪的 commit message 由代位 subagent 撰寫，含它提出的問題原文與主對話原文轉交的作者答案；該輪沒有改 spec 時用空 commit（`git commit --allow-empty`）記錄，Phase 5 reviewer 從 git log 查核。
 - 逼問對象是 spec 文件時，每一輪定案的答案**立即寫回 spec 並 commit**，再進下一輪——git log 即訪談紀錄。
 - 作者可駁回追問，但被駁回的追問記入 spec 的「未解事項」段——不得刪除，Phase 5 reviewer 會檢視。
 - 追問至少涵蓋四個維度：驗收標準可量測性、edge cases 與失敗路徑、需求矛盾、「不做什麼」。

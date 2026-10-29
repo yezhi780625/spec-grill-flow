@@ -30,7 +30,7 @@ Phase 0 宣告專案有無真人協作者，何時用人由分流決定——完
 /spec-grill-flow:setup
 ```
 
-必要環境：Node.js、Python 3.10+ 與 uv（spec-kit ≥0.8.10——指令為 `/speckit-*` skill 形式）。建議配置：Claude Code v2.1.219+。本流程不指定模型與 effort，由使用者自行選擇；setup 會偵測舊版寫入的模型設定並徵詢是否移除。
+必要環境：Node.js、Python 3.10+ 與 uv（spec-kit ≥0.8.10——指令為 `/speckit-*` skill 形式）。本流程不指定模型與 effort，由使用者自行選擇；setup 會偵測舊版寫入的模型設定並徵詢是否移除。
 
 ## 內容
 
