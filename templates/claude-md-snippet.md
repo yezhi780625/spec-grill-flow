@@ -12,4 +12,4 @@
   /plugin install spec-grill-flow@spec-grill-flow-marketplace
   ```
 
-  裝完 plugin 即可開工——setup 產出的檔案（constitution、PR template、retro-log 等）已在版控內，全員共享；只有本專案尚未初始化（無 `.specify/`）時才需跑一次 `/spec-grill-flow:setup`。刻意不把規則書複製進本 repo：那會與上游形成第二份會走鐘的複本，違反 constitution IV（單一真相源）。
+  裝完 plugin 即可開工——setup 產出的檔案（constitution、PR template、retro-log 等）已在版控內，全員共享；只有本專案尚未初始化（無 `.specify/`）時才需跑一次 `/spec-grill-flow:setup`；例外：跑過 0.5.0 之前任何版本 setup 的專案，升級到 0.5.0 後重跑一次，以清理舊版寫入的模型設定。刻意不把規則書複製進本 repo：那會與上游形成第二份會走鐘的複本，違反 constitution IV（單一真相源）。
