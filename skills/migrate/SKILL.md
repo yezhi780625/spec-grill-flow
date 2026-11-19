@@ -19,7 +19,7 @@ disable-model-invocation: true
 | 舊版模型設定 | [legacy-model-settings.md](legacy-model-settings.md) 的偵測對象 | 無舊版值 |
 | extension | `.specify/extensions.yml` 的 `installed` | 已安裝者為最新 |
 | `feature.json` 是否進版控 | `git ls-files --error-unmatch .specify/feature.json` | 未追蹤 |
-| plugin 產物 | CLAUDE.md 的「交辦流程鐵律」段落、`.github/pull_request_template.md`，各自與本 plugin `templates/` 比對 | 與 template 一致 |
+| plugin 產物 | CLAUDE.md 的「交辦流程鐵律」段落、PR／MR template（位置依平台，見 setup 步驟 8；GitLab 專案沒有 `.gitlab/merge_request_templates/Default.md` 即未達目標），各自與本 plugin `templates/` 比對 | 與 template 一致 |
 | 已停用的產物 | `specs/retro-log.md` 是否存在；constitution 是否還有 [legacy-constitution.md](legacy-constitution.md) 列出的舊條文 | 沒有 `specs/retro-log.md`；舊條文都沒有，或已是專案自己改寫過的句子 |
 | 進行中的 feature | `git branch -a --no-merged <預設分支>` 中，相對預設分支有 `specs/` 變更的分支 | 每個都有接續步驟（步驟 7） |
 | `.gitignore` | `git check-ignore -q .specify/extensions/.cache/x`、`git check-ignore -q .claude/settings.local.json` | 兩者都被 repo 層的規則忽略 |
@@ -104,7 +104,8 @@ disable-model-invocation: true
   - speckit 指令靠 `.specify/feature.json` 找 feature：切換分支後要確認它，新建的 worktree 要先寫入它。
   - feature branch 由流程在 Phase 1 建立，命名照專案慣例；不需要 spec-kit 的 git extension。
   - 完整通道新增 Phase 3 的 `/speckit-analyze` 與 Phase 4 結尾的 `/speckit-converge`。
-  - Phase 4 改由主 agent 派 fresh-context subagent 實作：測試的 commit 排在實作之前，完成的任務在 tasks.md 勾選；原因不清楚的 bug 用 `diagnosing-bugs`。
+  - Phase 4 改由主 agent 派 fresh-context subagent 實作，一個 agent 一個 worktree：新行為的測試 commit 排在實作之前，事後新增或修改的斷言附失敗證據；任務在完成它的 PR 裡勾選；原因不清楚的 bug 用 `diagnosing-bugs`。
+  - 開 PR／MR 時以專案的範本作為描述骨架。
   - 流程不再依賴 Superpowers，也取消了合併後的 retro。個人仍安裝 Superpowers 的成員，CLAUDE.md 鐵律已寫明它的規劃與執行類 skill 不在本流程使用。
   - 移除了舊版模型設定時：speckit 指令改為跟隨各自選擇的模型，個人偏好寫在 `.claude/settings.local.json`。
 - 提醒使用者開 PR 合併遷移分支。

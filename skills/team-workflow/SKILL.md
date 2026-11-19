@@ -73,28 +73,33 @@ grill 的產出只寫回 spec 本身（不產 ADR、glossary 或其他文件）�
 
 ## Phase 4：實作
 
-主 agent 依 tasks.md 的順序，把任務交給 **fresh-context subagent** 實作；主 agent 負責派工、核對回報與整合。主 agent 載入 `/speckit-implement` 當入口也可以，派工、commit 與勾選仍依下列規則。
+主 agent 依 tasks.md 的順序，把任務交給 **fresh-context subagent** 實作；主 agent 負責派工與核對回報。主 agent 不寫測試與實作，小修改也一樣派 subagent（使用者明確要求直接改時除外）；整合時頂多解合併衝突。主 agent 載入 `/speckit-implement` 當入口也可以，派工、commit 與勾選仍依下列規則。
 
 **派工**：
 
 - 一次交辦的範圍由主 agent 決定（單一任務，或 tasks.md 的一個階段／一個 user story）。model 與 effort 由主 agent 判斷。
-- 可以並行派工：彼此不依賴、不改同一個檔案的任務（tasks.md 標 `[P]` 的任務，或檔案不重疊的 user story）可以同時交給多個 subagent。並行的 subagent 各用一個隔離的 git worktree（派工工具的 `isolation: "worktree"`）——共用同一個工作樹會打亂 commit 順序與 tasks.md 的勾選。它們照常先 commit 測試、再 commit 實作，但不勾 tasks.md。
-- 並行的成果由主 agent 整合：依 tasks.md 的順序把各 worktree 的 commit 合併回 feature branch（保留原本的 commit，不 squash），每合併一批就執行完整測試，再勾選 tasks.md 並 commit，最後刪除已合併的 worktree 分支。主 agent 自己動手的只有合併、解決合併衝突與勾選；其餘任務都派給 subagent。
+- 可以並行派工：彼此不依賴的任務可以同時交給多個 subagent。**一個 agent 一個 git worktree**（派工工具的隔離選項或 `git worktree add` 都可以）——共用工作目錄會互相覆蓋檔案、打亂 commit。同時幾個、成果走本機合併還是各自開 PR、由誰解衝突，依專案的做法。
+- 整合時保留原本的 commit（merge，不 squash——Phase 5 靠 commit 驗證測試先行），整合後執行完整測試。
 - 交辦內容用路徑指向 spec、plan、tasks.md 與 constitution，列出這次的任務編號，並附上下方「實作規則」全文——subagent 看不到主對話，也不會自己載入本 skill。
-- subagent 回報後，主 agent 自己執行一次完整測試，確認綠燈才派下一批。
+- subagent 回報後，先確認完整測試綠燈（自己執行，或看 CI 的結果），才接受這批成果。
 
 **實作規則**（給 subagent）：
 
-- TDD（constitution I）：每個行為先寫測試，執行並看到它失敗，才寫實作。測試的 commit 排在對應實作的 commit 之前，commit 訊息帶任務編號。豁免類別（純 UI 樣式／一次性 migration／無邏輯膠水碼）走 constitution I 豁免程序：PR 明寫理由＋替代驗證方式，禁止空測試充數。
-- 完成一項勾一項：任務完成且測試綠燈後，把 tasks.md 對應的 `- [ ]` 改成 `- [x]` 並 commit（在隔離 worktree 並行時，改由主 agent 合併後勾選）。
+- TDD（constitution I）：每個行為先寫測試，執行並看到它失敗，才寫實作。證據有兩種，各管各的範圍：
+  - 新行為：測試的 commit 排在對應實作的 commit 之前，commit 訊息帶任務編號。
+  - 事後新增或修改的斷言（補強測試、文案或錯誤碼改動後的斷言）：逐個證明它會失敗——把對應的行為改壞、確認該斷言轉紅、再還原——並把改壞了什麼、哪個斷言轉紅寫進 PR 描述。「不包含某字串」這類負向斷言尤其要做：文案一改，它可能永遠成立。
+
+  豁免類別（純 UI 樣式／一次性 migration／無邏輯膠水碼）走 constitution I 豁免程序：PR 明寫理由＋替代驗證方式，禁止空測試充數。
+- 勾選：這個 PR 完成的任務，在這個 PR 裡把 tasks.md 對應的 `- [ ]` 改成 `- [x]` 並 commit。
+- 開 PR（或 MR）時，以專案的 PR 範本作為描述的骨架，逐段填寫。
 - 除錯（constitution VI）：修 bug 一律先寫出重現問題的失敗測試，針對根因修正，根因寫進 commit 訊息。原因還不清楚時（測試以非預期的方式失敗、既有測試轉紅、問題時有時無、或第一次修正後紅燈沒有轉綠），先載入 `diagnosing-bugs` skill 再動手。
 - 發現需求問題 → 停手並回報。由主 agent 退回 Phase 2 改 spec、過 grill，再繼續（計入退回次數）。需求變更一律經過 spec——spec 與程式碼不同步是本流程最大的失效模式。
 
-快速通道沒有 tasks.md：交辦內容就是該次任務本身（bug fix 先寫重現問題的失敗測試），「完成一項勾一項」不適用。
+快速通道沒有 tasks.md：交辦內容就是該次任務本身（bug fix 先寫重現問題的失敗測試），勾選不適用。
 
 **開 PR 前**（完整通道）跑 `/speckit-converge`：它對照 spec、plan、tasks 檢查程式碼，不改程式碼，只把剩餘工作附加到 tasks.md。附加了任務 → 照上述規則完成後重跑，直到回報 `Converged`，並把結果寫進 PR 描述。這是自我檢查，不取代 Phase 5，也不計入打回次數。輕量通道可選用（feature 目錄已有 plan.md 與 tasks.md 時，以參數限定範圍）。
 
-**完成條件**：完整測試綠燈；tasks.md 全部勾選（快速通道沒有 tasks.md，免）；每個實作 commit 之前有對應的測試 commit（豁免者除外）；完整通道另須 `/speckit-converge` 回報 `Converged`。
+**完成條件**：完整測試綠燈；完成的任務都已在 tasks.md 勾選（快速通道沒有 tasks.md，免）；新行為的測試 commit 在實作之前，事後新增或修改的斷言有失敗證據（豁免者除外）；完整通道另須 `/speckit-converge` 回報 `Converged`。
 
 ## Phase 5：驗收
 
@@ -104,14 +109,15 @@ grill 的產出只寫回 spec 本身（不產 ADR、glossary 或其他文件）�
 ## Spec 驗收（對照 specs/xxx/spec.md）
 - [ ] 每條驗收標準有證據（自動測試連結，或人工驗證步驟與結果）
 - [ ] 所有 edge cases 有對應測試
-- [ ] 測試的 commit 早於對應的實作 commit（豁免者見 PR 的豁免段）
+- [ ] 測試先行有證據：新行為的測試 commit 早於實作 commit；事後新增或修改的斷言附失敗證據（豁免者見 PR 的豁免段）
+- [ ] tasks.md 的勾選與本 PR 完成的任務一致
 - [ ] 未實作 spec 範圍外的功能（scope creep 檢查）
 - [ ] `/speckit-converge` 結果為 Converged（完整通道，結果附在 PR 描述）
 - [ ] spec「未解事項」各項已定案——標「已接受取捨（凍結）」或轉 issue 移出 spec
 - [ ] 代位 grill（AI 執行時）：本分支有 `grill:` 開頭的 commit，且每個都含該輪問題與作者答案原文；有 `grill: [補問]` commit 時只檢查補問的 commit
 ```
 
-任一條不過 → 打回 Phase 4；根因在 spec → 退回 Phase 2；代位 grill 問答紀錄不符（本分支沒有 `grill:` commit，或有 commit 缺問答原文）→ 由新的 fresh-context subagent 重跑一輪 grill 四維度並commit message 以 `grill: [補問]` 開頭並含問答原文，之後只檢查補問的 commit；只補紀錄不計入退回／打回與熔斷，導致 spec 修改則計為 P5→P2。全過 → 合併（合併前「未解事項」每項須定案：凍結或轉 issue，不得無狀態滾入下一次修改）。確認測試先行：抽查時簽出測試的 commit，測試應為紅燈。抽查測試品質：revert 對應實作後測試必須轉紅，空測試視同無測試。
+任一條不過 → 打回 Phase 4；根因在 spec → 退回 Phase 2；代位 grill 問答紀錄不符（本分支沒有 `grill:` commit，或有 commit 缺問答原文）→ 由新的 fresh-context subagent 重跑一輪 grill 四維度並commit message 以 `grill: [補問]` 開頭並含問答原文，之後只檢查補問的 commit；只補紀錄不計入退回／打回與熔斷，導致 spec 修改則計為 P5→P2。全過 → 合併（合併前「未解事項」每項須定案：凍結或轉 issue，不得無狀態滾入下一次修改）。確認測試先行：抽查時簽出新行為的測試 commit，測試應為紅燈。抽查測試品質以斷言為單位：挑本 PR 新增或修改的斷言，改壞它對應的行為，該斷言必須轉紅；永遠成立的斷言視同沒有測試。
 
 - 完整通道的 converge 那一勾：PR 描述沒有 `Converged` 的結果，或 reviewer 重跑 `/speckit-converge` 後附加了任務 → 打回 Phase 4，照常計入打回次數。
 - 快速通道：免逐條對照，確認「失敗測試→修正→綠燈」證據鏈；diff 超過 3 檔時判斷是否應升級通道。
@@ -148,7 +154,7 @@ grill 的產出只寫回 spec 本身（不產 ADR、glossary 或其他文件）�
 | 流程被私下繞過，或分流越放越寬 | 沒有定期檢視 | 只能在 PR 驗收時發現；反覆出現就提 PR 修訂本流程或 constitution |
 | spec 和程式碼對不上 | 執行「改需求必退 Phase 2」 |
 | 同一 feature 反覆退回繞圈 | 觸發熔斷：強制拆分，糾纏部分回 Phase 1 重新定義 |
-| 測試存在但形同虛設 | 抽查「revert 實作測試須轉紅」；適用豁免就走豁免程序，不寫假測試 |
+| 測試存在但形同虛設 | 以斷言為單位抽查「改壞行為、斷言須轉紅」；適用豁免就走豁免程序，不寫假測試 |
 | 成員產出品質落差 | PR review 檢查 spec 的 grill 檢核與 commit 歷史 |
 
 ## 完整版文件

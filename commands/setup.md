@@ -22,7 +22,7 @@ disable-model-invocation: true
    - `git check-ignore .claude/settings.local.json` 無輸出，或僅命中機器層全域規則 → 在 repo 層 `.gitignore` append `.claude/settings.local.json`（repo 層已有等效規則則跳過，勿產生重複行）。
    - `.claude/settings.local.json` 已被 git 追蹤（`git ls-files --error-unmatch .claude/settings.local.json` 可查；`.gitignore` 對已追蹤檔案無效）→ 告知需執行 `git rm --cached .claude/settings.local.json`，由使用者自行執行，總結表標注待補。**此條無條件執行**，不受前兩條結果影響。
 7. **CLAUDE.md**：將 `templates/claude-md-snippet.md` 的「交辦流程鐵律」段落 append 到專案 CLAUDE.md。已含該段落 → 與現行 template 比對內容：一致則跳過；不一致則徵詢是否更新為新版（更新時保留使用者在段落內自行加註的內容）——只看標題就跳過會讓存量專案永遠拿不到 template 的後續修訂。
-8. **PR template**：將 `templates/pr-template.md` 複製到 `.github/pull_request_template.md`（已存在則詢問合併方式）。
+8. **PR／MR template**：先判斷平台——專案有 `.gitlab-ci.yml` 或 `.gitlab/` 目錄，或 `git remote get-url origin` 的網址含 `gitlab` → GitLab，目標是 `.gitlab/merge_request_templates/Default.md`；有 `.github/` 目錄或網址含 `github` → GitHub，目標是 `.github/pull_request_template.md`；判斷不出來 → 詢問使用者。將 `templates/pr-template.md` 複製到目標位置（已存在則詢問合併方式）。GitLab 只在網頁上開 MR 時自動帶入範本，所以流程另外要求開 PR／MR 時以範本作為描述骨架。
 9. **驗證與總結**：列出每一步的結果（新建／跳過／待補／備份後覆蓋），提示使用者 commit 這些變更。
 
 規則：任何會覆蓋既有檔案的動作先備份並徵詢；本 command 可重複執行（例如本 plugin 升級後重跑，以同步 CLAUDE.md 段落與 PR template）。既有專案跨大版本升級走 `/spec-grill-flow:migrate`。
