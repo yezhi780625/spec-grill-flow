@@ -60,11 +60,9 @@ Phase 0 只宣告一件事：**專案有沒有可用的真人協作者**。用�
 
 **AI 代位規則**（適用於所有由 agent 擔任「非本人」角色的場合）：fresh-context 的獨立 subagent。關鍵不是換個名字，而是換個脈絡——**不得共享產生受審產物的對話脈絡**（撰寫 spec、實作程式的過程對話），但**可自由讀取 repo**：codebase 認識是審查的合法輸入，該擋的只有附和傾向，不是知識。prompt 明確指定挑錯立場。參與過推理的 agent 會順著自己的假設附和，等於沒審。
 
-**模型與 effort（不由本流程指定）**：主對話的模型交給使用者選擇——用 `/model`、`/effort` 切換，個人偏好寫在 `.claude/settings.local.json`，不寫進團隊共用的 `settings.json` 或 skill frontmatter。理由：模型之間的強弱排序幾個月就會變，寫死在流程裡的建議很快過期。流程只規定兩件事：
+**模型與 effort（不由本流程指定）**：主對話的模型交給使用者選擇——用 `/model`、`/effort` 切換，個人偏好寫在 `.claude/settings.local.json`，不寫進團隊共用的 `settings.json` 或 skill frontmatter。理由：模型之間的強弱排序幾個月就會變，寫死在流程裡的建議很快過期。
 
-- **派出 subagent（代位 grill、Phase 4 實作、代位驗收）時，model 與 effort 由主 agent 依任務判斷決定**。不指定時，subagent 沿用主對話的設定（未設定環境變數 `CLAUDE_CODE_SUBAGENT_MODEL`、也沒有使用自帶 `model` 的 subagent 定義時）。依據：2026-11-19 以 v2.1.328 實測 97 次派工，派工工具有 model 與 effort 兩個參數；主 agent 有 41 次指定 model、從未指定 effort，其餘都沿用主對話的模型。
-- **選擇範圍是使用者訂閱方案內含的模型**。會在方案額度外另外計費的模型，使用者明確要求才用——agent 對模型強弱的認知來自訓練資料，會過期，不足以當成讓使用者多付費的理由。
-
+**派出 subagent（代位 grill、Phase 4 實作、代位驗收）時，model 與 effort 由主 agent 依任務判斷決定**，流程不設限制。不指定時，subagent 沿用主對話的設定（未設定環境變數 `CLAUDE_CODE_SUBAGENT_MODEL`、也沒有使用自帶 `model` 的 subagent 定義時）。依據：2026-11-19 以 v2.1.328 實測 97 次派工，派工工具有 model 與 effort 兩個參數；主 agent 有 41 次指定 model、從未指定 effort，其餘都沿用主對話的模型。
 要為特定環節指定模型或 effort，走一般的流程修訂：PR 修改本文件，附上證據（例如代位 grill 的任務在 PR 驗收反覆出現「AI 做出來的不是想要的」），並寫明對方案外另計費或無存取權成員的處理方式。
 
 ---

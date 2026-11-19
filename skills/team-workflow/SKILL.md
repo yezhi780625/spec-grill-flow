@@ -18,7 +18,7 @@ description: 團隊 AI 交辦任務流程（Spec-Kit + grill + fresh-context sub
 
 **人力與 grill 執行者**（Phase 0 宣告專案有無真人；用不用人由分流決定）：完整通道且有真人 → 真人 grill（非作者主持，兼知識擴散——同事從此知道這個 feature 為什麼存在，AI 無法替代）；其餘 → **fresh-context 獨立 subagent** 代位——可自由讀取 repo，但不共享產生受審產物的對話脈絡，prompt 指定挑錯立場。通道升級時 grill 執行者自動升級。
 
-**模型與 effort 不由本流程指定**：主對話的模型與 effort 由使用者以 `/model`、`/effort` 選擇，個人偏好寫在 `.claude/settings.local.json`。派出 subagent（代位 grill、Phase 4 實作、代位驗收）時，model 與 effort 由主 agent 依任務判斷決定；不指定時沿用主對話的設定。選擇範圍是使用者訂閱方案內含的模型，會另外計費的模型要使用者明確要求才用。
+**模型與 effort 不由本流程指定**：主對話的模型與 effort 由使用者以 `/model`、`/effort` 選擇，個人偏好寫在 `.claude/settings.local.json`。派出 subagent（代位 grill、Phase 4 實作、代位驗收）時，model 與 effort 由主 agent 依任務判斷決定；不指定時沿用主對話的設定。
 
 ## 目標確認（分流之前，僅限提案）
 
