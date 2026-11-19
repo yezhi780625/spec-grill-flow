@@ -21,6 +21,7 @@ jobs:
         run: |
           changed=""
           for baseline in skills/*/.upstream.json; do
+            [ -f "$baseline" ] || continue
             repo=$(jq -r .repo "$baseline")
             local_dir=$(dirname "$baseline")
             while IFS= read -r row; do

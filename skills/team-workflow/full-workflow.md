@@ -62,7 +62,7 @@ Phase 0 只宣告一件事：**專案有沒有可用的真人協作者**。用�
 
 **模型與 effort（不由本流程指定）**：主對話的模型交給使用者選擇——用 `/model`、`/effort` 切換，個人偏好寫在 `.claude/settings.local.json`，不寫進團隊共用的 `settings.json` 或 skill frontmatter。理由：模型之間的強弱排序幾個月就會變，寫死在流程裡的建議很快過期。
 
-**派出 subagent（代位 grill、Phase 4 實作、代位驗收）時，model 與 effort 由主 agent 依任務判斷決定**，流程不設限制。不指定時，subagent 沿用主對話的設定（未設定環境變數 `CLAUDE_CODE_SUBAGENT_MODEL`、也沒有使用自帶 `model` 的 subagent 定義時）。依據：2026-11-19 以 v2.1.328 實測 97 次派工，派工工具有 model 與 effort 兩個參數；主 agent 有 41 次指定 model、從未指定 effort，其餘都沿用主對話的模型。
+**派出 subagent（代位 grill、Phase 4 實作、代位驗收）時，model 與 effort 由主 agent 依任務判斷決定**，流程不設限制。不指定時，subagent 沿用主對話的設定（未設定環境變數 `CLAUDE_CODE_SUBAGENT_MODEL`、也沒有使用自帶 `model` 的 subagent 定義時）。（2026-11-19 以 v2.1.328 實測。）
 
 要為特定環節指定模型或 effort，走一般的流程修訂：PR 修改本文件，附上證據（例如代位 grill 的任務在 PR 驗收反覆出現「AI 做出來的不是想要的」），並寫明對方案外另計費或無存取權成員的處理方式。
 
@@ -180,7 +180,7 @@ Phase 0 只宣告一件事：**專案有沒有可用的真人協作者**。用�
    - 問題在 spec → **退回 Phase 2 補 grill**。
    - 不同意某項發現 → 不必為它重跑：把該項與理由記入 spec「未解事項」，由 Phase 5 定案。
    - 這是規劃者的自我檢查。結果寫進 plan 與 tasks 的 commit message（例如 `analyze: 0 CRITICAL, 0 HIGH`，有記入未解事項的另外註明），reviewer 有疑慮時可自行重跑。
-4. Plan 與 tasks 一併 commit。若 plan 或 analyze 發現 spec 有洞 → **退回 Phase 2 補 grill**，改完 spec 再回來（退回計數見「退回與熔斷」）。
+4. Plan 與 tasks 一併 commit。寫 plan 時發現 spec 有洞，處理方式與上面 analyze 的發現相同：**退回 Phase 2 補 grill**，改完 spec 再回來（退回計數見「退回與熔斷」）。
 
 `/speckit-tasks` 只在 spec 或 constitution 要求時才產生測試任務。本流程的 constitution I 有這項要求，所以不必另外指定；專案若改寫或拿掉了 constitution I，就要在呼叫 `/speckit-tasks` 時明確要求 TDD。
 
@@ -191,11 +191,12 @@ Phase 0 只宣告一件事：**專案有沒有可用的真人協作者**。用�
 **負責人**：實作者＋AI agent
 
 1. **派工**：主 agent 依 tasks.md 的順序，把任務交給 **fresh-context subagent** 實作。主 agent 負責派工、核對回報與整合；實作的程式碼由 subagent 寫。主 agent 載入 `/speckit-implement` 當入口也可以，派工、commit 與勾選仍依本階段的規則（2026-11-19 實測 5 次，載入後都照樣派 subagent）。
-   - 一次交辦的範圍由主 agent 決定：單一任務，或 tasks.md 的一個階段／一個 user story。會改到同一個檔案的任務依序派。
+   - 一次交辦的範圍由主 agent 決定：單一任務，或 tasks.md 的一個階段／一個 user story。
+   - 一次只派一個實作 subagent：它們共用同一個工作樹，並行會打亂 commit 順序與 tasks.md 的勾選。
    - model 與 effort 由主 agent 判斷（見「模型與 effort」）。
    - 交辦內容用路徑指向 spec、plan、tasks.md 與 constitution，列出這次的任務編號，並附上本階段第 2 到 5 點的規則——subagent 看不到主對話，也不會自己載入本 skill。
    - subagent 回報後，主 agent 自己執行一次完整測試，確認綠燈才派下一批。
-   - 理由：fresh context 的實作者只看得到文件，spec 與 tasks 沒寫清楚的地方會在這裡暴露，而不是被主對話的記憶補上；主對話的 context 留給協調與判斷。
+   - 理由：fresh context 的實作者只看得到文件，spec 與 tasks 沒寫清楚的地方會在這裡暴露，而不是被主對話的記憶補上；主對話的 context 留給協調與判斷。派工方式是工作方法，git 歷史看不出來，Phase 5 不查；Phase 5 查的是第 2、3 點留下的 commit 順序與 tasks.md。
 2. **TDD（constitution I）**：每個行為先寫測試，執行並看到它失敗，才寫實作。**測試的 commit 排在對應實作的 commit 之前**，commit 訊息帶任務編號——Phase 5 靠這個順序驗證測試先行，跳過即打回。豁免類別（純 UI 樣式、一次性 migration、無邏輯膠水碼）走 constitution I 的豁免程序——附替代驗證方式，禁止空測試充數。
 3. **完成一項勾一項**：任務完成且測試綠燈後，把 tasks.md 對應的 `- [ ]` 改成 `- [x]` 並 commit。tasks.md 是進度的唯一紀錄，主 agent 與之後接手的人都靠它判斷做到哪裡。
 4. **除錯（constitution VI）**：修 bug 一律先寫出重現問題的失敗測試，針對根因修正，根因寫進 commit 訊息。原因還不清楚時——測試以非預期的方式失敗、既有測試轉紅、問題時有時無、或第一次修正後紅燈沒有轉綠——先載入 `diagnosing-bugs` skill，照它的步驟做出穩定重現的紅燈再找原因。
@@ -255,6 +256,7 @@ Phase 0 只宣告一件事：**專案有沒有可用的真人協作者**。用�
 | 把解決方案當目標，做完才發現不是 PM 要的 | 跳過目標確認直接分流 | 提案一律先過 `steelman-requirement`；目標未獲 PM 確認不寫進 spec；「bug」但 spec 未描述該期望行為 → 視為提案照跑 |
 | AI 做出來的不是想要的 | Phase 2 grill 不夠深 | 檢查 grill 執行者是否符合通道規則（完整通道有真人應真人主持；AI 代位須為 fresh-context）——流於形式的檢核清單多半是自己審自己 |
 | AI 回報完成但驗收失敗 | Phase 4 測試沒覆蓋驗收標準 | 驗收標準在 Phase 3 就要對應到測試任務（`/speckit-analyze` 檢查）；開 PR 前跑 `/speckit-converge` |
+| 流程被私下繞過，或分流越放越寬 | 沒有定期檢視（0.7.0 取消 retro 的取捨） | 只能在 PR 驗收時發現；反覆出現就提 PR 修訂本流程或 constitution |
 | Spec 和程式碼對不上 | 實作中偷改需求 | 嚴格執行「改需求必退 Phase 2」 |
 | 同一 feature 反覆退回繞圈 | 需求根本沒想清楚 | 觸發熔斷：強制拆分，糾纏部分回 Phase 1 重新定義（見「退回與熔斷」） |
 | 測試存在但形同虛設 | TDD 被當表格應付、寫空測試交差 | Phase 5 抽查「revert 實作測試須轉紅」；適用豁免類別就走豁免程序，不寫假測試 |

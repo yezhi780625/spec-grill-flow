@@ -147,4 +147,4 @@ Required before declaring done:
 - **領域脈絡讀 spec**。本流程不產 `GLOSSARY.md` 與 ADR；讀該 feature 的 `specs/<feature>/spec.md` 與 `.specify/memory/constitution.md`。
 - **回歸測試的 commit 排在修正的 commit 之前**（constitution I），根因寫進修正的 commit 訊息（constitution VI）。
 - **根因是需求問題**（spec 沒寫，或寫的行為本身就是錯的）→ 停手回報，由主 agent 退回 team-workflow 的 Phase 2 改 spec，再回來修。
-- **找不到合適的測試切入點**（本 skill Phase 5 的 no correct seam）→ 停手回報主 agent。constitution VI 要求回歸測試，所以這種情況走 constitution I 的豁免程序：PR 寫明理由與替代驗證方式，由 reviewer 覆核。
+- **找不到合適的測試切入點**（本 skill Phase 5 的 no correct seam）→ 停手回報主 agent，由主 agent 交給使用者決定。constitution VI 要求每個修正附回歸測試，constitution I 的豁免又只涵蓋樣式、一次性 migration 與膠水碼，所以 subagent 不能自己略過；通常的做法是先另開任務補出可測的切入點，再回來修。

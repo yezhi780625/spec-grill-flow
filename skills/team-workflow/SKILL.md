@@ -77,7 +77,7 @@ grill 的產出只寫回 spec 本身（不產 ADR、glossary 或其他文件）�
 
 **派工**：
 
-- 一次交辦的範圍由主 agent 決定（單一任務，或 tasks.md 的一個階段／一個 user story）；會改到同一個檔案的任務依序派。model 與 effort 由主 agent 判斷。
+- 一次交辦的範圍由主 agent 決定（單一任務，或 tasks.md 的一個階段／一個 user story）。一次只派一個實作 subagent：它們共用同一個工作樹，並行會打亂 commit 順序與 tasks.md 的勾選。model 與 effort 由主 agent 判斷。
 - 交辦內容用路徑指向 spec、plan、tasks.md 與 constitution，列出這次的任務編號，並附上下方「實作規則」全文——subagent 看不到主對話，也不會自己載入本 skill。
 - subagent 回報後，主 agent 自己執行一次完整測試，確認綠燈才派下一批。
 
@@ -143,6 +143,7 @@ grill 的產出只寫回 spec 本身（不產 ADR、glossary 或其他文件）�
 | 把解決方案當目標，做完才發現不是 PM 要的 | 提案一律先過目標確認（`steelman-requirement`）；「bug」但 spec 未描述該期望行為 → 視為提案照跑 |
 | AI 做出來的不是想要的 | 檢查 grill 執行者是否獨立於 spec 作者（非作者主持／fresh-context agent） |
 | AI 回報完成但驗收失敗 | Phase 3 起驗收標準就要對應測試任務（`/speckit-analyze` 檢查）；開 PR 前跑 `/speckit-converge` |
+| 流程被私下繞過，或分流越放越寬 | 沒有定期檢視 | 只能在 PR 驗收時發現；反覆出現就提 PR 修訂本流程或 constitution |
 | spec 和程式碼對不上 | 執行「改需求必退 Phase 2」 |
 | 同一 feature 反覆退回繞圈 | 觸發熔斷：強制拆分，糾纏部分回 Phase 1 重新定義 |
 | 測試存在但形同虛設 | 抽查「revert 實作測試須轉紅」；適用豁免就走豁免程序，不寫假測試 |
