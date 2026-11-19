@@ -192,13 +192,14 @@ Phase 0 只宣告一件事：**專案有沒有可用的真人協作者**。用�
 
 1. **派工**：主 agent 依 tasks.md 的順序，把任務交給 **fresh-context subagent** 實作。主 agent 負責派工、核對回報與整合；實作的程式碼由 subagent 寫。主 agent 載入 `/speckit-implement` 當入口也可以，派工、commit 與勾選仍依本階段的規則（2026-11-19 實測 5 次，載入後都照樣派 subagent）。
    - 一次交辦的範圍由主 agent 決定：單一任務，或 tasks.md 的一個階段／一個 user story。
-   - 一次只派一個實作 subagent：它們共用同一個工作樹，並行會打亂 commit 順序與 tasks.md 的勾選。
+   - 可以並行派工：彼此不依賴、不改同一個檔案的任務（tasks.md 標 `[P]` 的任務，或檔案不重疊的 user story）可以同時交給多個 subagent。並行的 subagent 各用一個隔離的 git worktree（派工工具的 `isolation: "worktree"`）——共用同一個工作樹會打亂 commit 順序與 tasks.md 的勾選。它們照常先 commit 測試、再 commit 實作，但不勾 tasks.md。
+   - 並行的成果由主 agent 整合：依 tasks.md 的順序把各 worktree 的 commit 合併回 feature branch（保留原本的 commit，不 squash），每合併一批就執行完整測試，再勾選 tasks.md 並 commit，最後刪除已合併的 worktree 分支。主 agent 自己動手的只有合併、解決合併衝突與勾選；其餘任務都派給 subagent。
    - model 與 effort 由主 agent 判斷（見「模型與 effort」）。
    - 交辦內容用路徑指向 spec、plan、tasks.md 與 constitution，列出這次的任務編號，並附上本階段第 2 到 5 點的規則——subagent 看不到主對話，也不會自己載入本 skill。
    - subagent 回報後，主 agent 自己執行一次完整測試，確認綠燈才派下一批。
    - 理由：fresh context 的實作者只看得到文件，spec 與 tasks 沒寫清楚的地方會在這裡暴露，而不是被主對話的記憶補上；主對話的 context 留給協調與判斷。派工方式是工作方法，git 歷史看不出來，Phase 5 不查；Phase 5 查的是第 2、3 點留下的 commit 順序與 tasks.md。
 2. **TDD（constitution I）**：每個行為先寫測試，執行並看到它失敗，才寫實作。**測試的 commit 排在對應實作的 commit 之前**，commit 訊息帶任務編號——Phase 5 靠這個順序驗證測試先行，跳過即打回。豁免類別（純 UI 樣式、一次性 migration、無邏輯膠水碼）走 constitution I 的豁免程序——附替代驗證方式，禁止空測試充數。
-3. **完成一項勾一項**：任務完成且測試綠燈後，把 tasks.md 對應的 `- [ ]` 改成 `- [x]` 並 commit。tasks.md 是進度的唯一紀錄，主 agent 與之後接手的人都靠它判斷做到哪裡。
+3. **完成一項勾一項**：任務完成且測試綠燈後，把 tasks.md 對應的 `- [ ]` 改成 `- [x]` 並 commit（在隔離 worktree 並行時，改由主 agent 合併後勾選）。tasks.md 是進度的唯一紀錄，主 agent 與之後接手的人都靠它判斷做到哪裡。
 4. **除錯（constitution VI）**：修 bug 一律先寫出重現問題的失敗測試，針對根因修正，根因寫進 commit 訊息。原因還不清楚時——測試以非預期的方式失敗、既有測試轉紅、問題時有時無、或第一次修正後紅燈沒有轉綠——先載入 `diagnosing-bugs` skill，照它的步驟做出穩定重現的紅燈再找原因。
 5. **實作中發現需求問題 → 停手，退回 Phase 2**，改 spec、過 grill，再繼續。subagent 發現時停手並回報，由主 agent 退回。需求變更一律經過 spec——spec 和實作不同步是整個流程最大的失效模式。
 6. **開 PR 前跑 `/speckit-converge`**（完整通道）：它對照 spec、plan、tasks 檢查目前的程式碼，列出缺漏、只做一半、與 spec 牴觸、以及 spec 沒要求卻多做的部分。它不改程式碼，唯一的寫入是把剩餘工作附加到 tasks.md。

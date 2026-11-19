@@ -77,14 +77,16 @@ grill 的產出只寫回 spec 本身（不產 ADR、glossary 或其他文件）�
 
 **派工**：
 
-- 一次交辦的範圍由主 agent 決定（單一任務，或 tasks.md 的一個階段／一個 user story）。一次只派一個實作 subagent：它們共用同一個工作樹，並行會打亂 commit 順序與 tasks.md 的勾選。model 與 effort 由主 agent 判斷。
+- 一次交辦的範圍由主 agent 決定（單一任務，或 tasks.md 的一個階段／一個 user story）。model 與 effort 由主 agent 判斷。
+- 可以並行派工：彼此不依賴、不改同一個檔案的任務（tasks.md 標 `[P]` 的任務，或檔案不重疊的 user story）可以同時交給多個 subagent。並行的 subagent 各用一個隔離的 git worktree（派工工具的 `isolation: "worktree"`）——共用同一個工作樹會打亂 commit 順序與 tasks.md 的勾選。它們照常先 commit 測試、再 commit 實作，但不勾 tasks.md。
+- 並行的成果由主 agent 整合：依 tasks.md 的順序把各 worktree 的 commit 合併回 feature branch（保留原本的 commit，不 squash），每合併一批就執行完整測試，再勾選 tasks.md 並 commit，最後刪除已合併的 worktree 分支。主 agent 自己動手的只有合併、解決合併衝突與勾選；其餘任務都派給 subagent。
 - 交辦內容用路徑指向 spec、plan、tasks.md 與 constitution，列出這次的任務編號，並附上下方「實作規則」全文——subagent 看不到主對話，也不會自己載入本 skill。
 - subagent 回報後，主 agent 自己執行一次完整測試，確認綠燈才派下一批。
 
 **實作規則**（給 subagent）：
 
 - TDD（constitution I）：每個行為先寫測試，執行並看到它失敗，才寫實作。測試的 commit 排在對應實作的 commit 之前，commit 訊息帶任務編號。豁免類別（純 UI 樣式／一次性 migration／無邏輯膠水碼）走 constitution I 豁免程序：PR 明寫理由＋替代驗證方式，禁止空測試充數。
-- 完成一項勾一項：任務完成且測試綠燈後，把 tasks.md 對應的 `- [ ]` 改成 `- [x]` 並 commit。
+- 完成一項勾一項：任務完成且測試綠燈後，把 tasks.md 對應的 `- [ ]` 改成 `- [x]` 並 commit（在隔離 worktree 並行時，改由主 agent 合併後勾選）。
 - 除錯（constitution VI）：修 bug 一律先寫出重現問題的失敗測試，針對根因修正，根因寫進 commit 訊息。原因還不清楚時（測試以非預期的方式失敗、既有測試轉紅、問題時有時無、或第一次修正後紅燈沒有轉綠），先載入 `diagnosing-bugs` skill 再動手。
 - 發現需求問題 → 停手並回報。由主 agent 退回 Phase 2 改 spec、過 grill，再繼續（計入退回次數）。需求變更一律經過 spec——spec 與程式碼不同步是本流程最大的失效模式。
 
