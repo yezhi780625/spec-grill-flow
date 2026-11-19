@@ -38,7 +38,7 @@ description: 團隊 AI 交辦任務流程（Spec-Kit + grill + Superpowers）。
 
 ## Phase 1：定義
 
-用 `/speckit-specify` 把原始需求產成 spec 草稿，接著建立與 feature 目錄同名的分支（`git switch -c <feature 目錄名>`，例如 `001-duration-parsing`；已在同名分支上則跳過），把草稿 commit 進去。經目標確認的任務，把 steelman 定案的「需求背後的目標」段落連同需求原文一起輸入，作為 spec 動機雛形。
+用 `/speckit-specify` 把原始需求產成 spec 草稿，接著從預設分支建立與 feature 目錄同名的分支（`git switch -c <feature 目錄名> <預設分支>`，例如 `001-duration-parsing`；已在同名分支上則跳過），把草稿 commit 進去。經目標確認的任務，把 steelman 定案的「需求背後的目標」段落連同需求原文一起輸入，作為 spec 動機雛形。
 
 **完成條件**：spec 草稿已 commit。此時 spec 未經檢驗，直接進 Phase 3 是流程違規。
 
