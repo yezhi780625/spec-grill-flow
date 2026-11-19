@@ -130,10 +130,10 @@ Phase 0 只宣告一件事：**專案有沒有可用的真人協作者**。用�
 **負責人**：需求發起者（工程師或 PM）
 
 1. 執行 `/speckit-specify`，把原始需求丟進去，產出 spec 草稿。經目標確認的任務，把 steelman 定案的「需求背後的目標」段落一併作為輸入——它是 spec 動機段落的雛形，「為什麼做」從第一天就寫在 spec 裡。
-2. 從預設分支建立 feature branch，名稱與 `/speckit-specify` 剛建立的 feature 目錄相同：`git switch -c <feature 目錄名> <預設分支>`（例如目錄是 `specs/001-duration-parsing`，分支就是 `001-duration-parsing`；還沒 commit 的草稿會跟著過去）。已經在同名分支上則跳過。spec-kit 1.x 的 `/speckit-specify` 自己不建分支；由流程建立，分支名才能和 feature 目錄對得起來。
+2. 建立 feature branch：`git switch -c <分支名> <基準分支>`（還沒 commit 的草稿會跟著過去）。基準分支是預設分支，或這條工作線的整合分支。命名依專案慣例（例如 Jira 單號，或 spec 編號加主題）；專案沒有慣例時，用 `/speckit-specify` 剛建立的 feature 目錄名（例如 `001-duration-parsing`）。已經在這次工作的分支上則跳過。spec-kit 1.x 的 `/speckit-specify` 自己不建分支，所以由流程建立。
 3. 草稿 commit 進這個分支——**先有文件，再有討論**。
 
-**speckit 指令作用在哪個 feature**：spec-kit 1.x 只看 `.specify/feature.json`（各人本機的檔案，不進版控），不看目前的 git 分支。`/speckit-specify` 會寫入它；但切換分支、接手別人的分支、reviewer 在自己的 checkout 重跑、或輕量通道修改既有 spec 時，它可能不存在或指向別的 feature——不存在時指令報錯，過期時指令會默默作用在另一個 feature 上。所以在這些情況下執行 `/speckit-plan`、`/speckit-tasks`、`/speckit-analyze`、`/speckit-converge` 之前，先確認它的內容是 `{"feature_directory":"specs/<本次的 feature 目錄>"}`，不是就改寫。完整通道的分支與 feature 目錄同名，所以就是 `specs/<目前分支名>`；輕量通道是被修改的那份 spec 所在的目錄。
+**speckit 指令作用在哪個 feature**：spec-kit 1.x 只看 `.specify/feature.json`（各人本機的檔案，不進版控），不看目前的 git 分支。`/speckit-specify` 會寫入它；但新建的 worktree 或剛 clone 的 repo 裡沒有這個檔，切換分支、接手別人的分支、reviewer 在自己的 checkout 重跑、或輕量通道修改既有 spec 時，它也可能指向別的 feature——不存在時指令報錯，過期時指令會默默作用在另一個 feature 上。所以在這些情況下執行 `/speckit-plan`、`/speckit-tasks`、`/speckit-analyze`、`/speckit-converge` 之前，先確認它的內容是 `{"feature_directory":"specs/<本次要動的 feature 目錄>"}`，不存在或不是就寫入。分支名不一定等於 feature 目錄名（一個 feature 常拆成多個分支），所以以這次要動的 spec 所在目錄為準；派 subagent 到新的 worktree 時，把這一步寫進交辦內容。
 
 > 此時的 spec 只是「格式化的初稿」，品質未經檢驗，不得直接進入 Phase 3。
 
