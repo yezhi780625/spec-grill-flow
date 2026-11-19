@@ -42,6 +42,8 @@ description: 團隊 AI 交辦任務流程（Spec-Kit + grill + Superpowers）。
 
 **完成條件**：spec 草稿已 commit。此時 spec 未經檢驗，直接進 Phase 3 是流程違規。
 
+**speckit 指令作用在哪個 feature**：spec-kit 1.x 只看 `.specify/feature.json`（本機檔案，不進版控），不看 git 分支。切換分支、接手別人的分支、在另一份 checkout 重跑、或輕量通道修改既有 spec 時，執行 `/speckit-plan`、`/speckit-tasks`、`/speckit-analyze`、`/speckit-converge` 之前先確認它是 `{"feature_directory":"specs/<本次的 feature 目錄>"}`，不是就改寫——過期時指令會默默作用在另一個 feature 上。
+
 ## Phase 2：錘鍊（grill）
 
 **執行者不得是 spec 作者**——完整通道且有真人：非作者成員主持；其餘：fresh-context subagent（不帶 Phase 1 對話脈絡、repo 可查、adversarial 立場；它無法直接向作者提問，每輪問題由主對話轉給作者，作答後交回同一個 subagent 續問；主對話只能原文轉送，不得改寫、加註或代答；每輪由 subagent commit，message 以 `grill:` 開頭並含問題與作者答案原文，沒改 spec 的輪次用空 commit）。用 `grill-me` 對著 spec 逼問，每一輪修正**直接改 spec 並 commit**——git log 就是訪談紀錄。追問至少涵蓋：

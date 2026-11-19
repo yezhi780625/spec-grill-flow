@@ -115,6 +115,8 @@ Phase 0 只宣告一件事：**專案有沒有可用的真人協作者**。用�
 
 ## Phase 0：專案初始化（一次性）
 
+新專案由 `/spec-grill-flow:setup` 執行以下步驟。既有專案（spec-kit 0.x，或跑過本 plugin 0.6.0 之前的 setup）改跑 `/spec-grill-flow:migrate`。
+
 1. `specify init --here --force --integration claude` 建立專案骨架（spec-kit ≥1.0；兩個旗標的理由見 `/spec-grill-flow:setup` 步驟 2）。要讓 `/speckit-specify` 自動建立 feature branch，另外 `specify extension add git`。
 2. `/speckit-constitution` 定義專案原則，至少包含：
    - 核心函式必須附單元測試（測試先於實作，豁免條款見 constitution I）
@@ -135,6 +137,8 @@ Phase 0 只宣告一件事：**專案有沒有可用的真人協作者**。用�
 
 1. 執行 `/speckit-specify`，把原始需求丟進去，產出 spec 草稿。經目標確認的任務，把 steelman 定案的「需求背後的目標」段落一併作為輸入——它是 spec 動機段落的雛形，「為什麼做」從第一天就寫在 spec 裡。
 2. 草稿 commit 進 feature branch——**先有文件，再有討論**。專案裝了 spec-kit 的 git extension 時，`/speckit-specify` 會自動建立 feature branch；沒裝就在執行前自己建立。
+
+**speckit 指令作用在哪個 feature**：spec-kit 1.x 只看 `.specify/feature.json`（各人本機的檔案，不進版控），不看目前的 git 分支。`/speckit-specify` 會寫入它；但切換分支、接手別人的分支、reviewer 在自己的 checkout 重跑、或輕量通道修改既有 spec 時，它可能不存在或指向別的 feature——不存在時指令報錯，過期時指令會默默作用在另一個 feature 上。所以在這些情況下執行 `/speckit-plan`、`/speckit-tasks`、`/speckit-analyze`、`/speckit-converge` 之前，先確認它的內容是 `{"feature_directory":"specs/<本次的 feature 目錄>"}`，不是就改寫。
 
 > 此時的 spec 只是「格式化的初稿」，品質未經檢驗，不得直接進入 Phase 3。
 
