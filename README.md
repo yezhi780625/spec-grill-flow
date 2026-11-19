@@ -30,7 +30,7 @@ Phase 0 宣告專案有無真人協作者，何時用人由分流決定——完
 /spec-grill-flow:setup
 ```
 
-必要環境：Node.js、Python 3.10+ 與 uv（spec-kit ≥0.8.10——指令為 `/speckit-*` skill 形式）。本流程不指定模型與 effort，由使用者自行選擇；setup 會偵測舊版寫入的模型設定並徵詢是否移除——跑過 0.5.0 之前任何版本 setup 的專案，升級到 0.5.0 後請重跑一次 `/spec-grill-flow:setup`。
+必要環境：Node.js、Python 3.11+ 與 uv（spec-kit ≥1.0——指令為 `/speckit-*` skill 形式，以 1.4 實測）。本流程不指定模型與 effort，由使用者自行選擇；setup 會偵測舊版寫入的模型設定並徵詢是否移除，也會協助把 0.x 的 spec-kit 專案升到 1.x——跑過 0.6.0 之前任何版本 setup 的專案，升級到 0.6.0 後請重跑一次 `/spec-grill-flow:setup`。
 
 ## 內容
 

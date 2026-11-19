@@ -38,7 +38,7 @@ description: 團隊 AI 交辦任務流程（Spec-Kit + grill + Superpowers）。
 
 ## Phase 1：定義
 
-用 `/speckit-specify` 把原始需求產成 spec 草稿，commit 進 feature branch。經目標確認的任務，把 steelman 定案的「需求背後的目標」段落連同需求原文一起輸入，作為 spec 動機雛形。
+用 `/speckit-specify` 把原始需求產成 spec 草稿，commit 進 feature branch（專案沒裝 spec-kit 的 git extension 時，執行前先自己建立 feature branch）。經目標確認的任務，把 steelman 定案的「需求背後的目標」段落連同需求原文一起輸入，作為 spec 動機雛形。
 
 **完成條件**：spec 草稿已 commit。此時 spec 未經檢驗，直接進 Phase 3 是流程違規。
 
@@ -65,9 +65,9 @@ grill 的產出只寫回 spec 本身（不產 ADR、glossary 或其他文件）�
 
 ## Phase 3：規劃
 
-`/speckit-plan` 產技術計畫 → `/speckit-tasks` 拆任務，一併 commit。過程中發現 spec 有洞 → 退回 Phase 2 補 grill 後再回來（計入退回次數）。
+`/speckit-plan` 產技術計畫 → `/speckit-tasks` 拆任務 → `/speckit-analyze` 檢查 spec、plan、tasks 與 constitution 是否一致（唯讀），一併 commit。analyze 的 CRITICAL 與 HIGH 發現要回源頭修正後重跑：問題在 plan 或 tasks 就在本階段修；問題在 spec，或過程中發現 spec 有洞 → 退回 Phase 2 補 grill 後再回來（計入退回次數）。
 
-**完成條件**：每條驗收標準在 tasks 中有對應的測試任務。
+**完成條件**：每條驗收標準在 tasks 中有對應的測試任務，且 `/speckit-analyze` 沒有 CRITICAL 或 HIGH 的發現。
 
 ## Phase 4：實作
 
@@ -77,7 +77,9 @@ grill 的產出只寫回 spec 本身（不產 ADR、glossary 或其他文件）�
 - 除錯：先找根因，才准修。
 - 實作中發現需求問題 → 停手，退回 Phase 2 改 spec、過 grill，再繼續（計入退回次數）。需求變更一律經過 spec——spec 與程式碼不同步是本流程最大的失效模式。
 
-**完成條件**：所有 tasks 完成且測試綠燈。
+- 完整通道開 PR 前跑 `/speckit-converge`：它對照 spec、plan、tasks 檢查程式碼，不改程式碼，只把剩餘工作附加到 tasks.md。附加了任務 → 照本階段紀律完成後重跑，直到回報 `Converged`，並把結果寫進 PR 描述。這是自我檢查，不取代 Phase 5，也不計入打回次數；攔到問題時觸發條款記「converge」。輕量通道可選用（feature 目錄已有 plan.md 與 tasks.md 時，以參數限定範圍）。
+
+**完成條件**：所有 tasks 完成且測試綠燈；完整通道另須 `/speckit-converge` 回報 `Converged`。
 
 ## Phase 5：驗收
 
@@ -88,12 +90,14 @@ grill 的產出只寫回 spec 本身（不產 ADR、glossary 或其他文件）�
 - [ ] 每條驗收標準有證據（自動測試連結，或人工驗證步驟與結果）
 - [ ] 所有 edge cases 有對應測試
 - [ ] 未實作 spec 範圍外的功能（scope creep 檢查）
+- [ ] `/speckit-converge` 結果為 Converged（完整通道，結果附在 PR 描述）
 - [ ] spec「未解事項」各項已定案——標「已接受取捨（凍結）」或轉 issue 移出 spec
 - [ ] 代位 grill（AI 執行時）：本分支有 `grill:` 開頭的 commit，且每個都含該輪問題與作者答案原文；有 `grill: [補問]` commit 時只檢查補問的 commit
 ```
 
 任一條不過 → 打回 Phase 4；根因在 spec → 退回 Phase 2；代位 grill 問答紀錄不符（本分支沒有 `grill:` commit，或有 commit 缺問答原文）→ 由新的 fresh-context subagent 重跑一輪 grill 四維度並commit message 以 `grill: [補問]` 開頭並含問答原文，之後只檢查補問的 commit；只補紀錄不計入退回／打回與熔斷（觸發條款記「grill 紀錄補問」），導致 spec 修改則計為 P5→P2。全過 → 合併（合併前「未解事項」每項須定案：凍結或轉 issue，不得無狀態滾入下一次修改）。抽查測試品質：revert 對應實作後測試必須轉紅，空測試視同無測試。
 
+- 完整通道的 converge 那一勾：PR 描述沒有 `Converged` 的結果，或 reviewer 重跑 `/speckit-converge` 後附加了任務 → 打回 Phase 4，照常計入打回次數。
 - 快速通道：免逐條對照，確認「失敗測試→修正→綠燈」證據鏈；diff 超過 3 檔時判斷是否應升級通道。
 - 輕量通道：逐條對照僅限本次增修的標準與其 edge cases。
 
@@ -106,7 +110,7 @@ grill 的產出只寫回 spec 本身（不產 ADR、glossary 或其他文件）�
 
 ## Phase 6：Retro（合併後，2 分鐘內完成）
 
-合併後立即在 `specs/retro-log.md` 回填一行（欄位：合併日、feature、通道、開工日、退回次數＝P3→P2＋P4→P2、打回次數＝P5→P4＋P5→P2、觸發條款＝本次真正攔下問題或改變決定的條款（絆線／豁免／熔斷／未解事項／grill 修正，無則留空）、症狀分類、一句話備註）。症狀分類使用下方失效模式表的既有分類；新型症狀在失效模式表新增一列並在備註標注「新增」。
+合併後立即在 `specs/retro-log.md` 回填一行（欄位：合併日、feature、通道、開工日、退回次數＝P3→P2＋P4→P2、打回次數＝P5→P4＋P5→P2、觸發條款＝本次真正攔下問題或改變決定的條款（絆線／豁免／熔斷／未解事項／grill 修正／analyze／converge，無則留空）、症狀分類、一句話備註）。症狀分類使用下方失效模式表的既有分類；新型症狀在失效模式表新增一列並在備註標注「新增」。
 
 - 快速／輕量通道與零退回零打回的任務同樣回填——前者偵測分流條件是否太寬，後者是打回率的分母。
 - 檢視雙保險：**每累積 10 筆或滿一季**（先到者），由回填觸發筆的人當週執行一次檢視——繞過偵測（merged feature PR 數 − retro-log 新增列數，分子排除自動化／docs-only／revert／CI 修正，列數排除「攔下」列）、條款有效性（以「觸發條款」欄為準，連續兩次零觸發 → 刪除候選）、分流條件鬆緊、cycle time 是否惡化、grill-me 上游同步、附錄 B 條件。
@@ -119,6 +123,7 @@ grill 的產出只寫回 spec 本身（不產 ADR、glossary 或其他文件）�
 |---|---|---|
 | 目標確認（分流前） | `steelman-requirement` 對提案 | bug 回報免；「需求背後的目標」帶入 spec 動機 |
 | spec / plan / tasks | `/speckit-*` | Superpowers 的 /brainstorm、/write-plan 不在本流程使用 |
+| 規劃完成檢查、開 PR 前自我檢查 | `/speckit-analyze`、`/speckit-converge` | 不取代 Phase 5 的獨立驗收 |
 | 錘鍊需求 | `grill-me` 對 spec 文件 | 產出只寫回 spec |
 | 實作、TDD、除錯 | Superpowers | — |
 | 品質門檻 | `.specify/memory/constitution.md` | speckit 各階段自動引用 |
@@ -129,7 +134,7 @@ grill 的產出只寫回 spec 本身（不產 ADR、glossary 或其他文件）�
 |---|---|
 | 把解決方案當目標，做完才發現不是 PM 要的 | 提案一律先過目標確認（`steelman-requirement`）；「bug」但 spec 未描述該期望行為 → 視為提案照跑 |
 | AI 做出來的不是想要的 | 檢查 grill 執行者是否獨立於 spec 作者（非作者主持／fresh-context agent） |
-| 回報完成但驗收失敗 | Phase 3 起驗收標準就要對應測試任務 |
+| AI 回報完成但驗收失敗 | Phase 3 起驗收標準就要對應測試任務（`/speckit-analyze` 檢查）；開 PR 前跑 `/speckit-converge` |
 | spec 和程式碼對不上 | 執行「改需求必退 Phase 2」 |
 | 同一 feature 反覆退回繞圈 | 觸發熔斷：強制拆分，糾纏部分回 Phase 1 重新定義 |
 | 測試存在但形同虛設 | 抽查「revert 實作測試須轉紅」；適用豁免就走豁免程序，不寫假測試 |
