@@ -176,9 +176,11 @@ Phase 0 只宣告一件事：**專案有沒有可用的真人協作者**。用�
 
 1. `/speckit-plan` 產出技術計畫（架構選擇、依賴、資料流）。
 2. `/speckit-tasks` 拆解為可交辦的任務清單。
-3. `/speckit-analyze` 檢查 spec、plan、tasks 與 constitution 是否一致。它是唯讀的，只產出報告；CRITICAL 與 HIGH 的發現要回到源頭修正後重跑，直到沒有這兩級的發現：
+3. `/speckit-analyze`（完整通道；輕量通道免完整 plan，不適用）檢查 spec、plan、tasks 與 constitution 是否一致。它是唯讀的，只產出報告；CRITICAL 與 HIGH 的發現要回到源頭修正後重跑，直到沒有這兩級的發現：
    - 問題在 plan 或 tasks（例如某條驗收標準沒有對應的測試任務）→ 在本階段修正。
    - 問題在 spec → **退回 Phase 2 補 grill**。
+   - 不同意某項發現 → 不必為它重跑：把該項與理由記入 spec「未解事項」，由 Phase 5 定案。
+   - 這是規劃者的自我檢查。結果寫進 plan 與 tasks 的 commit message（例如 `analyze: 0 CRITICAL, 0 HIGH`，有記入未解事項的另外註明），reviewer 有疑慮時可自行重跑。它確實攔到問題時，retro-log 的觸發條款記「analyze」。
 4. Plan 與 tasks 一併 commit。若 plan 或 analyze 發現 spec 有洞 → **退回 Phase 2 補 grill**，改完 spec 再回來（退回計數見「退回與熔斷」）。
 
 `/speckit-tasks` 只在 spec 或 constitution 要求時才產生測試任務。本流程的 constitution I 有這項要求，所以不必另外指定；專案若改寫或拿掉了 constitution I，就要在呼叫 `/speckit-tasks` 時明確要求 TDD。
@@ -242,7 +244,7 @@ Phase 0 只宣告一件事：**專案有沒有可用的真人協作者**。用�
 
 **負責人**：實作者
 
-合併後立即在 `specs/retro-log.md` 回填一行，欄位：合併日、feature、通道（完整／輕量／快速）、開工日、退回次數（P3→P2＋P4→P2）、打回次數（P5→P4＋P5→P2）、**觸發條款**（本次真正攔下問題或改變決定的條款——絆線、豁免、熔斷、未解事項、grill 修正等，無則留空；多數攔截不產生退回或打回，只會出現在這一欄）、症狀分類、一句話備註。症狀分類使用失效模式表的既有分類；新型症狀則在失效模式表新增一列並在備註標注「新增」。
+合併後立即在 `specs/retro-log.md` 回填一行，欄位：合併日、feature、通道（完整／輕量／快速）、開工日、退回次數（P3→P2＋P4→P2）、打回次數（P5→P4＋P5→P2）、**觸發條款**（本次真正攔下問題或改變決定的條款——絆線、豁免、熔斷、未解事項、grill 修正、analyze、converge 等，無則留空；多數攔截不產生退回或打回，只會出現在這一欄）、症狀分類、一句話備註。症狀分類使用失效模式表的既有分類；新型症狀則在失效模式表新增一列並在備註標注「新增」。
 
 - 快速與輕量通道的任務也要回填——它們的打回數據是「分流條件是否太寬」的偵測器。
 - 零退回零打回的任務同樣回填，這是流程健康度的分母。

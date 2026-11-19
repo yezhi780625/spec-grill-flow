@@ -10,7 +10,13 @@ disable-model-invocation: true
    - 確認 Superpowers plugin 已載入（檢查 /brainstorm 等指令是否存在）。未載入 → 提示 plugin 依賴可能未解析，給手動安裝指令，同樣可先跳過。
 2. **spec-kit 初始化或升級**：
    - **repo 中不存在 `.specify/`** → 先請使用者 commit 或 stash 現有變更（初始化產生的檔案才看得出 diff），再執行 `specify init --here --force --integration claude`。兩個旗標都要帶：非互動執行時不帶 `--integration` 會預設安裝 GitHub Copilot 的檔案；非空目錄不帶 `--force` 會直接中止。
-   - **已存在 `.specify/`** → 讀 `.specify/integration.json` 的 `version`。低於 1.0（或沒有這個檔）→ 說明本流程使用 1.x 才有的 `/speckit-converge`，徵詢後升級，**且排在步驟 5 之後執行**：舊版 setup 寫進 speckit skill 的模型設定會被視為本地修改，擋下升級；步驟 5 移除後就能正常升級。升級指令是 `specify integration upgrade claude`，它不動 constitution 與 `specs/`；回報缺少 integration 資料時，改用 `specify init --here --force --integration claude`。升級後請使用者自己在終端機跑 `specify extension update`（要互動確認）。已是 1.x → 跳過。
+   - **已存在 `.specify/`** → 讀 `.specify/integration.json` 的 `version`。已是 1.x → 跳過。低於 1.0（或沒有這個檔）→ 說明本流程使用 `/speckit-converge`（0.x 的專案沒有這個 skill），徵詢後升級，**且排在步驟 5 之後執行**：
+     - 先確認工作樹裡只有本次 setup 自己的修改（步驟 5 的移除等）；使用者原有的未 commit 修改，請他先 commit 或 stash。升級前的檔案以 git 的 HEAD 作為備份。
+     - 執行 `specify integration upgrade claude`。它不動 constitution 與 `specs/`，會新增 `speckit-converge`，並移除上游已停用的 `speckit-taskstoissues`（向使用者說明）。
+     - **被擋下**（訊息為 `file(s) have been modified since installation`）：舊版 setup 寫進 speckit skill 的模型設定會被視為本地修改。步驟 5 移除後就不會被擋；使用者在步驟 5 選擇保留、或那些鍵被判定為團隊設定時，不要加 `--force`（它會覆蓋這些檔案、連同保留的鍵一起移除），總結表列為「待補」並說明原因，由使用者決定。
+     - **回報 `Integration 'claude' is not installed`**（專案缺少 integration 資料）：徵詢後改用 `specify init --here --force --integration claude`。它保留既有的 constitution，會覆寫 speckit skill 檔與共用腳本。
+     - 以 `specify integration status` 確認結果為 `OK`。升級時 CLI 會提示可加 `--force` 刷新共用檔案，status 為 `OK` 就不必理會。
+     - 徵詢後執行 `echo y | specify extension update` 更新已安裝的 extension（這個指令要確認，沒有免確認的旗標）。它會留下目錄快取 `.specify/extensions/.cache/`，spec-kit 自己的 `.specify/.gitignore` 沒有忽略它：在 repo 層 `.gitignore` 加上這個路徑（已有等效規則則跳過）。
    - **git extension**：1.x 起 `/speckit-specify` 不再自動建立 feature branch，這個功能移到要另外安裝的 git extension。`.specify/extensions.yml` 的 `installed` 沒有 `git` → 徵詢是否 `specify extension add git`：安裝後 `/speckit-specify` 會自動建立 feature branch，各指令執行前也會詢問是否 commit（不想被問，可在 `.specify/extensions.yml` 把對應 hook 設為 `enabled: false`）。婉拒 → 總結表列為「跳過」，並提醒 Phase 1 之前要自己建立 feature branch。spec-kit 0.10.0 之前初始化的專案原本就裝了，偵測到就跳過。
 3. **部署 constitution**：`.specify/memory/constitution.md` 若為預設模板或不存在 → 以本 plugin `templates/constitution.md` 為底，詢問使用者填入 `<角括號>` 參數後寫入；若已有客製化內容 → 先備份為 `constitution-backup.md` 再詢問是否合併。
 4. **宣告人力與 owner**：詢問專案有無真人協作者（用不用人由分流決定——完整通道真人 grill、其餘 AI 代位，見 team-workflow），寫入 constitution 的 Governance 段，並填齊三個 owner（constitution 修訂核准人、grill-me 上游同步、ECC agent 若引入）。無真人時三者皆為使用者本人。**不得留 placeholder**——這是 retro 檢視機制的觸發依據。
@@ -26,5 +32,7 @@ disable-model-invocation: true
 8. **PR template**：將 `templates/pr-template.md` 複製到 `.github/pull_request_template.md`（已存在則詢問合併方式）。
 9. **Retro log**：建立 `specs/retro-log.md`（以 `templates/retro-log.md` 為底，已存在則跳過）。
 10. **驗證與總結**：列出每一步的結果（新建／跳過／待補／備份後覆蓋／已升級／移除／保留（團隊設定）／保留（使用者選擇）），提示使用者 commit 這些變更；若步驟 5 移除了舊版模型設定，提醒使用者告知團隊成員：speckit 三指令之後跟隨各自選擇的模型，個人偏好寫在 `.claude/settings.local.json`。
+
+版本資訊（1.x 起 git extension 改為另外安裝、0.x 的 `self upgrade` 不可用等）依 spec-kit 的 CHANGELOG 與升級文件，2026-11-19 查證；升級行為以 0.8.10 的專案搭配 1.4 的 CLI 實測。
 
 規則：任何會覆蓋既有檔案的動作先備份並徵詢；本 command 可重複執行（例如本 plugin 升級後重跑，以同步 CLAUDE.md 段落、清理舊設定並把 spec-kit 升到 1.x）。
