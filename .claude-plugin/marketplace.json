@@ -5,7 +5,7 @@
     {
       "name": "spec-grill-flow",
       "source": "./",
-      "description": "團隊 AI 交辦任務流程：Spec-Kit + grill + Superpowers"
+      "description": "團隊 AI 交辦任務流程：Spec-Kit + grill + fresh-context subagent 實作"
     }
   ]
 }

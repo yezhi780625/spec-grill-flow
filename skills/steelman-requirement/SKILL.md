@@ -39,6 +39,6 @@ description: Steelman a PM's requirement before critiquing it. Use when the user
 
 - **目標已確認** → 進入 `team-workflow` 的**分流**。把定案後的「需求背後的目標」段落連同需求原文一起帶入——完整通道作為 Phase 1 `/speckit-specify` 的輸入,成為 spec 動機(motivation)段落的雛形;輕量通道則隨該條驗收標準的增修一併寫入 spec。「為什麼做」從第一天就寫在 spec 裡,Phase 2 grill 與 Phase 5 驗收都以此為基準。step 3 未被採納的疑慮不隨 PM 拍板蒸發——以「已知取捨」寫入 spec 的「未解事項」段,Phase 5 合併前逐項定案。
 - **目標未獲確認** → 不寫 spec、不進分流。未經 PM 確認的目標不得寫進唯一真相源。
-- **PM 經 steelman 後撤回或改寫需求,或內部提案被擋下** → 在 `specs/retro-log.md` 回填一行(通道記「攔下」、觸發條款記「steelman」、備註一句理由)——沒有 PR 的攔截不留這行就不可觀測;改寫後的新需求重新走一次本 skill。
+- **PM 經 steelman 後撤回或改寫需求,或內部提案被擋下** → 不進流程;改寫後的新需求重新走一次本 skill。
 
 分工邊界:steelman 確立「為什麼做」(目標與論證);Phase 2 的 grill 錘「怎麼做才驗收得了」(驗收標準可量測性、edge cases 與失敗路徑、需求矛盾、「不做什麼」)。過了 steelman 不代表免 grill,兩者維度不同,不可互抵。

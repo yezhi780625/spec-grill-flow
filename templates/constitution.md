@@ -14,7 +14,7 @@
 **Rule**：任何實作程式碼提交前，對應測試必須已存在且經歷過失敗狀態（red-green-refactor）。
 **豁免**：純 UI 樣式調整、一次性 migration script、無邏輯的設定與膠水碼可豁免 test-first，但 PR 必須明寫豁免理由與**替代驗證方式**（人工驗證步驟、截圖、migration dry-run 輸出），由 reviewer 覆核豁免正當性。禁止以空測試或恆真斷言充數——那會污染驗收證據鏈，比沒有測試更糟，視同違反本條。
 **Rationale**：先失敗的測試是驗收標準被真正執行的唯一證據；後補的測試只是為既有行為背書。無豁免條款的鐵律只會誘發應付檢查的假測試。
-**Verification**：PR 中測試的 commit 早於或同於實作 commit；抽查任一測試，revert 對應實作後測試必須轉紅。豁免的 PR 須有理由與替代驗證方式，缺一即違反。
+**Verification**：PR 中測試的 commit 早於對應的實作 commit，簽出該測試 commit 時測試為紅燈；抽查任一測試，revert 對應實作後測試必須轉紅。豁免的 PR 須有理由與替代驗證方式，缺一即違反。
 
 ### II. 驗收標準可量測（NON-NEGOTIABLE）
 
@@ -71,10 +71,9 @@
 ## Governance
 
 - **人力宣告**：<專案有／無真人協作者>。用不用人由分流決定：完整通道且有真人時，grill 由非作者真人主持（兼知識擴散）；其餘場合由 fresh-context 獨立 AI agent 代位（規則見 team-workflow skill）。
-- **Owner**（Phase 0 填齊，不留空）：constitution 修訂核准人 <姓名>；grill-me 上游同步 <姓名>；ECC agent（若引入）<姓名>。無真人協作者時三者皆為本人，職責由 retro 檢視節奏觸發。
+- **修訂核准人**（Phase 0 填上，不留空）：<姓名>。無真人協作者時為本人。
 - 本 constitution 效力高於其他慣例文件；與 CLAUDE.md 或 skill 衝突時，以本文件為準。
 - 修訂須經 PR review，由上列核准人核准；修訂需附動機（通常是 PR 驗收中反覆出現的同類問題）。
 - 標註 NON-NEGOTIABLE 的原則，修訂需 <更高門檻，例：全隊同意>。
-- 檢視節奏雙保險：retro-log 每累積 10 筆**或滿一季**，先到者觸發（規則見 team-workflow Phase 6）。連續兩次檢視未攔下任何違反的原則或流程條款，評估是否已成空話、應精煉或移除。
 
 **Version**: 0.1.0 | **Ratified**: <日期> | **Last Amended**: <日期>
