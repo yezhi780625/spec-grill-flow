@@ -56,9 +56,8 @@ disable-model-invocation: true
 1. 徵詢後執行 `echo y | specify extension update`（這個指令要確認，沒有免確認的旗標）。
 2. 在 repo 層 `.gitignore` 加上 `.specify/extensions/.cache/`（已有等效規則則跳過）。這是 extension 更新留下的目錄快取，spec-kit 自己的 `.specify/.gitignore` 沒有忽略它。
 3. `.specify/feature.json` 已進版控 → 徵詢後 `git rm --cached .specify/feature.json`。1.x 把它當成每個人本機的狀態，升級產生的 `.specify/.gitignore` 已忽略它，但忽略規則對已追蹤的檔案無效。
-4. `installed` 沒有 `git` → 徵詢是否 `specify extension add git`。1.x 的 `/speckit-specify` 靠這個 extension 才會自動建立 feature branch；婉拒則提醒 Phase 1 之前要自己建立。
 
-**完成條件**：以上四點各有結果（完成、跳過或婉拒）。
+**完成條件**：以上三點各有結果（完成、跳過或婉拒）。
 
 ## 6. 同步 plugin 產物
 
@@ -98,6 +97,7 @@ disable-model-invocation: true
 - **給團隊的說明**：
   - 每位成員合併遷移後，各自把 `specify` CLI 升到 1.x。
   - speckit 指令靠 `.specify/feature.json` 找 feature，切換分支後要確認它。
+  - feature branch 由流程在 Phase 1 建立，與 feature 目錄同名；不需要 spec-kit 的 git extension。
   - 完整通道新增 Phase 3 的 `/speckit-analyze` 與 Phase 4 結尾的 `/speckit-converge`。
   - 移除了舊版模型設定時：speckit 指令改為跟隨各自選擇的模型，個人偏好寫在 `.claude/settings.local.json`。
 - 提醒使用者開 PR 合併遷移分支。

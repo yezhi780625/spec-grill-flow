@@ -11,7 +11,6 @@ disable-model-invocation: true
 2. **spec-kit 初始化**：
    - **repo 中不存在 `.specify/`** → 先請使用者 commit 或 stash 現有變更（初始化產生的檔案才看得出 diff），再執行 `specify init --here --force --integration claude`。兩個旗標都要帶：非互動執行時不帶 `--integration` 會預設安裝 GitHub Copilot 的檔案；非空目錄不帶 `--force` 會直接中止。
    - **已存在 `.specify/`** → 讀 `.specify/integration.json` 的 `version`。已是 1.x → 跳過。低於 1.0（或沒有這個檔）→ 這是既有專案的遷移，不在 setup 處理：**停止 setup**，請使用者執行 `/spec-grill-flow:migrate`，它會升級 spec-kit 並同步本 command 產出的檔案。
-   - **git extension**：1.x 起 `/speckit-specify` 不再自動建立 feature branch，這個功能移到要另外安裝的 git extension。`.specify/extensions.yml` 的 `installed` 沒有 `git` → 徵詢是否 `specify extension add git`：安裝後 `/speckit-specify` 會自動建立 feature branch，各指令執行前也會詢問是否 commit（不想被問，可在 `.specify/extensions.yml` 把對應 hook 設為 `enabled: false`）。婉拒 → 總結表列為「跳過」，並提醒 Phase 1 之前要自己建立 feature branch。已安裝 → 跳過。
 3. **部署 constitution**：`.specify/memory/constitution.md` 若為預設模板或不存在 → 以本 plugin `templates/constitution.md` 為底，詢問使用者填入 `<角括號>` 參數後寫入；若已有客製化內容 → 先備份為 `constitution-backup.md` 再詢問是否合併。
 4. **宣告人力與 owner**：詢問專案有無真人協作者（用不用人由分流決定——完整通道真人 grill、其餘 AI 代位，見 team-workflow），寫入 constitution 的 Governance 段，並填齊三個 owner（constitution 修訂核准人、grill-me 上游同步、ECC agent 若引入）。無真人時三者皆為使用者本人。**不得留 placeholder**——這是 retro 檢視機制的觸發依據。
 5. **舊版模型設定**：`.claude/settings.json` 有 `"model": "opus"` 與 `"effortLevel": "high"`，或 `.claude/skills/speckit-plan/SKILL.md` 的 frontmatter 有 `model: fable` → 這是 0.5.0 之前的 setup 寫入的。總結表列為「待補」，請使用者執行 `/spec-grill-flow:migrate` 清理；setup 不動這些設定。都沒有 → 跳過。
