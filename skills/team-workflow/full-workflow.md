@@ -123,7 +123,7 @@ Phase 0 只宣告一件事：**專案有沒有可用的真人協作者**。用�
    - 每條驗收標準必須可量測（可自動驗證優先）
    - Spec 未通過 grill 檢核不得進入 plan 階段
 3. 安裝 Superpowers plugin；在 CLAUDE.md 明確寫入：
-   - 「Spec 與 plan 一律使用 /speckit-* 指令（spec-kit ≥1.0 的 skill 形式），**禁用** /brainstorm 與 /write-plan」
+   - 「Spec 與 plan 一律使用 /speckit-* 指令（spec-kit ≥1.0 的 skill 形式），**禁用** Superpowers 的 `brainstorming`、`writing-plans` skill」（Superpowers 已移除舊的 `/brainstorm`、`/write-plan` 指令，現在只有 skill）
    - 「Superpowers 僅負責實作階段（TDD、除錯、執行）」
 4. `grill-me` skill 已 vendored 於本 plugin（`skills/grill-me/`，附 `.upstream.json`，CI 每週比對上游、有差異自動開 PR），安裝 plugin 即有。**勿再手動從 mattpocock-skills 複製進專案的 `.claude/skills/`**——那會形成第二份不受 CI 同步保護的複本，違反單一真相源；也**不安裝 mattpocock-skills 整包**（to-spec、tdd、code-review 等與現有工具職責重疊）。
 5. 在 PR template 加入 spec 驗收清單區塊（見 Phase 5）。
@@ -289,7 +289,7 @@ owner 不是頭銜，是「觸發筆的人執行」這個機制。
 | 動作 | 用什麼 | 禁用什麼 |
 |---|---|---|
 | 目標確認（分流前） | `steelman-requirement`（對提案；bug 回報免） | 直接對提案開評（先 steelman 後評論，順序不可顛倒） |
-| 產 spec / plan / tasks | `/speckit-*` | Superpowers 的 /brainstorm、/write-plan |
+| 產 spec / plan / tasks | `/speckit-*` | Superpowers 的 `brainstorming`、`writing-plans` skill |
 | 規劃完成檢查、開 PR 前自我檢查 | `/speckit-analyze`、`/speckit-converge` | 拿它們取代 Phase 5 的獨立驗收 |
 | 錘鍊需求 | grill-me（對 spec 文件） | grill-with-docs（會另產文件） |
 | 實作、TDD、除錯 | Superpowers | mattpocock-skills 的 tdd／diagnosing-bugs（整包本就不安裝，見 Phase 0） |

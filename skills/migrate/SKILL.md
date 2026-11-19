@@ -30,7 +30,7 @@ disable-model-invocation: true
 1. 工作樹有未 commit 的修改 → 請使用者先 commit 或 stash。
 2. 徵詢後，從預設分支建立遷移分支（預設名稱 `chore/speckit-1x-migration`）。
 3. 徵詢一次：之後每個步驟完成時各 commit 一次。分開的 commit 讓升級的 diff 看得懂，也是下一步的備份。使用者婉拒 → 不 commit，照常進行。
-4. CLI 低於 1.0 → 請使用者用原本的安裝工具升級，再確認 `specify version`：`uv tool install --force specify-cli` 或 `pipx install --force specify-cli`（需 Python 3.11+；0.x 的 `specify self upgrade` 還不能用）。
+4. CLI 低於 1.0 → CLI 是使用者機器上的全域工具，升級由使用者自己執行：給出指令後停下來等他回報，再以 `specify version` 確認。指令是 `uv tool install --force specify-cli` 或 `pipx install --force specify-cli`，用他原本的安裝工具（需 Python 3.11+；0.x 的 `specify self upgrade` 還不能用）。使用者事先說過「一律同意」也一樣在這裡停下。
 
 **完成條件**：在遷移分支上、工作樹乾淨、`specify version` ≥1.0。CLI 升不上去 → 停在這裡，總結表列「待補」。
 
@@ -49,7 +49,7 @@ disable-model-invocation: true
    - **`Integration 'claude' is not installed`**（缺 integration 資料）→ 徵詢後改用 `specify init --here --force --integration claude`。它保留既有的 constitution，覆寫 speckit skill 檔與共用腳本。
 3. 執行 `specify integration status`。CLI 升級時會提示可加 `--force` 刷新共用檔案；status 為 `OK` 代表共用檔案已是最新，照 status 判斷。
 
-**完成條件**：`.specify/integration.json` 的 `version` ≥1.0 且 status 為 `OK`；或這一步已列「待補」並附原因。
+**完成條件**：`.specify/integration.json` 的 `version` ≥1.0 且 status 為 `OK`；或這一步已列「待補」並附原因。列「待補」時，步驟 5 與 6 也列「待補」並直接到步驟 7：extension 更新與 plugin 產物都以 1.x 的專案檔為前提，先做會讓專案停在新舊混用的狀態。
 
 ## 5. extension 與版控狀態
 

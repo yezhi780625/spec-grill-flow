@@ -124,7 +124,7 @@ grill 的產出只寫回 spec 本身（不產 ADR、glossary 或其他文件）�
 | 動作 | 用 | 附註 |
 |---|---|---|
 | 目標確認（分流前） | `steelman-requirement` 對提案 | bug 回報免；「需求背後的目標」帶入 spec 動機 |
-| spec / plan / tasks | `/speckit-*` | Superpowers 的 /brainstorm、/write-plan 不在本流程使用 |
+| spec / plan / tasks | `/speckit-*` | Superpowers 的 `brainstorming`、`writing-plans` skill不在本流程使用 |
 | 規劃完成檢查、開 PR 前自我檢查 | `/speckit-analyze`、`/speckit-converge` | 不取代 Phase 5 的獨立驗收 |
 | 錘鍊需求 | `grill-me` 對 spec 文件 | 產出只寫回 spec |
 | 實作、TDD、除錯 | Superpowers | — |
