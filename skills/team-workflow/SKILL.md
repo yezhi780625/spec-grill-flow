@@ -38,11 +38,11 @@ description: 團隊 AI 交辦任務流程（Spec-Kit + grill + Superpowers）。
 
 ## Phase 1：定義
 
-用 `/speckit-specify` 把原始需求產成 spec 草稿，接著從預設分支建立與 feature 目錄同名的分支（`git switch -c <feature 目錄名> <預設分支>`，例如 `001-duration-parsing`；已在同名分支上則跳過），把草稿 commit 進去。經目標確認的任務，把 steelman 定案的「需求背後的目標」段落連同需求原文一起輸入，作為 spec 動機雛形。
+用 `/speckit-specify` 把原始需求產成 spec 草稿，接著建立 feature branch（`git switch -c <分支名> <基準分支>`；基準分支是預設分支或這條工作線的整合分支；命名依專案慣例，沒有慣例時用 feature 目錄名，例如 `001-duration-parsing`；已在這次工作的分支上則跳過），把草稿 commit 進去。經目標確認的任務，把 steelman 定案的「需求背後的目標」段落連同需求原文一起輸入，作為 spec 動機雛形。
 
 **完成條件**：spec 草稿已 commit。此時 spec 未經檢驗，直接進 Phase 3 是流程違規。
 
-**speckit 指令作用在哪個 feature**：spec-kit 1.x 只看 `.specify/feature.json`（本機檔案，不進版控），不看 git 分支。切換分支、接手別人的分支、在另一份 checkout 重跑、或輕量通道修改既有 spec 時，執行 `/speckit-plan`、`/speckit-tasks`、`/speckit-analyze`、`/speckit-converge` 之前先確認它是 `{"feature_directory":"specs/<本次的 feature 目錄>"}`，不是就改寫——過期時指令會默默作用在另一個 feature 上。完整通道的分支與 feature 目錄同名，所以就是 `specs/<目前分支名>`；輕量通道是被修改的那份 spec 所在的目錄。
+**speckit 指令作用在哪個 feature**：spec-kit 1.x 只看 `.specify/feature.json`（本機檔案，不進版控），不看 git 分支。新建的 worktree 或剛 clone 的 repo 裡沒有這個檔；切換分支、接手別人的分支、在另一份 checkout 重跑、或輕量通道修改既有 spec 時它可能指向別的 feature。執行 `/speckit-plan`、`/speckit-tasks`、`/speckit-analyze`、`/speckit-converge` 之前先確認它是 `{"feature_directory":"specs/<本次要動的 feature 目錄>"}`，不存在或不是就寫入——過期時指令會默默作用在另一個 feature 上。以這次要動的 spec 所在目錄為準，不從分支名推導；派 subagent 到新的 worktree 時，把這一步寫進交辦內容。
 
 ## Phase 2：錘鍊（grill）
 
