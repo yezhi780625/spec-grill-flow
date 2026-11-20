@@ -146,7 +146,7 @@ spec-kit 1.x 只靠 `.specify/feature.json` 決定 speckit 指令作用在哪個
 **負責人**：需求發起者（工程師或 PM）
 
 1. 執行 `/speckit-specify`，把原始需求丟進去，產出 spec 草稿。經目標確認的任務，把 steelman 定案的「需求背後的目標」段落一併作為輸入——它是 spec 動機段落的雛形，「為什麼做」從第一天就寫在 spec 裡。
-2. 建立 feature branch：`git switch -c <分支名> <基準分支>`（還沒 commit 的草稿會跟著過去）。基準分支是預設分支，或這條工作線的整合分支。命名依專案慣例（例如 Jira 單號，或 spec 編號加主題）；專案沒有慣例時，用 `/speckit-specify` 剛建立的 feature 目錄名（例如 `001-duration-parsing`）。已經在這次工作的分支上則跳過。spec-kit 1.x 的 `/speckit-specify` 自己不建分支，所以由流程建立。
+2. 建立 feature branch：`git switch -c <分支名> <基準分支>`（還沒 commit 的草稿會跟著過去）。基準分支是預設分支，或這條工作線的整合分支。命名依專案慣例（例如 Jira 單號，或 spec 編號加主題）；專案沒有慣例時，用 `/speckit-specify` 剛建立的 feature 目錄名（例如 `001-duration-parsing`）。已經在這次工作的分支上則跳過。spec-kit 1.x 的 `/speckit-specify` 自己不建分支，所以由流程建立。專案保留了 spec-kit 的 git extension 時例外：它的 hook 會在 `/speckit-specify` 之前從當下的分支開出 `<編號>-<名稱>` 分支，所以先切到基準分支再執行 `/speckit-specify`，這一步跳過。
 3. 草稿 commit 進這個分支——**先有文件，再有討論**。
 
 > 此時的 spec 只是「格式化的初稿」，品質未經檢驗，不得直接進入 Phase 3。

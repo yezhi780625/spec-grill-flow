@@ -17,13 +17,13 @@ disable-model-invocation: true
 | CLI 版本 | `specify version` | ≥1.0 |
 | 專案版本 | `.specify/integration.json` 的 `version`；沒有這個檔記「缺 integration 資料」 | ≥1.0 |
 | 舊版模型設定 | [legacy-model-settings.md](legacy-model-settings.md) 的偵測對象 | 無舊版值 |
-| extension | `.specify/extensions.yml` 的 `installed` | 已安裝者為最新 |
+| extension | `.specify/extensions.yml` 的 `installed` | 沒有 `git`；其餘已安裝者為最新。選擇保留 `git` 的專案盤點時仍算未達目標，每次重跑都會再問 |
 | `feature.json` 是否進版控 | `git ls-files --error-unmatch .specify/feature.json` | 未追蹤 |
 | plugin 產物 | CLAUDE.md 的「交辦流程鐵律」段落、PR／MR template（位置依平台，見 setup 步驟 8；GitLab 專案沒有 `.gitlab/merge_request_templates/Default.md` 即未達目標），各自與本 plugin `templates/` 比對 | 與 template 一致 |
 | constitution 的對照 | 專案的 constitution 與本 plugin `templates/constitution.md` 的 Core Principles I 到 VI 逐條比對，並找出與流程牴觸的條文（做法見 setup 的「既有 constitution 的對照」） | 六條都有等效的條文，且沒有牴觸的條文。選擇保留的項目盤點時仍算未達目標，每次重跑都會再問 |
 | 已停用的產物 | `specs/retro-log.md` 是否存在；constitution 是否還有 [legacy-constitution.md](legacy-constitution.md) 列出的舊條文 | 沒有 `specs/retro-log.md`；舊條文都沒有，或已是專案自己改寫過的句子 |
 | 進行中的 feature | `git branch -a --no-merged <預設分支>` 中，相對預設分支有 `specs/` 變更的分支 | 每個都有接續步驟（步驟 7） |
-| `.gitignore` | `git check-ignore -q .specify/extensions/.cache/x`、`git check-ignore -q .claude/settings.local.json` | 兩者都被 repo 層的規則忽略 |
+| `.gitignore` | `git check-ignore -q .specify/extensions/.cache/x`、`git check-ignore -q .claude/settings.local.json`；`.specify/extensions/.backup/` 存在時再查 `git check-ignore -q .specify/extensions/.backup/x` | 都被 repo 層的規則忽略 |
 | 工作樹 | `git status --short` | 乾淨 |
 
 **完成條件**：每一列都有查到的值。全部已達目標狀態 → 回報「不需遷移」並結束。
@@ -56,11 +56,16 @@ disable-model-invocation: true
 
 ## 5. extension 與版控狀態
 
-1. 徵詢後執行 `echo y | specify extension update`（這個指令要確認，沒有免確認的旗標）。
-2. 在 repo 層 `.gitignore` 加上 `.specify/extensions/.cache/`（已有等效規則則跳過）。這是 extension 更新留下的目錄快取，spec-kit 自己的 `.specify/.gitignore` 沒有忽略它。
-3. `.specify/feature.json` 已進版控 → 徵詢後 `git rm --cached .specify/feature.json`。1.x 把它當成每個人本機的狀態，升級產生的 `.specify/.gitignore` 已忽略它，但忽略規則對已追蹤的檔案無效。
+1. **git extension**：`installed` 有 `git` → 說明下面的理由並徵詢，建議移除。沒有 → 跳過。
+   - 理由：本流程在 Phase 1 依專案慣例建立分支。這個 extension 在 `/speckit-specify` 之前有一個必跑的 hook，會先開一個 `<編號>-<名稱>` 的分支；它的格式只能加前綴，最後一段一定以編號開頭，配合不了其他命名慣例（例如工單編號）。
+   - 移除的代價：feature 編號之後只看本地的 `specs/` 目錄，不再參考遠端分支；兩個人同時開新 feature 可能拿到同一個編號（目錄名與分支名因後綴不同不會衝突）。徵詢時一併說明。
+   - 移除 → `echo y | specify extension remove git`。hook 與 `speckit-git-*` skill 會一併移除，設定檔備份到 `.specify/extensions/.backup/git/`。用 remove 而不是 disable：disable 只停用 hook，skill 檔還留在 `.claude/skills/`。
+   - 保留 → 只在專案的分支慣例就是 `<編號>-<名稱>` 時合理。這時 hook 會從當下的分支開出新分支，Phase 1 要先切到基準分支再執行 `/speckit-specify`（見 team-workflow 的 Phase 1）。列「保留（使用者選擇）」；盤點仍把它算未達目標，重跑時會再問。
+2. 還有其他已安裝的 extension（或上一點選擇保留）→ 徵詢後執行 `echo y | specify extension update`（這個指令要確認，沒有免確認的旗標）。沒有 → 跳過。
+3. 在 repo 層 `.gitignore` 加上 `.specify/extensions/.cache/`（已有等效規則則跳過）。這是 extension 更新留下的目錄快取，spec-kit 自己的 `.specify/.gitignore` 沒有忽略它。`.specify/extensions/.backup/` 存在時（移除 extension 留下的設定備份）也一併加上。
+4. `.specify/feature.json` 已進版控 → 徵詢後 `git rm --cached .specify/feature.json`。1.x 把它當成每個人本機的狀態，升級產生的 `.specify/.gitignore` 已忽略它，但忽略規則對已追蹤的檔案無效。
 
-**完成條件**：以上三點各有結果（完成、跳過或婉拒）。
+**完成條件**：以上四點各有結果（完成、跳過、婉拒或保留（使用者選擇））；選擇移除時，`.specify/extensions.yml` 裡不再有 `speckit.git`。
 
 ## 6. 同步 plugin 產物
 
@@ -103,7 +108,7 @@ disable-model-invocation: true
 - **給團隊的說明**：
   - 每位成員合併遷移後，各自把 `specify` CLI 升到 1.x。
   - speckit 指令靠 `.specify/feature.json` 找 feature：每次開始一項工作就重設它（見 team-workflow 的分流），新建的 worktree 要先寫入它。
-  - feature branch 由流程在 Phase 1 建立，命名照專案慣例；不需要 spec-kit 的 git extension。
+  - feature branch 由流程在 Phase 1 建立，命名照專案慣例；不需要 spec-kit 的 git extension。移除它之後，feature 編號只看本地的 `specs/` 目錄，同時開新 feature 的人可能拿到同一個編號。
   - 完整通道新增 Phase 3 的 `/speckit-analyze` 與 Phase 4 結尾的 `/speckit-converge`。
   - Phase 4 改由主 agent 派 fresh-context subagent 實作，一個 agent 一個 worktree：新行為的測試 commit 排在實作之前，事後新增或修改的斷言附失敗證據；任務在完成它的 PR 裡勾選；原因不清楚的 bug 用 `diagnosing-bugs`。
   - 開 PR／MR 時以專案的範本作為描述骨架。

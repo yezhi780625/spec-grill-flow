@@ -48,7 +48,7 @@ description: 團隊 AI 交辦任務流程（Spec-Kit + grill + fresh-context sub
 
 ## Phase 1：定義
 
-用 `/speckit-specify` 把原始需求產成 spec 草稿，接著建立 feature branch（`git switch -c <分支名> <基準分支>`；基準分支是預設分支或這條工作線的整合分支；命名依專案慣例，沒有慣例時用 feature 目錄名，例如 `001-duration-parsing`；已在這次工作的分支上則跳過），把草稿 commit 進去。經目標確認的任務，把 steelman 定案的「需求背後的目標」段落連同需求原文一起輸入，作為 spec 動機雛形。
+用 `/speckit-specify` 把原始需求產成 spec 草稿，接著建立 feature branch（`git switch -c <分支名> <基準分支>`；基準分支是預設分支或這條工作線的整合分支；命名依專案慣例，沒有慣例時用 feature 目錄名，例如 `001-duration-parsing`；已在這次工作的分支上則跳過），把草稿 commit 進去。專案保留了 spec-kit 的 git extension 時例外：它的 hook 會在 `/speckit-specify` 之前從當下的分支開出 `<編號>-<名稱>` 分支，所以先切到基準分支再執行 `/speckit-specify`，這一步跳過。經目標確認的任務，把 steelman 定案的「需求背後的目標」段落連同需求原文一起輸入，作為 spec 動機雛形。
 
 **完成條件**：spec 草稿已 commit。此時 spec 未經檢驗，直接進 Phase 3 是流程違規。
 
