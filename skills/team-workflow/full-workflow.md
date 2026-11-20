@@ -18,7 +18,7 @@
                                                    └─ 快速通道：──────────────────────────────→ [P4 實作] → [P5 驗收]
 ```
 
-**階段編號只指本流程**：Phase 1 到 5 是本流程的階段（定義、錘鍊、規劃、實作、驗收），專案初始化不編號。`/speckit-plan` 內部也把自己的步驟叫 Phase 0（research）與 Phase 1（design），plan 範本的 Constitution Check 寫「Must pass before Phase 0 research」——那是 plan 文件裡的小節，與本流程的階段無關。專案 constitution 寫到 Phase 0 時，指的是 plan 的那一個。
+**階段編號只指本流程**：Phase 1 到 5 是本流程的階段（定義、錘鍊、規劃、實作、驗收），專案初始化不編號。`/speckit-plan` 內部也把自己的步驟叫 Phase 0（research）與 Phase 1（design），plan 範本的 Constitution Check 寫「Must pass before Phase 0 research」——那是 plan 文件裡的小節，與本流程的階段無關。專案 constitution 的 gate 或 Constitution Check 寫到 Phase 0 時，指的是 plan 的那一個；Governance 裡「修訂核准人（Phase 0 填上）」或「Owner（Phase 0 填齊）」是本 plugin 0.7.2 之前寫進去的句子，指的是專案初始化。
 
 核心原則：**Spec-Kit 是唯一文件真相源**。所有需求、計畫、任務都活在 repo 的 spec 文件裡；grill 和實作過程的所有結論，最終都必須寫回 spec，否則視為不存在。
 
