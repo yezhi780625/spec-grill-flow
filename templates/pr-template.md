@@ -4,6 +4,7 @@
 - [ ] 每條驗收標準有證據（自動測試連結，或人工驗證步驟與結果）
 - [ ] 所有 edge cases 有對應測試
 - [ ] 未實作 spec 範圍外的功能（scope creep 檢查）
+- [ ] `/speckit-converge` 結果為 Converged（結果附在 PR 描述）
 - [ ] spec「未解事項」各項已定案——標「已接受取捨（凍結）」或轉 issue 移出 spec
 - [ ] 代位 grill（AI 執行時）：本分支有 `grill:` 開頭的 commit，且每個都含該輪問題與作者答案原文；有 `grill: [補問]` commit 時只檢查補問的 commit
 

@@ -30,13 +30,14 @@ Phase 0 宣告專案有無真人協作者，何時用人由分流決定——完
 /spec-grill-flow:setup
 ```
 
-必要環境：Node.js、Python 3.10+ 與 uv（spec-kit ≥0.8.10——指令為 `/speckit-*` skill 形式）。本流程不指定模型與 effort，由使用者自行選擇；setup 會偵測舊版寫入的模型設定並徵詢是否移除——跑過 0.5.0 之前任何版本 setup 的專案，升級到 0.5.0 後請重跑一次 `/spec-grill-flow:setup`。
+必要環境：Node.js、Python 3.11+ 與 uv（spec-kit ≥1.0——指令為 `/speckit-*` skill 形式；2026-11-19 以 1.4 實測，較早的 1.x 版本未測）。本流程不指定模型與 effort，由使用者自行選擇；既有專案（spec-kit 0.x，或跑過 0.6.0 之前任何版本的 setup）升級到 0.6.0 後，請跑一次 `/spec-grill-flow:migrate`：它會清理舊版寫入的模型設定、把 spec-kit 專案檔升到 1.x，並同步 CLAUDE.md 段落與 PR template。
 
 ## 內容
 
 - `skills/team-workflow/` — 流程 skill（agent 讀）＋ full-workflow.md（人讀：負責人、Phase 0、ECC 引入條件）
 - `skills/steelman-requirement/` — 分流前的目標確認站：提案先 steelman（挖目標、最強論證、確認句），目標確認才寫 spec；bug 回報免
 - `skills/grill-me/` — spec 錘鍊訪談（vendored from [mattpocock-skills](https://github.com/mattpocock)，MIT）
+- `skills/migrate/` — 既有專案跨大版本的遷移（spec-kit 0.x 到 1.x、清理舊版模型設定）
 - `commands/setup.md` — 一次性專案初始化
 - `templates/` — constitution、CLAUDE.md 鐵律段落、PR template、retro-log
 
