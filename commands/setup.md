@@ -36,18 +36,18 @@ disable-model-invocation: true
 2. 把結果列成表給使用者看，每條一列：範本的原則、專案對應條文的條號與名稱、狀態（有／部分／沒有）。六條都是「有」、且沒有第 5 點的牴觸條文 → 記「跳過」，不改任何檔案。
 3. 狀態是「部分」或「沒有」的，逐條徵詢是否補上。constitution 是專案自己的文件，使用者婉拒就原樣保留。
    - **同意** → 第一次修改前先確認有備份：constitution 已被 git 追蹤、且沒有未 commit 的修改（`git status --short .specify/memory/constitution.md` 無輸出）→ git 歷史就是備份，不另存檔；否則另存為 `constitution-backup-<YYYYMMDD-HHMMSS>.md`。舊版 setup 留下的 `constitution-backup.md` 是當時的內容，不能當成這次的備份，也不要覆蓋它。「沒有」的：把範本的該條附加在專案既有原則之後，用下一個可用的條號、保留範本的原則名稱；既有條文不重新編號。「部分」的：把缺的內容補進專案原本那一條，補上的句子先給使用者看過。結果記「補上條文」。
-   - **修訂照專案自己的 Governance 進行**（第 3、5 點的每一次寫入都適用）：動手前先讀專案 constitution 的 Governance 段，照它的規定處理版號、修訂日期、檔頭的 Sync Impact Report，以及 `.specify/templates/` 是否需要同步的檢查。後兩項不是每個專案都有：spec-kit 0.x 的 `/speckit-constitution` 預設要求（0.8.10），1.x 已把報告改成暫時性的、也不再同步範本（1.4.3），從 0.x 沿用下來的 constitution 常留著這個規定——以專案 Governance 寫的為準。同一輪對照的所有修改算一次修訂，升一次版號。修訂要經專案自己的核准程序，在總結裡提醒。
-   - **範本同步檢查的兩項已知結論**，寫進 Sync Impact Report 即可，`.specify/templates/` 的檔案不改——它們是 spec-kit 的受管檔案，改了之後升級會被擋：
+   - **修訂照專案自己的 Governance 進行**（第 3、5 點的每一次寫入都適用）：動手前先讀專案 constitution 的 Governance 段，照它的規定處理版號、修訂日期、檔頭的 Sync Impact Report，以及 `.specify/templates/` 是否需要同步的檢查。後兩項不是每個專案都有：spec-kit 0.x 的 `/speckit-constitution` 預設要求，1.x 已把報告改成暫時性的、也不再同步範本（2026-11-20 比對 0.8.10 與 1.4.3 的 `speckit-constitution` skill 內文），從 0.x 沿用下來的 constitution 常留著這個規定——以專案 Governance 寫的為準。Governance 沒規定的項目：文件有修訂日期欄位（例如 `Last Amended`）就更新日期；有版號欄位而沒有升版規則，就在確認前後對照時一併問使用者要不要升、升到多少。同一輪對照的所有修改算一次修訂，升一次版號；migrate 同一次執行裡的舊條文更新（`skills/migrate/legacy-constitution.md`）也併入這一次。修訂要經專案自己的核准程序，在總結裡提醒。
+   - **範本同步檢查的兩項已知結論**，寫進 Sync Impact Report 即可，`.specify/templates/` 的檔案不改——它們是 spec-kit 的受管檔案，改了之後 `specify integration status` 停在 WARNING，升級時也會跳過那個檔、留著舊內容（2026-11-20 以 1.4.3 實測）：
      - `tasks-template.md` 寫「Tests are OPTIONAL」：以 constitution 的 Test-First 原則為準。constitution 有這項要求時，`/speckit-tasks` 就會產生測試任務（team-workflow 的 Phase 3）。
      - `spec-template.md` 沒有 Grill 檢核清單：清單由流程在 Phase 2 結束時寫進 spec（team-workflow 的 Phase 2），不靠範本。
    - **婉拒** → 記「保留（使用者選擇）」，重跑時會再問。婉拒的是 Test-First 時另外提醒：`/speckit-tasks` 只在 spec 或 constitution 要求時才產生測試任務（見 team-workflow 的 Phase 3），之後呼叫它要明確要求 TDD。
 4. 不要為了對齊條號而改 CLAUDE.md 段落或 skill 的引用文字——它們寫的是原則名稱，由讀的人依內容對應到專案的條文。
 5. **牴觸的條文**：對照時一併找出專案 constitution 裡禁止或限制本流程做法的條文。已知的例子有兩個（2026-11-20 一個實際專案的回報）：
    - **commit 與合併**：本流程以 commit 作為驗收證據——Phase 1 的 spec 草稿、Phase 2 的 grill 紀錄、Phase 3 的 plan 與 tasks、Phase 4 的測試先於實作與 tasks 勾選、Phase 5 觸發的補問紀錄；Phase 4 並行時還會把 subagent 的 worktree 分支合併回 feature branch。條文規定工具或流程不得自行 commit 或合併時就會牴觸。
-   - **收錄範圍**：Governance 有限定本文件收錄範圍的句子（例如「只收錄會擋下 plan 的非協商項」），而第 3 點補上的原則作用在別的關卡——根因除錯在 PR，Grill Gate 在 plan 之前。
+   - **收錄範圍**：Governance 有限定本文件收錄範圍的句子（例如「只收錄會擋下 plan 的非協商項」），而第 3 點補上的原則作用在別的關卡——簡潔優先在 plan → tasks，根因除錯在合併前的驗收。
 
    找不到 → 記「無」。找到的逐條列給使用者：條文原句、牴觸的是流程的哪條規則。每一條由使用者決定，不自行修改：
-   - **修訂條文** → 把條文的範圍改寫到兩者可以並存（commit 條的例子：交辦給 agent 的任務，agent 是該 feature branch 的作者，依流程在分支內 commit，範圍如上、含 Phase 5 的補問，也可以把 subagent 的 worktree 分支合併回 feature branch（merge，不 squash）；把 PR／MR 合併進目標分支仍由人決定；工具的 hook 與 extension 不自動 commit、不催促。收錄範圍句的例子：改成涵蓋流程的各個關卡——進入 plan、進入實作、合併——寫不出判定方式的不收錄）。改寫前後的對照先給使用者確認才寫入，備份與修訂程序同第 3 點。記「修訂條文」。
+   - **修訂條文** → 把條文的範圍改寫到兩者可以並存（commit 條的例子：交辦給 agent 的任務，agent 是該 feature branch 的作者，依流程在分支內 commit，範圍如上、含 Phase 5 的補問，也可以把 subagent 的 worktree 分支合併回 feature branch（merge，不 squash）；把 PR／MR 合併進目標分支仍由人決定；工具的 hook 與 extension 不自動 commit、不催促。收錄範圍句的例子：改成涵蓋流程的每個關卡——本 plugin `templates/constitution.md` 的 Workflow Gates 列了四個：specify → plan、plan → tasks、tasks → implement、implement → merge——寫不出判定方式的不收錄）。改寫前後的對照先給使用者確認才寫入，備份與修訂程序同第 3 點。記「修訂條文」。
    - **保留** → 以 constitution 為準，流程在這一處讓步。記「保留（使用者選擇）」，並在總結寫明哪條流程規則在本專案不適用、Phase 5 因此少了哪一項證據。重跑時會再問。
 
 **完成條件**：六條原則各有結果——有、補上條文、或保留（使用者選擇）；牴觸的條文各有結果——修訂條文、保留（使用者選擇），或記「無」。
