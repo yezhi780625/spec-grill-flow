@@ -158,7 +158,7 @@ spec-kit 1.x 只靠 `.specify/feature.json` 決定 speckit 指令作用在哪個
 **負責人**：**非 spec 作者**——與 Phase 5「非實作者 review」同構。需求誤解的成本高於實作瑕疵，自己 grill 自己寫的需求是流程最早、也最貴的盲點。執行者依通道決定（見「人力宣告」）：
 
 - **完整通道且專案有真人**：由非作者成員主持 grill，spec 作者作答——同時完成知識擴散。
-- **其餘情況**（輕量通道，或無真人可用）：由 fresh-context 的獨立 subagent 執行——受審對象是 spec 文件本身，不帶 Phase 1 的對話脈絡（repo 與事實查證照常可用），prompt 明確指定 adversarial 立場；作者本人作答。代位 subagent 無法直接向作者提問：每一輪的問題由主對話轉給作者，作答後把答案交回**同一個** subagent 續問（保留訪談脈絡），不要每輪另開新的。主對話帶著 Phase 1 的脈絡，所以**只能原文轉送**：不得改寫問題、加註說明或代作者作答。每輪由代位 subagent commit：主旨以 `docs: grill` 開頭（例如 `docs: grill 第 1 輪 驗收標準`），內文含它提出的問題原文與主對話原文轉交的作者答案；該輪沒有改 spec 時用空 commit（`git commit --allow-empty`）記錄，供 Phase 5 查核。主旨不超過 100 字元，內文每行不超過 100 字元，超過就斷行——只斷行，不改寫、不刪減。這個寫法過得了 commitlint 預設的 config-conventional；把 `grill:` 當成 type、或內文有超過 100 字元的行，都會被它擋下。
+- **其餘情況**（輕量通道，或無真人可用）：由 fresh-context 的獨立 subagent 執行——受審對象是 spec 文件本身，不帶 Phase 1 的對話脈絡（repo 與事實查證照常可用），prompt 明確指定 adversarial 立場；作者本人作答。代位 subagent 無法直接向作者提問：每一輪的問題由主對話轉給作者，作答後把答案交回**同一個** subagent 續問（保留訪談脈絡），不要每輪另開新的。主對話帶著 Phase 1 的脈絡，所以**只能原文轉送**：不得改寫問題、加註說明或代作者作答。每輪由代位 subagent commit：主旨寫成 `docs: grill 第 N 輪 <主題>`（N 用阿拉伯數字，例如 `docs: grill 第 1 輪 驗收標準`），內文含它提出的問題原文與主對話原文轉交的作者答案；該輪沒有改 spec 時用空 commit（`git commit --allow-empty`）記錄，供 Phase 5 查核。`docs: grill 第 N 輪` 與 `docs: grill [補問]` 這兩種開頭只留給代位 grill 的問答紀錄：勾檢核清單、真人主持時的修正等其他 commit 用別的主旨（例如 `docs: 勾選 grill 檢核清單`），否則 Phase 5 會把它們當成缺問答的紀錄。主旨不超過 100 字元；內文每行不超過 100 字元，超過就斷行——只斷行，不改寫、不刪減，也不要從網址中間斷開。長度以字元計：中文字與全形標點各算 1 個，emoji 算 2 個。這個寫法過得了 commitlint 預設的 config-conventional：把 `grill:` 當成 type 會被它擋下，內文超過 100 字元的行也會，含網址的行除外（2026-11-20 以 commitlint 21.2.4 實測）。
 
 真人 grill 時，主持人可主動補充作者不掌握的事實（既有行為、歷史決策、其他系統的限制），寫入 spec 並標注來源；但取捨與拍板仍屬作者。**若一次 grill 出現三項以上此類補充**，代表該領域的事實只存在同事腦中：開一個 issue 把這些知識補進專案文件。補上之前，同領域的任務分流偏向完整通道（AI 代位會漏掉這些事實）；補上之後就不必每次消耗真人。
 
@@ -213,7 +213,7 @@ spec-kit 1.x 只靠 `.specify/feature.json` 決定 speckit 指令作用在哪個
    - subagent 回報後，先確認完整測試綠燈（自己執行，或看 CI 的結果），才接受這批成果。
    - 理由：fresh context 的實作者只看得到文件，spec 與 tasks 沒寫清楚的地方會在這裡暴露，而不是被主對話的記憶補上；主對話的 context 留給協調與判斷。派工方式是工作方法，git 歷史看不出來，Phase 5 不查；Phase 5 查的是第 2、3 點留下的 commit 順序、失敗證據與 tasks.md。
 2. **TDD（constitution 的 Test-First 原則）**：每個行為先寫測試，執行並看到它失敗，才寫實作。Phase 5 靠下面兩種證據驗證，缺了即打回：
-   - **新行為：測試的 commit 排在對應實作的 commit 之前，commit 訊息帶任務編號**。commit 訊息照專案的 commit 慣例寫，專案有 commitlint 就要過得了；任務編號放在主旨結尾的括號裡（例如 `test: 匯出超過十萬筆時改為背景執行 (T012)`）——放在主旨開頭會被 commitlint 預設的規則擋下（主旨不得以大寫開頭）。
+   - **新行為：測試的 commit 排在對應實作的 commit 之前，commit 訊息帶任務編號**。commit 訊息照專案的 commit 慣例寫，專案有 commitlint 就要過得了；任務編號放在主旨結尾的括號裡（例如 `test: 匯出超過十萬筆時改為背景執行 (T012)`）——放在開頭會被 commitlint 預設的規則擋下（2026-11-20 以 commitlint 21.2.4 實測）。
    - **事後新增或修改的斷言要逐個證明會失敗**（補強測試、文案或錯誤碼改動後的斷言）：把對應的行為改壞、確認該斷言轉紅、再還原，並把改壞了什麼、哪個斷言轉紅寫進 PR 描述。這種斷言沒有「先於實作」可言，commit 順序證明不了它有效；「不包含某字串」這類負向斷言尤其要做——文案一改，它可能永遠成立（訪談的實際案例：兩輪 review 都放行，換模型交叉審查才抓到）。
 
    豁免類別（純 UI 樣式、一次性 migration、無邏輯膠水碼）走 Test-First 原則的豁免程序——附替代驗證方式，禁止空測試充數。
@@ -246,13 +246,13 @@ spec-kit 1.x 只靠 `.specify/feature.json` 決定 speckit 指令作用在哪個
 - [ ] 未實作 spec 範圍外的功能（scope creep 檢查）
 - [ ] `/speckit-converge` 結果為 Converged（完整通道，結果附在 PR 描述）
 - [ ] spec「未解事項」各項已定案——標「已接受取捨（凍結）」或轉 issue 移出 spec
-- [ ] 代位 grill（AI 執行時）：本分支有 `docs: grill` 開頭的 commit（0.7.2 之前寫下的 `grill:` 開頭也算），且每個都含該輪問題與作者答案原文；有 `docs: grill [補問]` commit（或 0.7.2 之前的 `grill: [補問]`）時只檢查補問的 commit
+- [ ] 代位 grill（AI 執行時）：本分支有 `docs: grill 第 N 輪` 開頭的 commit（0.7.2 之前寫下的 `grill:` 開頭也算），且每個都含該輪問題與作者答案原文；有 `docs: grill [補問]` commit（或 0.7.2 之前的 `grill: [補問]`）時只檢查補問的 commit
 ```
 
 2. 每條驗收標準優先附上自動測試作為證據；無法自動化的，寫明人工驗證步驟與結果。確認測試先行（constitution 的 Test-First 原則）：新行為的測試 commit 早於對應的實作 commit，抽查時簽出該測試 commit，測試應為紅燈。抽查測試品質以斷言為單位：挑本 PR 新增或修改的斷言，改壞它對應的行為，該斷言必須轉紅——整段 revert 後測試轉紅，不代表每個斷言都有效。永遠成立的斷言視同沒有測試。
 3. 任一條打不了勾 → 打回 Phase 4；若原因是 spec 本身有問題 → 退回 Phase 2（計數見「退回與熔斷」）。代位 grill 問答紀錄那一勾例外，處理方式見下方第 5 點。
 4. 快速通道 PR 加驗：實際 diff 超過 3 檔時，判斷是否應升級通道。完整通道的 converge 那一勾：PR 描述沒有 `Converged` 的結果，或 reviewer 自己重跑 `/speckit-converge` 後附加了任務 → 打回 Phase 4，照常計入打回次數。
-5. **代位 grill 問答紀錄**：AI 代位執行的 grill（輕量通道一律適用），用 `git log origin/main..HEAD --grep '^docs: grill'` 列出本分支的 grill commit（0.7.2 之前寫下的紀錄以 `grill:` 開頭，一樣算，用 `--grep '^grill:'` 找）：至少要有一個，且每個 message 都含該輪問題與作者答案原文。不符 → 由新的 fresh-context subagent 對該 spec 重跑一輪 grill 四維度，commit 主旨以 `docs: grill [補問]` 開頭、內文含問答原文。之後只檢查補問的 commit（`git log origin/main..HEAD --grep '^docs: grill \[補問\]'`；0.7.2 之前的補問以 `grill: [補問]` 開頭，一樣算補問，用 `--grep '^grill: \[補問\]'` 找）：缺問答原文的舊 commit 無法改寫，不再計入。補問只補紀錄，不計入退回／打回次數與熔斷；補問導致 spec 修改則依原規則計為 P5→P2。本項只能確認紀錄存在且格式正確，無法證明沒有漏掉的輪次。真人主持的 grill 不適用本項。
+5. **代位 grill 問答紀錄**：AI 代位執行的 grill（輕量通道一律適用），用 `git log -E origin/main..HEAD --grep '^docs: grill (第 [0-9]+ 輪|\[補問\])'` 列出本分支的 grill commit（0.7.2 之前寫下的紀錄以 `grill:` 開頭，一樣算，用 `--grep '^grill:'` 找）：至少要有一個，且每個 message 都含該輪問題與作者答案原文。不符 → 由新的 fresh-context subagent 對該 spec 重跑一輪 grill 四維度，commit 主旨以 `docs: grill [補問]` 開頭、內文含問答原文。之後只檢查補問的 commit（`git log origin/main..HEAD --grep '^docs: grill \[補問\]'`；0.7.2 之前的補問以 `grill: [補問]` 開頭，一樣算補問，用 `--grep '^grill: \[補問\]'` 找）：缺問答原文的舊 commit 無法改寫，不再計入。補問只補紀錄，不計入退回／打回次數與熔斷；補問導致 spec 修改則依原規則計為 P5→P2。本項只能確認紀錄存在且格式正確，無法證明沒有漏掉的輪次。真人主持的 grill 不適用本項。專案的 PR／MR 範本若還只寫 `grill:` 開頭（0.7.2 之前複製的），以本項為準，並重跑 `/spec-grill-flow:setup` 同步範本。
 6. **未解事項定案**：合併前，spec「未解事項」段每一項必須定案——標記「已接受的取捨（凍結）」留在 spec，或轉成 issue 移出 spec。不得無狀態滾入下一次修改：未定案的項目會累積成墓地，第十次檢視三十項時 checkbox 就變蓋章了。
 7. 全數通過 → 合併。Spec 文件與程式碼同 repo 留存，作為未來變更的基準。
 

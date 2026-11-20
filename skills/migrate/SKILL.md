@@ -111,7 +111,7 @@ disable-model-invocation: true
   - feature branch 由流程在 Phase 1 建立，命名照專案慣例；不需要 spec-kit 的 git extension。移除它之後，feature 編號只看本地的 `specs/` 目錄，同時開新 feature 的人可能拿到同一個編號。
   - 完整通道新增 Phase 3 的 `/speckit-analyze` 與 Phase 4 結尾的 `/speckit-converge`。
   - Phase 4 改由主 agent 派 fresh-context subagent 實作，一個 agent 一個 worktree：新行為的測試 commit 排在實作之前，事後新增或修改的斷言附失敗證據；任務在完成它的 PR 裡勾選；原因不清楚的 bug 用 `diagnosing-bugs`。
-  - 流程規定的 commit 訊息改成過得了 commitlint 預設規則的寫法：代位 grill 的紀錄以 `docs: grill` 開頭（原本是 `grill:`；先前寫下的舊紀錄仍然算數），內文每行不超過 100 字元；任務編號放主旨結尾的括號裡。
+  - 流程規定的 commit 訊息改成過得了 commitlint 預設規則的寫法：代位 grill 的紀錄以 `docs: grill 第 N 輪` 開頭、補問以 `docs: grill [補問]` 開頭（原本是 `grill:`；先前寫下的舊紀錄仍然算數），這兩種開頭不給其他 commit 用，內文每行不超過 100 字元；任務編號放主旨結尾的括號裡。
   - 開 PR／MR 時以專案的範本作為描述骨架。
   - 流程不再依賴 Superpowers，也取消了合併後的 retro。個人仍安裝 Superpowers 的成員，CLAUDE.md 鐵律已寫明它的規劃與執行類 skill 不在本流程使用。
   - 移除了舊版模型設定時：speckit 指令改為跟隨各自選擇的模型，個人偏好寫在 `.claude/settings.local.json`。
