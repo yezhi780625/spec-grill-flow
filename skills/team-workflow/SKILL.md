@@ -36,13 +36,21 @@ description: 團隊 AI 交辦任務流程（Spec-Kit + grill + fresh-context sub
 
 **升級規則（單向）**：進行中發現超出通道資格——立即停手，升級（快速→輕量或完整；輕量→完整）。**已寫的測試與程式碼不作廢**，帶入 Phase 4 繼續，只回頭補 spec 與規劃。猶豫一律升級，不得反向降級。
 
+**分流後第一步：重設 `.specify/feature.json`**：spec-kit 1.x 只靠這個檔決定 speckit 指令作用在哪個 feature（本機檔案，不進版控），不看 git 分支；它不會自己清空，留著舊值時指令會默默作用在上一個 feature 上。所以每次開始一項工作就重設它，不沿用現有的內容：
+
+- 完整通道：`/speckit-specify` 會寫入新的 feature 目錄，不必自己動。
+- 輕量通道：寫成 `{"feature_directory":"specs/<被修改的 spec 目錄>"}`。
+- 快速通道：刪除它。快速通道不動 spec、不跑 speckit 指令；檔案不在時，誤跑的指令會直接報錯。
+- 接手既有的工作（切換分支、新建的 worktree、reviewer 在自己的 checkout 重跑）：寫成這次要動的 spec 目錄。新建的 worktree 裡沒有這個檔，派 subagent 過去時把這一步寫進交辦內容。
+- 通道升級後：照新通道的做法再做一次。
+
+路徑用相對於 repo 根目錄的寫法，以這次要動的 spec 所在目錄為準，不從分支名推導（一個 feature 常拆成多個分支）。
+
 ## Phase 1：定義
 
 用 `/speckit-specify` 把原始需求產成 spec 草稿，接著建立 feature branch（`git switch -c <分支名> <基準分支>`；基準分支是預設分支或這條工作線的整合分支；命名依專案慣例，沒有慣例時用 feature 目錄名，例如 `001-duration-parsing`；已在這次工作的分支上則跳過），把草稿 commit 進去。經目標確認的任務，把 steelman 定案的「需求背後的目標」段落連同需求原文一起輸入，作為 spec 動機雛形。
 
 **完成條件**：spec 草稿已 commit。此時 spec 未經檢驗，直接進 Phase 3 是流程違規。
-
-**speckit 指令作用在哪個 feature**：spec-kit 1.x 只看 `.specify/feature.json`（本機檔案，不進版控），不看 git 分支。新建的 worktree 或剛 clone 的 repo 裡沒有這個檔；切換分支、接手別人的分支、在另一份 checkout 重跑、或輕量通道修改既有 spec 時它可能指向別的 feature。執行 `/speckit-plan`、`/speckit-tasks`、`/speckit-analyze`、`/speckit-converge` 之前先確認它是 `{"feature_directory":"specs/<本次要動的 feature 目錄>"}`，不存在或不是就寫入——過期時指令會默默作用在另一個 feature 上。以這次要動的 spec 所在目錄為準，不從分支名推導；派 subagent 到新的 worktree 時，把這一步寫進交辦內容。
 
 ## Phase 2：錘鍊（grill）
 
