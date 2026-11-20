@@ -8,7 +8,7 @@ disable-model-invocation: true
 1. **前置檢查**：
    - 確認 `specify` CLI 可用且版本 ≥1.0（`specify version`）。不可用 → 給使用者安裝指令 `uv tool install specify-cli`（需 Python 3.11+，含 uv 本身的安裝方式）；版本低於 1.0 → 請使用者用原本的安裝工具升級：`uv tool install --force specify-cli` 或 `pipx install --force specify-cli`。可先跳過此步完成其餘步驟，最後在總結表標注待補。
 2. **spec-kit 初始化**：
-   - **repo 中不存在 `.specify/`** → 步驟 1 的 CLI 檢查是「待補」時，這一項也列「待補」，等 CLI 裝好後重跑 setup。CLI 可用 → 先請使用者 commit 或 stash 現有變更（初始化產生的檔案才看得出 diff），再執行 `specify init --here --force --integration claude`。兩個旗標都要帶：非互動執行時不帶 `--integration` 會預設安裝 GitHub Copilot 的檔案；非空目錄不帶 `--force` 會直接中止。
+   - **repo 中不存在 `.specify/`** → 步驟 1 的 CLI 檢查是「待補」時，這一項也列「待補」，等 CLI 裝好後重跑 setup。CLI 可用 → 先請使用者 commit 或 stash 現有變更（初始化產生的檔案才看得出 diff），再執行 `specify init --here --force --integration claude`。兩個旗標都要帶：非互動執行時不帶 `--integration` 會預設安裝 GitHub Copilot 的檔案；非空目錄不帶 `--force` 會直接中止。專案有會改寫 Markdown 的 formatter（prettier 等，多半由 lint-staged 在 commit 時執行）時，徵詢後把 `.specify/` 與 `.claude/skills/speckit-*/` 加進它的忽略清單（prettier 是 `.prettierignore`）再 commit：spec-kit 以檔案雜湊判斷受管檔案有沒有被改過，被重排之後 `specify integration status` 會停在 WARNING，之後的升級也會被擋。
    - **已存在 `.specify/`** → 讀 `.specify/integration.json` 的 `version`。已是 1.x → 跳過。低於 1.0（或沒有這個檔）→ 這是既有專案的遷移，不在 setup 處理：**停止 setup**，請使用者執行 `/spec-grill-flow:migrate`，它會升級 spec-kit 並同步本 command 產出的檔案。
 3. **部署 constitution**：`.specify/memory/constitution.md` 若為預設模板或不存在 → 以本 plugin `templates/constitution.md` 為底，詢問使用者填入 `<角括號>` 參數後寫入；已有客製化內容 → 不覆蓋，照下方「既有 constitution 的對照」處理。
 4. **宣告人力與核准人**：詢問專案有無真人協作者（用不用人由分流決定——完整通道真人 grill、其餘 AI 代位，見 team-workflow），寫入 constitution 的 Governance 段，並填上 constitution 修訂核准人。無真人時為使用者本人。填實際的姓名，不留 placeholder。
@@ -23,10 +23,10 @@ disable-model-invocation: true
    - `git check-ignore .claude/settings.local.json` 無輸出，或僅命中機器層全域規則 → 在 repo 層 `.gitignore` append `.claude/settings.local.json`（repo 層已有等效規則則跳過，勿產生重複行）。
    - `.claude/settings.local.json` 已被 git 追蹤（`git ls-files --error-unmatch .claude/settings.local.json` 可查；`.gitignore` 對已追蹤檔案無效）→ 告知需執行 `git rm --cached .claude/settings.local.json`，由使用者自行執行，總結表標注待補。**此條無條件執行**，不受前兩條結果影響。
 7. **CLAUDE.md**：段落以原則名稱引用 constitution。constitution 不是這次在步驟 3 以範本新建的 → 先確認「既有 constitution 的對照」已有結果（步驟 3 做過就沿用；由 migrate 執行本步驟時，照它的步驟 6 在這裡做）。接著將 `templates/claude-md-snippet.md` 的「交辦流程鐵律」段落 append 到專案 CLAUDE.md。已含該段落 → 與現行 template 比對內容：一致則跳過；不一致則徵詢是否更新為新版（更新時保留使用者在段落內自行加註的內容）——只看標題就跳過會讓存量專案永遠拿不到 template 的後續修訂。
-8. **PR／MR template**：先判斷平台——專案有 `.gitlab-ci.yml` 或 `.gitlab/` 目錄，或 `git remote get-url origin` 的網址含 `gitlab` → GitLab，目標是 `.gitlab/merge_request_templates/Default.md`；有 `.github/` 目錄或網址含 `github` → GitHub，目標是 `.github/pull_request_template.md`；判斷不出來 → 詢問使用者。將 `templates/pr-template.md` 複製到目標位置（已存在則詢問合併方式）。GitLab 只在網頁上開 MR 時自動帶入範本，所以流程另外要求開 PR／MR 時以範本作為描述骨架。
+8. **PR／MR template**：先判斷平台——專案有 `.gitlab-ci.yml` 或 `.gitlab/` 目錄，或 `git remote get-url origin` 的網址含 `gitlab` → GitLab，目標是 `.gitlab/merge_request_templates/Default.md`；有 `.github/` 目錄或網址含 `github` → GitHub，目標是 `.github/pull_request_template.md`；判斷不出來 → 詢問使用者。將 `templates/pr-template.md` 複製到目標位置。已存在 → 與 template 比對：內容相同則跳過，不同則詢問合併方式。GitLab 只在網頁上開 MR 時自動帶入範本，所以流程另外要求開 PR／MR 時以範本作為描述骨架。
 9. **驗證與總結**：列出每一步的結果（新建／跳過／待補／備份後覆蓋；constitution 的對照另有「補上條文」「修訂條文」與「保留（使用者選擇）」），提示使用者 commit 這些變更。
 
-規則：任何會覆蓋既有檔案的動作先備份並徵詢；本 command 可重複執行（例如本 plugin 升級後重跑，以同步 CLAUDE.md 段落與 PR template）。既有專案跨大版本升級走 `/spec-grill-flow:migrate`。
+規則：任何會覆蓋既有檔案的動作先備份並徵詢；與 template 比對時只看文字內容，不計空行、行尾空白與換行位置的差異（專案的 formatter 可能重排過）；本 command 可重複執行（例如本 plugin 升級後重跑，以同步 CLAUDE.md 段落與 PR template）。既有專案跨大版本升級走 `/spec-grill-flow:migrate`。
 
 ## 既有 constitution 的對照
 
