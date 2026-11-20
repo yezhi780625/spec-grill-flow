@@ -7,7 +7,7 @@
 | 位置 | 舊條文（辨識用） | 0.7.0 的寫法 | 為什麼改 |
 |---|---|---|---|
 | I. Test-First 的 Verification | `PR 中測試的 commit 早於或同於實作 commit` | `templates/constitution.md` 的 I. Verification 整句：新行為看 commit 順序，事後新增或修改的斷言看失敗證據，抽查以斷言為單位 | 測試與實作放在同一個 commit 時，事後無法驗證測試先行；整段 revert 的抽查擋不住永遠成立的斷言 |
-| Governance 的 Owner 行 | 以 `**Owner**（Phase 0 填齊，不留空）：constitution 修訂核准人` 開頭，列出 grill-me 上游同步與 ECC agent 的 owner，結尾是 `職責由 retro 檢視節奏觸發。` | `**修訂核准人**（Phase 0 填上，不留空）：<原本填的核准人姓名>。無真人協作者時為本人。` | grill-me 的上游同步由 plugin repo 的 CI 處理；ECC 與 retro 已從流程移除 |
+| Governance 的 Owner 行 | 以 `**Owner**（Phase 0 填齊，不留空）：constitution 修訂核准人` 開頭，列出 grill-me 上游同步與 ECC agent 的 owner，結尾是 `職責由 retro 檢視節奏觸發。` | `**修訂核准人**（專案初始化時填上，不留空）：<原本填的核准人姓名>。無真人協作者時為本人。` | grill-me 的上游同步由 plugin repo 的 CI 處理；ECC 與 retro 已從流程移除 |
 | Governance 的檢視節奏行 | 以 `檢視節奏雙保險：retro-log 每累積 10 筆` 開頭的整行 | 刪除這一行 | retro 已從流程移除 |
 
 有任何一項修改時：

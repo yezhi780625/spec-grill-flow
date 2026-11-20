@@ -16,7 +16,9 @@ description: 團隊 AI 交辦任務流程（Spec-Kit + grill + fresh-context sub
                                            └─ 快速通道：──────────────────────→ 實作 → 驗收
 ```
 
-**人力與 grill 執行者**（Phase 0 宣告專案有無真人；用不用人由分流決定）：完整通道且有真人 → 真人 grill（非作者主持，兼知識擴散——同事從此知道這個 feature 為什麼存在，AI 無法替代）；其餘 → **fresh-context 獨立 subagent** 代位——可自由讀取 repo，但不共享產生受審產物的對話脈絡，prompt 指定挑錯立場。通道升級時 grill 執行者自動升級。
+**階段編號只指本流程**：Phase 1 到 5 是本流程的階段（定義、錘鍊、規劃、實作、驗收），專案初始化不編號。`/speckit-plan` 內部也把自己的步驟叫 Phase 0（research）與 Phase 1（design），plan 範本的 Constitution Check 寫「Must pass before Phase 0 research」——那是 plan 文件裡的小節，與本流程的階段無關。專案 constitution 寫到 Phase 0 時，指的是 plan 的那一個。
+
+**人力與 grill 執行者**（專案初始化時宣告專案有無真人；用不用人由分流決定）：完整通道且有真人 → 真人 grill（非作者主持，兼知識擴散——同事從此知道這個 feature 為什麼存在，AI 無法替代）；其餘 → **fresh-context 獨立 subagent** 代位——可自由讀取 repo，但不共享產生受審產物的對話脈絡，prompt 指定挑錯立場。通道升級時 grill 執行者自動升級。
 
 **模型與 effort 不由本流程指定**：主對話的模型與 effort 由使用者以 `/model`、`/effort` 選擇，個人偏好寫在 `.claude/settings.local.json`。派出 subagent（代位 grill、Phase 4 實作、代位驗收）時，model 與 effort 由主 agent 依任務判斷決定；不指定時沿用主對話的設定。
 
@@ -169,4 +171,4 @@ grill 的產出只寫回 spec 本身（不產 ADR、glossary 或其他文件）�
 
 ## 完整版文件
 
-各階段負責人與代位規則、Phase 0 專案初始化、熔斷細節見 [full-workflow.md](full-workflow.md)。
+各階段負責人與代位規則、專案初始化、熔斷細節見 [full-workflow.md](full-workflow.md)。

@@ -13,7 +13,7 @@
                                                    └─ 快速通道：──────────────────────────────→ [P4 實作] → [P5 驗收]
 ```
 
-Phase 0 宣告專案有無真人協作者，何時用人由分流決定——完整通道真人 grill（兼知識擴散）、輕量通道與無真人時由 fresh-context agent 代位。實作由主 agent 派 fresh-context subagent 執行，model 與 effort 由主 agent 判斷。內建退回熔斷。
+專案初始化時宣告有無真人協作者，何時用人由分流決定——完整通道真人 grill（兼知識擴散）、輕量通道與無真人時由 fresh-context agent 代位。實作由主 agent 派 fresh-context subagent 執行，model 與 effort 由主 agent 判斷。內建退回熔斷。
 
 核心原則：spec 文件是唯一真相源。完整說明見 [skills/team-workflow/full-workflow.md](skills/team-workflow/full-workflow.md)。
 
@@ -34,7 +34,7 @@ Phase 0 宣告專案有無真人協作者，何時用人由分流決定——完
 
 ## 內容
 
-- `skills/team-workflow/` — 流程 skill（agent 讀）＋ full-workflow.md（人讀：負責人、Phase 0、熔斷細節）
+- `skills/team-workflow/` — 流程 skill（agent 讀）＋ full-workflow.md（人讀：負責人、專案初始化、熔斷細節）
 - `skills/steelman-requirement/` — 分流前的目標確認站：提案先 steelman（挖目標、最強論證、確認句），目標確認才寫 spec；bug 回報免
 - `skills/grill-me/` — spec 錘鍊訪談（vendored from [mattpocock-skills](https://github.com/mattpocock/skills)，MIT）
 - `skills/diagnosing-bugs/` — Phase 4 的除錯法：先重現、找到根因才修（vendored from mattpocock-skills，MIT）
