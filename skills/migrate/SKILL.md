@@ -96,7 +96,7 @@ disable-model-invocation: true
 - **進行中 feature 的接續步驟**（步驟 7）。
 - **給團隊的說明**：
   - 每位成員合併遷移後，各自把 `specify` CLI 升到 1.x。
-  - speckit 指令靠 `.specify/feature.json` 找 feature：切換分支後要確認它，新建的 worktree 要先寫入它。
+  - speckit 指令靠 `.specify/feature.json` 找 feature：每次開始一項工作就重設它（見 team-workflow 的分流），新建的 worktree 要先寫入它。
   - feature branch 由流程在 Phase 1 建立，命名照專案慣例；不需要 spec-kit 的 git extension。
   - 完整通道新增 Phase 3 的 `/speckit-analyze` 與 Phase 4 結尾的 `/speckit-converge`。
   - 移除了舊版模型設定時：speckit 指令改為跟隨各自選擇的模型，個人偏好寫在 `.claude/settings.local.json`。

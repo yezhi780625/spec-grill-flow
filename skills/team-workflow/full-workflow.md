@@ -103,6 +103,20 @@ Phase 0 只宣告一件事：**專案有沒有可用的真人協作者**。用�
 
 其餘一切：新 feature、牽動多條驗收標準、引入新依賴或抽象層、或任何拿不準的情況。走完整 Phase 1–6。
 
+### 分流後第一步：重設 `.specify/feature.json`
+
+spec-kit 1.x 只靠 `.specify/feature.json` 決定 speckit 指令作用在哪個 feature（本機檔案，不進版控），不看 git 分支；它不會自己清空，留著舊值時指令會默默作用在上一個 feature 上。所以每次開始一項工作就重設它，不沿用現有的內容：
+
+- 完整通道：`/speckit-specify` 會寫入新的 feature 目錄，不必自己動。
+- 輕量通道：寫成 `{"feature_directory":"specs/<被修改的 spec 目錄>"}`。
+- 快速通道：刪除它。快速通道不動 spec、不跑 speckit 指令；檔案不在時，誤跑的指令會直接報錯。
+- 接手既有的工作（切換分支、新建的 worktree、reviewer 在自己的 checkout 重跑）：寫成這次要動的 spec 目錄。新建的 worktree 裡沒有這個檔，派 subagent 過去時把這一步寫進交辦內容。
+- 通道升級後：照新通道的做法再做一次。
+
+路徑用相對於 repo 根目錄的寫法，以這次要動的 spec 所在目錄為準，不從分支名推導（一個 feature 常拆成多個分支）。
+
+理由：「跑指令前先檢查對不對」靠的是每次都記得檢查；開工就重設是無條件的一步，不必判斷現有內容是新是舊。0.x 會從分支名推斷 feature，1.x 不會。
+
 ### 升級規則（單向）
 
 任何通道進行中，一旦發現實際範圍超出該通道資格——立即停手，升級到對應通道（快速→輕量或完整；輕量→完整）。
@@ -138,8 +152,6 @@ Phase 0 只宣告一件事：**專案有沒有可用的真人協作者**。用�
 1. 執行 `/speckit-specify`，把原始需求丟進去，產出 spec 草稿。經目標確認的任務，把 steelman 定案的「需求背後的目標」段落一併作為輸入——它是 spec 動機段落的雛形，「為什麼做」從第一天就寫在 spec 裡。
 2. 建立 feature branch：`git switch -c <分支名> <基準分支>`（還沒 commit 的草稿會跟著過去）。基準分支是預設分支，或這條工作線的整合分支。命名依專案慣例（例如 Jira 單號，或 spec 編號加主題）；專案沒有慣例時，用 `/speckit-specify` 剛建立的 feature 目錄名（例如 `001-duration-parsing`）。已經在這次工作的分支上則跳過。spec-kit 1.x 的 `/speckit-specify` 自己不建分支，所以由流程建立。
 3. 草稿 commit 進這個分支——**先有文件，再有討論**。
-
-**speckit 指令作用在哪個 feature**：spec-kit 1.x 只看 `.specify/feature.json`（各人本機的檔案，不進版控），不看目前的 git 分支。`/speckit-specify` 會寫入它；但新建的 worktree 或剛 clone 的 repo 裡沒有這個檔，切換分支、接手別人的分支、reviewer 在自己的 checkout 重跑、或輕量通道修改既有 spec 時，它也可能指向別的 feature——不存在時指令報錯，過期時指令會默默作用在另一個 feature 上。所以在這些情況下執行 `/speckit-plan`、`/speckit-tasks`、`/speckit-analyze`、`/speckit-converge` 之前，先確認它的內容是 `{"feature_directory":"specs/<本次要動的 feature 目錄>"}`，不存在或不是就寫入。分支名不一定等於 feature 目錄名（一個 feature 常拆成多個分支），所以以這次要動的 spec 所在目錄為準；派 subagent 到新的 worktree 時，把這一步寫進交辦內容。
 
 > 此時的 spec 只是「格式化的初稿」，品質未經檢驗，不得直接進入 Phase 3。
 
