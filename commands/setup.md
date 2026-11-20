@@ -29,12 +29,12 @@ disable-model-invocation: true
 
 ## 既有 constitution 的對照
 
-本流程的 CLAUDE.md 段落與 skill 以原則名稱引用 constitution（例如 Test-First、Spec 為唯一真相源、根因除錯），不寫條號。專案已有自己的 constitution 時，這些引用要有對應的條文才有依據，所以寫 CLAUDE.md 段落之前先對照：
+本流程的 CLAUDE.md 段落與 skill 以原則名稱引用 constitution（例如 Test-First、根因除錯），不寫條號。專案已有自己的 constitution 時，這些引用要有對應的條文才有依據，所以寫 CLAUDE.md 段落之前先對照：
 
 1. 逐條讀本 plugin `templates/constitution.md` 的 Core Principles I 到 VI，以**內容**判斷專案的 constitution 有沒有等效的規則。名稱或條號不同不算缺；只涵蓋一部分的記「部分」（例如有測試先行，沒有豁免程序）。
 2. 把結果列成表給使用者看，每條一列：範本的原則、專案對應條文的條號與名稱、狀態（有／部分／沒有）。六條都是「有」→ 記「跳過」，不改任何檔案。
 3. 狀態是「部分」或「沒有」的，逐條徵詢是否補上。constitution 是專案自己的文件，使用者婉拒就原樣保留。
-   - **同意** → 第一次修改前先備份為 `constitution-backup.md`（已存在則不覆蓋）。「沒有」的：把範本的該條附加在專案既有原則之後，用下一個可用的條號、保留範本的原則名稱；既有條文不重新編號。「部分」的：把缺的內容補進專案原本那一條，補上的句子先給使用者看過。結果記「補上條文」，更新 constitution 的修訂日期（文件有這個欄位時），並提醒修訂要經專案自己的核准程序。
+   - **同意** → 第一次修改前先確認有備份：constitution 已被 git 追蹤、且沒有未 commit 的修改（`git status --short .specify/memory/constitution.md` 無輸出）→ git 歷史就是備份，不另存檔；否則另存為 `constitution-backup-<YYYYMMDD-HHMMSS>.md`。舊版 setup 留下的 `constitution-backup.md` 是當時的內容，不能當成這次的備份，也不要覆蓋它。「沒有」的：把範本的該條附加在專案既有原則之後，用下一個可用的條號、保留範本的原則名稱；既有條文不重新編號。「部分」的：把缺的內容補進專案原本那一條，補上的句子先給使用者看過。結果記「補上條文」，更新 constitution 的修訂日期（文件有這個欄位時），並提醒修訂要經專案自己的核准程序。
    - **婉拒** → 記「保留（使用者選擇）」，重跑時會再問。婉拒的是 Test-First 時另外提醒：`/speckit-tasks` 只在 spec 或 constitution 要求時才產生測試任務（見 team-workflow 的 Phase 3），之後呼叫它要明確要求 TDD。
 4. 不要為了對齊條號而改 CLAUDE.md 段落或 skill 的引用文字——它們寫的是原則名稱，由讀的人依內容對應到專案的條文。
 

@@ -77,6 +77,8 @@ grill 的產出只寫回 spec 本身（不產 ADR、glossary 或其他文件）�
 
 `/speckit-plan` 產技術計畫 → `/speckit-tasks` 拆任務 → `/speckit-analyze` 檢查 spec、plan、tasks 與 constitution 是否一致（唯讀；僅完整通道，輕量通道免完整 plan，不適用），一併 commit。analyze 的 CRITICAL 與 HIGH 發現要回源頭修正後重跑：問題在 plan 或 tasks 就在本階段修；問題在 spec，或過程中發現 spec 有洞 → 退回 Phase 2 補 grill 後再回來（計入退回次數）；不同意的發現附理由記入 spec「未解事項」，不必為它重跑。結果寫進 plan 與 tasks 的 commit message（例如 `analyze: 0 CRITICAL, 0 HIGH`）。
 
+`/speckit-tasks` 只在 spec 或 constitution 要求時才產生測試任務。專案的 constitution 沒有等效於 Test-First 的條文時，呼叫 `/speckit-tasks` 要明確要求 TDD。
+
 **完成條件**：每條驗收標準在 tasks 中有對應的測試任務；完整通道另須 `/speckit-analyze` 沒有未處理的 CRITICAL 或 HIGH 發現（已修正，或已記入未解事項）。
 
 ## Phase 4：實作
