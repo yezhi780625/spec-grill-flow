@@ -1,6 +1,6 @@
 {
   "name": "spec-grill-flow",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "團隊 AI 交辦任務流程：Spec-Kit 文件骨架 + grill 需求錘鍊 + fresh-context subagent 的 TDD 實作。含分流快速通道。",
   "author": { "name": "Yezhi Chen" },
   "repository": "https://github.com/yezhi780625/spec-grill-flow",

@@ -129,9 +129,11 @@ spec-kit 1.x 只靠 `.specify/feature.json` 決定 speckit 指令作用在哪個
 
 1. `specify init --here --force --integration claude` 建立專案骨架（spec-kit ≥1.0；兩個旗標的理由見 `/spec-grill-flow:setup` 步驟 2）。
 2. `/speckit-constitution` 定義專案原則，至少包含：
-   - 核心函式必須附單元測試（測試先於實作，豁免條款見 constitution I）
+   - 核心函式必須附單元測試（測試先於實作，豁免條款見 constitution 的 Test-First 原則）
    - 每條驗收標準必須可量測（可自動驗證優先）
    - Spec 未通過 grill 檢核不得進入 plan 階段
+
+   本流程以**原則名稱**引用 constitution（例如 Test-First、根因除錯），不寫條號：專案的 constitution 不一定來自本 plugin 的範本，條號以專案自己的文件為準，名稱不同時以內容對應。專案已有自己的 constitution 時，setup 與 migrate 會逐條對照範本的原則，缺的徵詢後補上（`/spec-grill-flow:setup` 的「既有 constitution 的對照」）。
 3. 在 CLAUDE.md 寫入「交辦流程鐵律」段落（`templates/claude-md-snippet.md`）：spec、plan、tasks 一律用 `/speckit-*`；實作依 Phase 4；其他 plugin 的規劃與執行類 skill 不在本流程使用。CLAUDE.md 每次對話都會載入，所以最容易被跳過的規則放在這裡。
 4. `grill-me` 與 `diagnosing-bugs` 已 vendored 於本 plugin（`skills/grill-me/`、`skills/diagnosing-bugs/`，各附 `.upstream.json`，plugin repo 的 CI 每週比對上游、有差異自動開 PR），安裝 plugin 即有。**勿再手動從 mattpocock-skills 複製進專案的 `.claude/skills/`**——那會形成第二份不受 CI 同步保護的複本，違反單一真相源；也**不安裝 mattpocock-skills 整包**（to-spec、to-tickets、grill-with-docs、implement 等與 spec-kit 及本流程職責重疊）。
 5. 在 PR／MR template 加入 spec 驗收清單區塊（見 Phase 5；位置依平台，setup 會處理）。
@@ -194,7 +196,7 @@ spec-kit 1.x 只靠 `.specify/feature.json` 決定 speckit 指令作用在哪個
    - 這是規劃者的自我檢查。結果寫進 plan 與 tasks 的 commit message（例如 `analyze: 0 CRITICAL, 0 HIGH`，有記入未解事項的另外註明），reviewer 有疑慮時可自行重跑。
 4. Plan 與 tasks 一併 commit。寫 plan 時發現 spec 有洞，處理方式與上面 analyze 的發現相同：**退回 Phase 2 補 grill**，改完 spec 再回來（退回計數見「退回與熔斷」）。
 
-`/speckit-tasks` 只在 spec 或 constitution 要求時才產生測試任務。本流程的 constitution I 有這項要求，所以不必另外指定；專案若改寫或拿掉了 constitution I，就要在呼叫 `/speckit-tasks` 時明確要求 TDD。
+`/speckit-tasks` 只在 spec 或 constitution 要求時才產生測試任務。本流程 constitution 範本的 Test-First 原則有這項要求，所以不必另外指定；專案的 constitution 沒有等效的條文時（改寫或拿掉了這一條，或用的是自己的 constitution 而婉拒補上），就要在呼叫 `/speckit-tasks` 時明確要求 TDD。
 
 ---
 
@@ -210,13 +212,13 @@ spec-kit 1.x 只靠 `.specify/feature.json` 決定 speckit 指令作用在哪個
    - 交辦內容用路徑指向 spec、plan、tasks.md 與 constitution，列出這次的任務編號，並附上本階段第 2 到 5 點的規則——subagent 看不到主對話，也不會自己載入本 skill。
    - subagent 回報後，先確認完整測試綠燈（自己執行，或看 CI 的結果），才接受這批成果。
    - 理由：fresh context 的實作者只看得到文件，spec 與 tasks 沒寫清楚的地方會在這裡暴露，而不是被主對話的記憶補上；主對話的 context 留給協調與判斷。派工方式是工作方法，git 歷史看不出來，Phase 5 不查；Phase 5 查的是第 2、3 點留下的 commit 順序、失敗證據與 tasks.md。
-2. **TDD（constitution I）**：每個行為先寫測試，執行並看到它失敗，才寫實作。Phase 5 靠下面兩種證據驗證，缺了即打回：
+2. **TDD（constitution 的 Test-First 原則）**：每個行為先寫測試，執行並看到它失敗，才寫實作。Phase 5 靠下面兩種證據驗證，缺了即打回：
    - **新行為：測試的 commit 排在對應實作的 commit 之前，commit 訊息帶任務編號**。
    - **事後新增或修改的斷言要逐個證明會失敗**（補強測試、文案或錯誤碼改動後的斷言）：把對應的行為改壞、確認該斷言轉紅、再還原，並把改壞了什麼、哪個斷言轉紅寫進 PR 描述。這種斷言沒有「先於實作」可言，commit 順序證明不了它有效；「不包含某字串」這類負向斷言尤其要做——文案一改，它可能永遠成立（訪談的實際案例：兩輪 review 都放行，換模型交叉審查才抓到）。
 
-   豁免類別（純 UI 樣式、一次性 migration、無邏輯膠水碼）走 constitution I 的豁免程序——附替代驗證方式，禁止空測試充數。
+   豁免類別（純 UI 樣式、一次性 migration、無邏輯膠水碼）走 Test-First 原則的豁免程序——附替代驗證方式，禁止空測試充數。
 3. **在完成任務的 PR 裡勾選**：這個 PR 完成的任務，在這個 PR 裡把 tasks.md 對應的 `- [ ]` 改成 `- [x]` 並 commit。tasks.md 是進度的唯一紀錄，勾選和程式碼一起被 review、一起合併；多個 PR 同時勾同一份 tasks.md 而衝突時，由後合併的那一方解。開 PR（或 MR）時，以專案的 PR 範本作為描述的骨架，逐段填寫。
-4. **除錯（constitution VI）**：修 bug 一律先寫出重現問題的失敗測試，針對根因修正，根因寫進 commit 訊息。原因還不清楚時——測試以非預期的方式失敗、既有測試轉紅、問題時有時無、或第一次修正後紅燈沒有轉綠——先載入 `diagnosing-bugs` skill，照它的步驟做出穩定重現的紅燈再找原因。
+4. **除錯（constitution 的「根因除錯」原則）**：修 bug 一律先寫出重現問題的失敗測試，針對根因修正，根因寫進 commit 訊息。原因還不清楚時——測試以非預期的方式失敗、既有測試轉紅、問題時有時無、或第一次修正後紅燈沒有轉綠——先載入 `diagnosing-bugs` skill，照它的步驟做出穩定重現的紅燈再找原因。
 5. **實作中發現需求問題 → 停手，退回 Phase 2**，改 spec、過 grill，再繼續。subagent 發現時停手並回報，由主 agent 退回。需求變更一律經過 spec——spec 和實作不同步是整個流程最大的失效模式。
 6. **開 PR 前跑 `/speckit-converge`**（完整通道）：它對照 spec、plan、tasks 檢查目前的程式碼，列出缺漏、只做一半、與 spec 牴觸、以及 spec 沒要求卻多做的部分。它不改程式碼，唯一的寫入是把剩餘工作附加到 tasks.md。
    - 回報 `Converged` → 開 PR，把這個結果寫進 PR 描述。
@@ -247,7 +249,7 @@ spec-kit 1.x 只靠 `.specify/feature.json` 決定 speckit 指令作用在哪個
 - [ ] 代位 grill（AI 執行時）：本分支有 `grill:` 開頭的 commit，且每個都含該輪問題與作者答案原文；有 `grill: [補問]` commit 時只檢查補問的 commit
 ```
 
-2. 每條驗收標準優先附上自動測試作為證據；無法自動化的，寫明人工驗證步驟與結果。確認測試先行（constitution I）：新行為的測試 commit 早於對應的實作 commit，抽查時簽出該測試 commit，測試應為紅燈。抽查測試品質以斷言為單位：挑本 PR 新增或修改的斷言，改壞它對應的行為，該斷言必須轉紅——整段 revert 後測試轉紅，不代表每個斷言都有效。永遠成立的斷言視同沒有測試。
+2. 每條驗收標準優先附上自動測試作為證據；無法自動化的，寫明人工驗證步驟與結果。確認測試先行（constitution 的 Test-First 原則）：新行為的測試 commit 早於對應的實作 commit，抽查時簽出該測試 commit，測試應為紅燈。抽查測試品質以斷言為單位：挑本 PR 新增或修改的斷言，改壞它對應的行為，該斷言必須轉紅——整段 revert 後測試轉紅，不代表每個斷言都有效。永遠成立的斷言視同沒有測試。
 3. 任一條打不了勾 → 打回 Phase 4；若原因是 spec 本身有問題 → 退回 Phase 2（計數見「退回與熔斷」）。代位 grill 問答紀錄那一勾例外，處理方式見下方第 5 點。
 4. 快速通道 PR 加驗：實際 diff 超過 3 檔時，判斷是否應升級通道。完整通道的 converge 那一勾：PR 描述沒有 `Converged` 的結果，或 reviewer 自己重跑 `/speckit-converge` 後附加了任務 → 打回 Phase 4，照常計入打回次數。
 5. **代位 grill 問答紀錄**：AI 代位執行的 grill（輕量通道一律適用），用 `git log origin/main..HEAD --grep '^grill:'` 列出本分支的 grill commit：至少要有一個，且每個 message 都含該輪問題與作者答案原文。不符 → 由新的 fresh-context subagent 對該 spec 重跑一輪 grill 四維度，commit message 以 `grill: [補問]` 開頭並含問答原文。之後只檢查補問的 commit（`git log origin/main..HEAD --grep '^grill: \[補問\]'`）：缺問答原文的舊 commit 無法改寫，不再計入。補問只補紀錄，不計入退回／打回次數與熔斷；補問導致 spec 修改則依原規則計為 P5→P2。本項只能確認紀錄存在且格式正確，無法證明沒有漏掉的輪次。真人主持的 grill 不適用本項。
@@ -263,7 +265,7 @@ spec-kit 1.x 只靠 `.specify/feature.json` 決定 speckit 指令作用在哪個
 退回不是免費的——反覆繞圈是「需求本身沒想清楚」的訊號，流程必須主動熔斷，而不是讓人在迴圈裡耗。退回 Phase 2 的次數（三條路徑合計）與 Phase 5→4 的打回次數，記在 PR 描述的「退回與打回」欄；開 PR 前發生的退回，開 PR 時補記。
 
 - **同一 feature 累計退回 Phase 2 達 2 次** → 熔斷：停止流程，**強制拆分**——已想清楚的部分保留成獨立 spec 照常前進，只把糾纏不清的部分回 Phase 1 重新定義。與升級規則同一哲學：成本是重新組織，不是作廢；探索性需求退回兩次很正常，熔斷懲罰的是糾纏，不是探索。有真人：拆分決策拉高為專案級討論；無真人：換 fresh agent 從**問題定義**（而非現有 spec）主導拆分。
-- **Phase 5→4 打回達 2 次** → 第三次實作前，強制先做根因分析（constitution VI）並寫入 PR，才准再動手。
+- **Phase 5→4 打回達 2 次** → 第三次實作前，強制先做根因分析（constitution 的「根因除錯」原則）並寫入 PR，才准再動手。
 
 ---
 
@@ -290,6 +292,6 @@ spec-kit 1.x 只靠 `.specify/feature.json` 決定 speckit 指令作用在哪個
 | 產 spec / plan / tasks | `/speckit-*` | 其他 plugin 的規劃類 skill（例如 Superpowers 的 `brainstorming`、`writing-plans`） |
 | 規劃完成檢查、開 PR 前自我檢查 | `/speckit-analyze`、`/speckit-converge` | 拿它們取代 Phase 5 的獨立驗收 |
 | 錘鍊需求 | `grill-me`（對 spec 文件） | grill-with-docs（會另產文件） |
-| 實作 | 主 agent 派 fresh-context subagent，依 Phase 4 與 constitution I | 其他 plugin 的執行類 skill（例如 Superpowers 的 `subagent-driven-development`、`executing-plans`：它們有自己的進度檔與派工規則，不勾 tasks.md） |
+| 實作 | 主 agent 派 fresh-context subagent，依 Phase 4 與 constitution 的 Test-First 原則 | 其他 plugin 的執行類 skill（例如 Superpowers 的 `subagent-driven-development`、`executing-plans`：它們有自己的進度檔與派工規則，不勾 tasks.md） |
 | 除錯 | 失敗測試＋根因修正；原因不清楚時用 `diagnosing-bugs` | 沒有重現就直接改 |
 | 驗收 | PR spec 對照清單 | — |

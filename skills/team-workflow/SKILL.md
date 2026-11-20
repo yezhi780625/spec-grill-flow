@@ -93,14 +93,14 @@ grill 的產出只寫回 spec 本身（不產 ADR、glossary 或其他文件）�
 
 **實作規則**（給 subagent）：
 
-- TDD（constitution I）：每個行為先寫測試，執行並看到它失敗，才寫實作。證據有兩種，各管各的範圍：
+- TDD（constitution 的 Test-First 原則）：每個行為先寫測試，執行並看到它失敗，才寫實作。證據有兩種，各管各的範圍：
   - 新行為：測試的 commit 排在對應實作的 commit 之前，commit 訊息帶任務編號。
   - 事後新增或修改的斷言（補強測試、文案或錯誤碼改動後的斷言）：逐個證明它會失敗——把對應的行為改壞、確認該斷言轉紅、再還原——並把改壞了什麼、哪個斷言轉紅寫進 PR 描述。「不包含某字串」這類負向斷言尤其要做：文案一改，它可能永遠成立。
 
-  豁免類別（純 UI 樣式／一次性 migration／無邏輯膠水碼）走 constitution I 豁免程序：PR 明寫理由＋替代驗證方式，禁止空測試充數。
+  豁免類別（純 UI 樣式／一次性 migration／無邏輯膠水碼）走 Test-First 原則的豁免程序：PR 明寫理由＋替代驗證方式，禁止空測試充數。
 - 勾選：這個 PR 完成的任務，在這個 PR 裡把 tasks.md 對應的 `- [ ]` 改成 `- [x]` 並 commit。
 - 開 PR（或 MR）時，以專案的 PR 範本作為描述的骨架，逐段填寫。
-- 除錯（constitution VI）：修 bug 一律先寫出重現問題的失敗測試，針對根因修正，根因寫進 commit 訊息。原因還不清楚時（測試以非預期的方式失敗、既有測試轉紅、問題時有時無、或第一次修正後紅燈沒有轉綠），先載入 `diagnosing-bugs` skill 再動手。
+- 除錯（constitution 的「根因除錯」原則）：修 bug 一律先寫出重現問題的失敗測試，針對根因修正，根因寫進 commit 訊息。原因還不清楚時（測試以非預期的方式失敗、既有測試轉紅、問題時有時無、或第一次修正後紅燈沒有轉綠），先載入 `diagnosing-bugs` skill 再動手。
 - 發現需求問題 → 停手並回報。由主 agent 退回 Phase 2 改 spec、過 grill，再繼續（計入退回次數）。需求變更一律經過 spec——spec 與程式碼不同步是本流程最大的失效模式。
 
 快速通道沒有 tasks.md：交辦內容就是該次任務本身（bug fix 先寫重現問題的失敗測試），勾選不適用。
@@ -150,7 +150,7 @@ grill 的產出只寫回 spec 本身（不產 ADR、glossary 或其他文件）�
 | 錘鍊需求 | `grill-me` 對 spec 文件 | 產出只寫回 spec |
 | 實作 | 主 agent 派 fresh-context subagent，依 Phase 4 | 其他 plugin 的執行類 skill（例如 Superpowers 的 `subagent-driven-development`）不在本流程使用 |
 | 除錯 | 失敗測試＋根因修正；原因不清楚時用 `diagnosing-bugs` | 先重現、找到根因才修 |
-| 品質門檻 | `.specify/memory/constitution.md` | speckit 各階段自動引用 |
+| 品質門檻 | `.specify/memory/constitution.md` | speckit 各階段自動引用。本流程以原則名稱引用它，不寫條號；條號以專案自己的文件為準，名稱不同時以內容對應 |
 
 ## 失效模式（reference）
 
