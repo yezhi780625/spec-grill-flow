@@ -1,6 +1,7 @@
 {
   "repo": "mattpocock/skills",
   "note": "grill-me skill vendored 自上游。此檔記錄上次對照過的上游 commit;GitHub Actions 每週比對,有差異時由 Claude 自動改寫並開 PR(PR 內一併更新此處 sha),失敗則退回開 issue 由人工處理。",
+  "adaptation": "SKILL.md 是上游 grill-me 與 grilling 兩個 skill 的中文化合併改寫版。必須保留:中文 metadata(frontmatter 的 description)、「## 本流程的附加規則(team-workflow Phase 2)」整段,以及本地的全形標點風格。純標點或措辭微調若不影響語意可略過不吸收。",
   "paths": [
     {
       "path": "skills/productivity/grill-me",

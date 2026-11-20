@@ -11,7 +11,7 @@ concurrency:
 
 jobs:
   review:
-    # 略過 draft、fork 來的 PR(拿不到 secret)與 bot 開的 PR(如 upstream-sync,由 owner 人工 review)
+    # 略過 draft、fork 來的 PR(拿不到 secret)與 bot 開的 PR(如 upstream-sync,由維護者人工 review)
     if: >-
       github.event.pull_request.draft == false &&
       github.event.pull_request.head.repo.full_name == github.repository &&
@@ -51,9 +51,9 @@ jobs:
                是否仍一致?指出具體的不一致處,兩邊各引一句。
             2. **流程邏輯**:新增或修改的規則是否與既有規則矛盾(通道資格、升級單向、退回與熔斷、
                「執行者不得是作者本人」、未解事項須定案)?新規則違反時看得出來嗎——寫不出判定方式的規則是空話。
-               該進 retro-log「觸發條款」或失效模式表的,有沒有漏?
-            3. **commands/setup.md**:每一步是否仍冪等、覆蓋既有檔案前是否先徵詢、指令與路徑是否正確、
-               重跑時對已套用舊版設定的專案會發生什麼事。
+               該進失效模式表的,有沒有漏?
+            3. **commands/setup.md 與 skills/migrate/**:每一步是否仍冪等、覆蓋或刪除既有檔案前是否先徵詢、
+               指令與路徑是否正確、完成條件是否與步驟相符、重跑時對舊版專案會發生什麼事。
             4. **.github/workflows/**:權限是否超過需要、是否把不受信任的內容(PR 標題、上游 diff)
                直接插進 shell 或 prompt。
             5. **未經驗證的宣稱**:文件把推論寫成事實、或引用了會過期的資訊(版本號、價格、方案內容)

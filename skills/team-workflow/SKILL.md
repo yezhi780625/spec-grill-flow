@@ -1,6 +1,6 @@
 ---
 name: team-workflow
-description: 團隊 AI 交辦任務流程（Spec-Kit + grill + Superpowers）。開始任何 feature、bug fix 或程式碼變更前先用本流程分流；撰寫或修改 spec、規劃任務、開 PR、驗收、合併後 retro 時也使用。
+description: 團隊 AI 交辦任務流程（Spec-Kit + grill + fresh-context subagent 實作）。開始任何 feature、bug fix 或程式碼變更前先用本流程分流；撰寫或修改 spec、規劃任務、實作、開 PR、驗收時也使用。
 ---
 
 團隊交辦 AI 任務的流程。核心原則：**spec 文件是唯一真相源**——所有需求結論最終寫回 `specs/` 下的 spec 文件，未寫回的結論視為不存在。
@@ -8,23 +8,23 @@ description: 團隊 AI 交辦任務流程（Spec-Kit + grill + Superpowers）。
 > 本檔是濃縮版；與 [full-workflow.md](full-workflow.md) 不一致時，以 full-workflow.md 為準。
 
 ```
-提案（feature request／PRD／自發 feature）── steelman（挖目標→確認）──確認──┐ （撤回／擋下：記「攔下」）
+提案（feature request／PRD／自發 feature）── steelman（挖目標→確認）──確認──┐ （撤回／擋下：不進流程）
 回報與無新行為任務（bug fix／typo／重構…）───────────────────────────────┤
                                                                          ▼
-                                     分流 ─┬─ 完整通道：定義 → 錘鍊 → 規劃 → 實作 → 驗收 → Retro
-                                           ├─ 輕量通道：寫入即錘鍊 ──→ 簡化規劃 → 實作 → 驗收 → Retro
-                                           └─ 快速通道：──────────────────────→ 實作 → 驗收 → Retro
+                                     分流 ─┬─ 完整通道：定義 → 錘鍊 → 規劃 → 實作 → 驗收
+                                           ├─ 輕量通道：寫入即錘鍊 ──→ 簡化規劃 → 實作 → 驗收
+                                           └─ 快速通道：──────────────────────→ 實作 → 驗收
 ```
 
 **人力與 grill 執行者**（Phase 0 宣告專案有無真人；用不用人由分流決定）：完整通道且有真人 → 真人 grill（非作者主持，兼知識擴散——同事從此知道這個 feature 為什麼存在，AI 無法替代）；其餘 → **fresh-context 獨立 subagent** 代位——可自由讀取 repo，但不共享產生受審產物的對話脈絡，prompt 指定挑錯立場。通道升級時 grill 執行者自動升級。
 
-**模型與 effort 不由本流程指定**：由使用者以 `/model`、`/effort` 選擇，個人偏好寫在 `.claude/settings.local.json`。派出代位 subagent 時不指定 model 與 effort（未設 `CLAUDE_CODE_SUBAGENT_MODEL`、未用自帶 model 的 subagent 定義時會繼承主對話）；agent 不得自行改用會另外計費的模型，使用者明確要求時除外。
+**模型與 effort 不由本流程指定**：主對話的模型與 effort 由使用者以 `/model`、`/effort` 選擇，個人偏好寫在 `.claude/settings.local.json`。派出 subagent（代位 grill、Phase 4 實作、代位驗收）時，model 與 effort 由主 agent 依任務判斷決定；不指定時沿用主對話的設定。
 
 ## 目標確認（分流之前，僅限提案）
 
 只攔**提案**（要求新行為：feature request、PRD、方案性需求、內部自發 feature），不攔**回報**。判別式：對方期望的行為，spec（或現有明確行為）已描述了嗎？已描述 → bug 回報，目標自明，免跑直接分流（即快速通道的 bug fix）；未描述 → 是包裝成 bug 的需求變更，照跑。拿不準 → 跑（成本只是一則回覆）。內部無新行為任務（typo、重構等）同樣免跑。
 
-提案先跑 `steelman-requirement`：挖出需求背後的目標、重建最強版本、給意見、以確認句核對目標（由 RD 向 PM 代為轉達——是轉達不是代拍板）。本站不裁決「該不該做」（那是產品決策，RD 無否決權），保證的是**目標確認完成才寫 spec**：目標已確認 → 進分流，「需求背後的目標」段落隨需求原文帶入 Phase 1 作 spec 動機雛形，未被採納的疑慮以「已知取捨」寫入 spec 未解事項；目標未確認 → 不寫 spec。PM 經 steelman 後撤回或改寫需求，或內部提案被擋下（內部自發 feature 保留擋下語義——RD 有裁量權；其 steelman 執行者不得是提案者本人：同事或 fresh-context subagent 代位）→ retro-log 回填一行（通道「攔下」、觸發條款「steelman」）。steelman 確立「為什麼做」，不取代 Phase 2 grill 的「怎麼做才驗收得了」——不可互抵。
+提案先跑 `steelman-requirement`：挖出需求背後的目標、重建最強版本、給意見、以確認句核對目標（由 RD 向 PM 代為轉達——是轉達不是代拍板）。本站不裁決「該不該做」（那是產品決策，RD 無否決權），保證的是**目標確認完成才寫 spec**：目標已確認 → 進分流，「需求背後的目標」段落隨需求原文帶入 Phase 1 作 spec 動機雛形，未被採納的疑慮以「已知取捨」寫入 spec 未解事項；目標未確認 → 不寫 spec。PM 經 steelman 後撤回或改寫需求，或內部提案被擋下（內部自發 feature 保留擋下語義——RD 有裁量權；其 steelman 執行者不得是提案者本人：同事或 fresh-context subagent 代位）→ 不進流程，改寫後的新需求重新過一次目標確認。steelman 確立「為什麼做」，不取代 Phase 2 grill 的「怎麼做才驗收得了」——不可互抵。
 
 ## 分流（每個任務的第一步；提案先過目標確認）
 
@@ -61,7 +61,7 @@ description: 團隊 AI 交辦任務流程（Spec-Kit + grill + Superpowers）。
 - 需求之間有無矛盾？
 - 「不做什麼」明確了嗎？
 
-grill 的產出只寫回 spec 本身（不產 ADR、glossary 或其他文件）。作者可駁回追問，但被駁回的追問由 grill 執行者記入 spec「未解事項」段——不得刪除，Phase 5 reviewer 會檢視。真人主持時可主動補充作者不掌握的事實（寫入 spec 標注來源，拍板仍屬作者）；一次 grill 出現 ≥3 項此類補充 → retro 備註記「領域知識未文件化」，該領域後續任務分流偏向完整通道，並考慮補文件。
+grill 的產出只寫回 spec 本身（不產 ADR、glossary 或其他文件）。作者可駁回追問，但被駁回的追問由 grill 執行者記入 spec「未解事項」段——不得刪除，Phase 5 reviewer 會檢視。真人主持時可主動補充作者不掌握的事實（寫入 spec 標注來源，拍板仍屬作者）；一次 grill 出現 ≥3 項此類補充 → 開 issue 把這些知識補進專案文件；補上之前，該領域的任務分流偏向完整通道。
 
 **完成條件**：spec 頂部的 grill 檢核清單四項全勾：
 
@@ -75,21 +75,39 @@ grill 的產出只寫回 spec 本身（不產 ADR、glossary 或其他文件）�
 
 ## Phase 3：規劃
 
-`/speckit-plan` 產技術計畫 → `/speckit-tasks` 拆任務 → `/speckit-analyze` 檢查 spec、plan、tasks 與 constitution 是否一致（唯讀；僅完整通道，輕量通道免完整 plan，不適用），一併 commit。analyze 的 CRITICAL 與 HIGH 發現要回源頭修正後重跑：問題在 plan 或 tasks 就在本階段修；問題在 spec，或過程中發現 spec 有洞 → 退回 Phase 2 補 grill 後再回來（計入退回次數）；不同意的發現附理由記入 spec「未解事項」，不必為它重跑。結果寫進 plan 與 tasks 的 commit message（例如 `analyze: 0 CRITICAL, 0 HIGH`）；攔到問題時觸發條款記「analyze」。
+`/speckit-plan` 產技術計畫 → `/speckit-tasks` 拆任務 → `/speckit-analyze` 檢查 spec、plan、tasks 與 constitution 是否一致（唯讀；僅完整通道，輕量通道免完整 plan，不適用），一併 commit。analyze 的 CRITICAL 與 HIGH 發現要回源頭修正後重跑：問題在 plan 或 tasks 就在本階段修；問題在 spec，或過程中發現 spec 有洞 → 退回 Phase 2 補 grill 後再回來（計入退回次數）；不同意的發現附理由記入 spec「未解事項」，不必為它重跑。結果寫進 plan 與 tasks 的 commit message（例如 `analyze: 0 CRITICAL, 0 HIGH`）。
 
 **完成條件**：每條驗收標準在 tasks 中有對應的測試任務；完整通道另須 `/speckit-analyze` 沒有未處理的 CRITICAL 或 HIGH 發現（已修正，或已記入未解事項）。
 
 ## Phase 4：實作
 
-依 tasks 逐項實作，走 Superpowers 紀律：
+主 agent 依 tasks.md 的順序，把任務交給 **fresh-context subagent** 實作；主 agent 負責派工與核對回報。主 agent 不寫測試與實作，小修改也一樣派 subagent（使用者明確要求直接改時除外）；整合時頂多解合併衝突。主 agent 載入 `/speckit-implement` 當入口也可以，派工、commit 與勾選仍依下列規則。
 
-- TDD 強制：測試先寫、先失敗，才准實作。豁免類別（純 UI 樣式／一次性 migration／無邏輯膠水碼）走 constitution I 豁免程序：PR 明寫理由＋替代驗證方式，禁止空測試充數。
-- 除錯：先找根因，才准修。
-- 實作中發現需求問題 → 停手，退回 Phase 2 改 spec、過 grill，再繼續（計入退回次數）。需求變更一律經過 spec——spec 與程式碼不同步是本流程最大的失效模式。
+**派工**：
 
-- 完整通道開 PR 前跑 `/speckit-converge`：它對照 spec、plan、tasks 檢查程式碼，不改程式碼，只把剩餘工作附加到 tasks.md。附加了任務 → 照本階段紀律完成後重跑，直到回報 `Converged`，並把結果寫進 PR 描述。這是自我檢查，不取代 Phase 5，也不計入打回次數；攔到問題時觸發條款記「converge」。輕量通道可選用（feature 目錄已有 plan.md 與 tasks.md 時，以參數限定範圍）。
+- 一次交辦的範圍由主 agent 決定（單一任務，或 tasks.md 的一個階段／一個 user story）。model 與 effort 由主 agent 判斷。
+- 可以並行派工：彼此不依賴的任務可以同時交給多個 subagent。**一個 agent 一個 git worktree**（派工工具的隔離選項或 `git worktree add` 都可以）——共用工作目錄會互相覆蓋檔案、打亂 commit。同時幾個、成果走本機合併還是各自開 PR、由誰解衝突，依專案的做法。
+- 整合時保留原本的 commit（merge，不 squash——Phase 5 靠 commit 驗證測試先行），整合後執行完整測試。
+- 交辦內容用路徑指向 spec、plan、tasks.md 與 constitution，列出這次的任務編號，並附上下方「實作規則」全文——subagent 看不到主對話，也不會自己載入本 skill。
+- subagent 回報後，先確認完整測試綠燈（自己執行，或看 CI 的結果），才接受這批成果。
 
-**完成條件**：所有 tasks 完成且測試綠燈；完整通道另須 `/speckit-converge` 回報 `Converged`。
+**實作規則**（給 subagent）：
+
+- TDD（constitution I）：每個行為先寫測試，執行並看到它失敗，才寫實作。證據有兩種，各管各的範圍：
+  - 新行為：測試的 commit 排在對應實作的 commit 之前，commit 訊息帶任務編號。
+  - 事後新增或修改的斷言（補強測試、文案或錯誤碼改動後的斷言）：逐個證明它會失敗——把對應的行為改壞、確認該斷言轉紅、再還原——並把改壞了什麼、哪個斷言轉紅寫進 PR 描述。「不包含某字串」這類負向斷言尤其要做：文案一改，它可能永遠成立。
+
+  豁免類別（純 UI 樣式／一次性 migration／無邏輯膠水碼）走 constitution I 豁免程序：PR 明寫理由＋替代驗證方式，禁止空測試充數。
+- 勾選：這個 PR 完成的任務，在這個 PR 裡把 tasks.md 對應的 `- [ ]` 改成 `- [x]` 並 commit。
+- 開 PR（或 MR）時，以專案的 PR 範本作為描述的骨架，逐段填寫。
+- 除錯（constitution VI）：修 bug 一律先寫出重現問題的失敗測試，針對根因修正，根因寫進 commit 訊息。原因還不清楚時（測試以非預期的方式失敗、既有測試轉紅、問題時有時無、或第一次修正後紅燈沒有轉綠），先載入 `diagnosing-bugs` skill 再動手。
+- 發現需求問題 → 停手並回報。由主 agent 退回 Phase 2 改 spec、過 grill，再繼續（計入退回次數）。需求變更一律經過 spec——spec 與程式碼不同步是本流程最大的失效模式。
+
+快速通道沒有 tasks.md：交辦內容就是該次任務本身（bug fix 先寫重現問題的失敗測試），勾選不適用。
+
+**開 PR 前**（完整通道）跑 `/speckit-converge`：它對照 spec、plan、tasks 檢查程式碼，不改程式碼，只把剩餘工作附加到 tasks.md。附加了任務 → 照上述規則完成後重跑，直到回報 `Converged`，並把結果寫進 PR 描述。這是自我檢查，不取代 Phase 5，也不計入打回次數。輕量通道可選用（feature 目錄已有 plan.md 與 tasks.md 時，以參數限定範圍）。
+
+**完成條件**：完整測試綠燈；完成的任務都已在 tasks.md 勾選（快速通道沒有 tasks.md，免）；新行為的測試 commit 在實作之前，事後新增或修改的斷言有失敗證據（豁免者除外）；完整通道另須 `/speckit-converge` 回報 `Converged`。
 
 ## Phase 5：驗收
 
@@ -99,13 +117,15 @@ grill 的產出只寫回 spec 本身（不產 ADR、glossary 或其他文件）�
 ## Spec 驗收（對照 specs/xxx/spec.md）
 - [ ] 每條驗收標準有證據（自動測試連結，或人工驗證步驟與結果）
 - [ ] 所有 edge cases 有對應測試
+- [ ] 測試先行有證據：新行為的測試 commit 早於實作 commit；事後新增或修改的斷言附失敗證據（豁免者見 PR 的豁免段）
+- [ ] tasks.md 的勾選與本 PR 完成的任務一致
 - [ ] 未實作 spec 範圍外的功能（scope creep 檢查）
 - [ ] `/speckit-converge` 結果為 Converged（完整通道，結果附在 PR 描述）
 - [ ] spec「未解事項」各項已定案——標「已接受取捨（凍結）」或轉 issue 移出 spec
 - [ ] 代位 grill（AI 執行時）：本分支有 `grill:` 開頭的 commit，且每個都含該輪問題與作者答案原文；有 `grill: [補問]` commit 時只檢查補問的 commit
 ```
 
-任一條不過 → 打回 Phase 4；根因在 spec → 退回 Phase 2；代位 grill 問答紀錄不符（本分支沒有 `grill:` commit，或有 commit 缺問答原文）→ 由新的 fresh-context subagent 重跑一輪 grill 四維度並commit message 以 `grill: [補問]` 開頭並含問答原文，之後只檢查補問的 commit；只補紀錄不計入退回／打回與熔斷（觸發條款記「grill 紀錄補問」），導致 spec 修改則計為 P5→P2。全過 → 合併（合併前「未解事項」每項須定案：凍結或轉 issue，不得無狀態滾入下一次修改）。抽查測試品質：revert 對應實作後測試必須轉紅，空測試視同無測試。
+任一條不過 → 打回 Phase 4；根因在 spec → 退回 Phase 2；代位 grill 問答紀錄不符（本分支沒有 `grill:` commit，或有 commit 缺問答原文）→ 由新的 fresh-context subagent 重跑一輪 grill 四維度並commit message 以 `grill: [補問]` 開頭並含問答原文，之後只檢查補問的 commit；只補紀錄不計入退回／打回與熔斷，導致 spec 修改則計為 P5→P2。全過 → 合併（合併前「未解事項」每項須定案：凍結或轉 issue，不得無狀態滾入下一次修改）。確認測試先行：抽查時簽出新行為的測試 commit，測試應為紅燈。抽查測試品質以斷言為單位：挑本 PR 新增或修改的斷言，改壞它對應的行為，該斷言必須轉紅；永遠成立的斷言視同沒有測試。
 
 - 完整通道的 converge 那一勾：PR 描述沒有 `Converged` 的結果，或 reviewer 重跑 `/speckit-converge` 後附加了任務 → 打回 Phase 4，照常計入打回次數。
 - 快速通道：免逐條對照，確認「失敗測試→修正→綠燈」證據鏈；diff 超過 3 檔時判斷是否應升級通道。
@@ -115,27 +135,21 @@ grill 的產出只寫回 spec 本身（不產 ADR、glossary 或其他文件）�
 
 ## 退回與熔斷
 
-- 同一 feature **累計退回 Phase 2 達 2 次** → 熔斷：停止流程，**強制拆分**——已想清楚的部分保留成獨立 spec 續行，只把糾纏不清的部分回 Phase 1 重新定義（有真人：拆分決策拉高為專案級討論；無真人：換 fresh agent 從問題定義主導拆分）。retro 症狀記「熔斷」。
+退回 Phase 2 的次數（P3→P2、P4→P2、P5→P2 合計）與 Phase 5→4 的打回次數，記在 PR 描述的「退回與打回」欄；開 PR 前發生的退回，開 PR 時補記。
+
+- 同一 feature **累計退回 Phase 2 達 2 次** → 熔斷：停止流程，**強制拆分**——已想清楚的部分保留成獨立 spec 續行，只把糾纏不清的部分回 Phase 1 重新定義（有真人：拆分決策拉高為專案級討論；無真人：換 fresh agent 從問題定義主導拆分）。
 - **Phase 5→4 打回達 2 次** → 第三次實作前強制先做根因分析並寫入 PR。
-
-## Phase 6：Retro（合併後，2 分鐘內完成）
-
-合併後立即在 `specs/retro-log.md` 回填一行（欄位：合併日、feature、通道、開工日、退回次數＝P3→P2＋P4→P2、打回次數＝P5→P4＋P5→P2、觸發條款＝本次真正攔下問題或改變決定的條款（絆線／豁免／熔斷／未解事項／grill 修正／analyze／converge，無則留空）、症狀分類、一句話備註）。症狀分類使用下方失效模式表的既有分類；新型症狀在失效模式表新增一列並在備註標注「新增」。
-
-- 快速／輕量通道與零退回零打回的任務同樣回填——前者偵測分流條件是否太寬，後者是打回率的分母。
-- 檢視雙保險：**每累積 10 筆或滿一季**（先到者），由回填觸發筆的人當週執行一次檢視——繞過偵測（merged feature PR 數 − retro-log 新增列數，分子排除自動化／docs-only／revert／CI 修正，列數排除「攔下」列）、條款有效性（以「觸發條款」欄為準，連續兩次零觸發 → 刪除候選）、分流條件鬆緊、cycle time 是否惡化、grill-me 上游同步、附錄 B 條件。
-
-**完成條件**：retro-log 已回填；若剛好是第 10n 筆，檢視已排入當週。
 
 ## 工具邊界（reference）
 
 | 動作 | 用 | 附註 |
 |---|---|---|
 | 目標確認（分流前） | `steelman-requirement` 對提案 | bug 回報免；「需求背後的目標」帶入 spec 動機 |
-| spec / plan / tasks | `/speckit-*` | Superpowers 的 `brainstorming`、`writing-plans` skill不在本流程使用 |
+| spec / plan / tasks | `/speckit-*` | 其他 plugin 的規劃類 skill（例如 Superpowers 的 `brainstorming`、`writing-plans`）不在本流程使用 |
 | 規劃完成檢查、開 PR 前自我檢查 | `/speckit-analyze`、`/speckit-converge` | 不取代 Phase 5 的獨立驗收 |
 | 錘鍊需求 | `grill-me` 對 spec 文件 | 產出只寫回 spec |
-| 實作、TDD、除錯 | Superpowers | — |
+| 實作 | 主 agent 派 fresh-context subagent，依 Phase 4 | 其他 plugin 的執行類 skill（例如 Superpowers 的 `subagent-driven-development`）不在本流程使用 |
+| 除錯 | 失敗測試＋根因修正；原因不清楚時用 `diagnosing-bugs` | 先重現、找到根因才修 |
 | 品質門檻 | `.specify/memory/constitution.md` | speckit 各階段自動引用 |
 
 ## 失效模式（reference）
@@ -145,15 +159,12 @@ grill 的產出只寫回 spec 本身（不產 ADR、glossary 或其他文件）�
 | 把解決方案當目標，做完才發現不是 PM 要的 | 提案一律先過目標確認（`steelman-requirement`）；「bug」但 spec 未描述該期望行為 → 視為提案照跑 |
 | AI 做出來的不是想要的 | 檢查 grill 執行者是否獨立於 spec 作者（非作者主持／fresh-context agent） |
 | AI 回報完成但驗收失敗 | Phase 3 起驗收標準就要對應測試任務（`/speckit-analyze` 檢查）；開 PR 前跑 `/speckit-converge` |
+| 流程被私下繞過，或分流越放越寬 | 沒有定期檢視 | 只能在 PR 驗收時發現；反覆出現就提 PR 修訂本流程或 constitution |
 | spec 和程式碼對不上 | 執行「改需求必退 Phase 2」 |
 | 同一 feature 反覆退回繞圈 | 觸發熔斷：強制拆分，糾纏部分回 Phase 1 重新定義 |
-| 測試存在但形同虛設 | 抽查「revert 實作測試須轉紅」；適用豁免就走豁免程序，不寫假測試 |
+| 測試存在但形同虛設 | 以斷言為單位抽查「改壞行為、斷言須轉紅」；適用豁免就走豁免程序，不寫假測試 |
 | 成員產出品質落差 | PR review 檢查 spec 的 grill 檢核與 commit 歷史 |
-| 快速／輕量通道打回率升高 | 分流條件太寬，收緊任務類型白名單 |
-| 打回率漂亮但交付變慢 | 檢視 cycle time（開工日→合併日），放寬非關鍵關卡 |
-| 流程被私下繞過（retro-log 看不見） | 檢視時比對 merged PR 數與 retro-log 列數，差值擴大 → 優先刪流程 |
-| 測試都過但仍有安全／架構問題 | 缺獨立驗收——引入 ECC reviewer，條件見 [full-workflow.md](full-workflow.md) 附錄 B |
 
 ## 完整版文件
 
-各階段負責人與代位規則、Phase 0 專案初始化、熔斷細節、ECC reviewer 引入條件（附錄 B）見 [full-workflow.md](full-workflow.md)。
+各階段負責人與代位規則、Phase 0 專案初始化、熔斷細節見 [full-workflow.md](full-workflow.md)。

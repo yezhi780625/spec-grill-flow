@@ -1,0 +1,11 @@
+{
+  "repo": "mattpocock/skills",
+  "note": "diagnosing-bugs skill vendored 自上游。此檔記錄上次對照過的上游 commit;GitHub Actions 每週比對,有差異時由 Claude 自動改寫並開 PR(PR 內一併更新此處 sha),失敗則退回開 issue 由人工處理。",
+  "adaptation": "SKILL.md 本文逐字保留上游英文內容,上游的變更原則上全部吸收。必須保留:frontmatter(name 與中文 description)、檔頭的 vendored 註解、文末「## 本流程的附加規則(team-workflow Phase 4)」整段。scripts/ 下的檔案與上游保持一致。上游的 agents/ 目錄不收。",
+  "paths": [
+    {
+      "path": "skills/engineering/diagnosing-bugs",
+      "sha": "f3fc5632f401156837ee3872f14fe33ccf1024ea"
+    }
+  ]
+}

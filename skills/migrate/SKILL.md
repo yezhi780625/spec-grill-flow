@@ -1,10 +1,10 @@
 ---
 name: migrate
-description: 把既有專案遷移到 spec-kit 1.x 與本 plugin 現行版本（spec-kit 0.x，或跑過 0.6.0 之前 setup 的專案）。
+description: 把既有專案遷移到 spec-kit 1.x 與本 plugin 現行版本（spec-kit 0.x，或跑過 0.7.0 之前 setup 的專案）。
 disable-model-invocation: true
 ---
 
-把既有專案遷移到 spec-kit 1.x 與本 plugin 現行版本。全程在專用分支上進行，每一步先偵測、已達目標狀態就記「跳過」，所以可以重跑。會改動檔案的動作一律先徵詢。
+把既有專案遷移到 spec-kit 1.x 與本 plugin 現行版本。全程在專用分支上進行，每一步先偵測、已達目標狀態就記「跳過」，所以可以重跑。會刪除檔案、覆寫使用者改過的內容、或修改 constitution 的動作，逐項先徵詢；其餘改動留在遷移分支上，由使用者從 diff 檢視。
 
 版本行為以 0.8.10 的專案搭配 1.4 的 CLI 實測（2026-11-19），其餘依 spec-kit 的 CHANGELOG 與升級文件。
 
@@ -19,8 +19,10 @@ disable-model-invocation: true
 | 舊版模型設定 | [legacy-model-settings.md](legacy-model-settings.md) 的偵測對象 | 無舊版值 |
 | extension | `.specify/extensions.yml` 的 `installed` | 已安裝者為最新 |
 | `feature.json` 是否進版控 | `git ls-files --error-unmatch .specify/feature.json` | 未追蹤 |
-| plugin 產物 | CLAUDE.md 的「交辦流程鐵律」段落、`.github/pull_request_template.md`、`specs/retro-log.md` 檔頭註解，各自與本 plugin `templates/` 比對 | 與 template 一致 |
+| plugin 產物 | CLAUDE.md 的「交辦流程鐵律」段落、PR／MR template（位置依平台，見 setup 步驟 8；GitLab 專案沒有 `.gitlab/merge_request_templates/Default.md` 即未達目標），各自與本 plugin `templates/` 比對 | 與 template 一致 |
+| 已停用的產物 | `specs/retro-log.md` 是否存在；constitution 是否還有 [legacy-constitution.md](legacy-constitution.md) 列出的舊條文 | 沒有 `specs/retro-log.md`；舊條文都沒有，或已是專案自己改寫過的句子 |
 | 進行中的 feature | `git branch -a --no-merged <預設分支>` 中，相對預設分支有 `specs/` 變更的分支 | 每個都有接續步驟（步驟 7） |
+| `.gitignore` | `git check-ignore -q .specify/extensions/.cache/x`、`git check-ignore -q .claude/settings.local.json` | 兩者都被 repo 層的規則忽略 |
 | 工作樹 | `git status --short` | 乾淨 |
 
 **完成條件**：每一列都有查到的值。全部已達目標狀態 → 回報「不需遷移」並結束。
@@ -28,7 +30,7 @@ disable-model-invocation: true
 ## 2. 準備
 
 1. 工作樹有未 commit 的修改 → 請使用者先 commit 或 stash。
-2. 徵詢後，從預設分支建立遷移分支（預設名稱 `chore/speckit-1x-migration`）。
+2. 徵詢後，從預設分支建立遷移分支（預設名稱 `chore/spec-grill-flow-migration`）。分支已存在（上次沒做完）→ 切過去接著做。
 3. 徵詢一次：之後每個步驟完成時各 commit 一次。分開的 commit 讓升級的 diff 看得懂，也是下一步的備份。使用者婉拒 → 不 commit，照常進行。
 4. CLI 低於 1.0 → CLI 是使用者機器上的全域工具，升級由使用者自己執行：給出指令後停下來等他回報，再以 `specify version` 確認。指令是 `uv tool install --force specify-cli` 或 `pipx install --force specify-cli`，用他原本的安裝工具（需 Python 3.11+；0.x 的 `specify self upgrade` 還不能用）。使用者事先說過「一律同意」也一樣在這裡停下。
 
@@ -61,13 +63,16 @@ disable-model-invocation: true
 
 ## 6. 同步 plugin 產物
 
-讀取本 plugin 根目錄的 `commands/setup.md`（本 skill 目錄往上兩層），執行其中的步驟 6 到 9：`.gitignore` 的 settings 分層、CLAUDE.md 段落、PR template、retro log。
+讀取本 plugin 根目錄的 `commands/setup.md`（本 skill 目錄往上兩層），執行其中的步驟 6 到 8：`.gitignore` 的 settings 分層、CLAUDE.md 段落、PR template。
 
-遷移時 retro log 多做一件事：`specs/retro-log.md` 已存在時，把檔頭的說明註解換成 `templates/retro-log.md` 的版本，資料列原樣保留。
+接著處理 0.7.0 起停用的產物，每一項都先說明再徵詢：
 
-讀不到 `commands/setup.md` → 這一步列「待補」，請使用者在遷移後執行 `/spec-grill-flow:setup`。
+1. **`specs/retro-log.md`**：流程已取消合併後的 retro，不再讀寫這個檔。徵詢使用者：刪除（`git rm`），或封存作為歷史紀錄（`git mv specs/retro-log.md specs/retro-log-archive.md`）。封存後 setup 與 migrate 不再偵測到它，重跑不會再問。兩者都婉拒 → 原樣留著，列「保留（使用者選擇）」，重跑時會再問。
+2. **constitution 的舊條文**：照 [legacy-constitution.md](legacy-constitution.md) 逐項比對並徵詢。constitution 是專案自己的文件，使用者婉拒就原樣保留。
 
-**完成條件**：CLAUDE.md 段落、PR template、retro log 檔頭註解都與 template 一致，或已列「待補」。
+讀不到 `commands/setup.md` → 這三項列「待補」，請使用者在遷移後執行 `/spec-grill-flow:setup`；下面兩項停用產物照常處理，它們不靠 setup。
+
+**完成條件**：`.gitignore` 的 settings 分層、CLAUDE.md 段落、PR template 各自完成或已列「待補」；retro-log 的結果是完成（刪除或封存）、保留（使用者選擇）或跳過（不存在）；constitution 舊條文三項各有 legacy-constitution.md 定義的結果。
 
 ## 7. 進行中的 feature
 
@@ -84,7 +89,7 @@ disable-model-invocation: true
 
 ## 8. 驗證與總結
 
-驗證：
+驗證（步驟 4 列「待補」時，前兩項也記「待補」，不算失敗）：
 
 - `specify integration status` 為 `OK`。
 - `.claude/skills/speckit-converge/SKILL.md` 存在。
@@ -99,5 +104,8 @@ disable-model-invocation: true
   - speckit 指令靠 `.specify/feature.json` 找 feature：每次開始一項工作就重設它（見 team-workflow 的分流），新建的 worktree 要先寫入它。
   - feature branch 由流程在 Phase 1 建立，命名照專案慣例；不需要 spec-kit 的 git extension。
   - 完整通道新增 Phase 3 的 `/speckit-analyze` 與 Phase 4 結尾的 `/speckit-converge`。
+  - Phase 4 改由主 agent 派 fresh-context subagent 實作，一個 agent 一個 worktree：新行為的測試 commit 排在實作之前，事後新增或修改的斷言附失敗證據；任務在完成它的 PR 裡勾選；原因不清楚的 bug 用 `diagnosing-bugs`。
+  - 開 PR／MR 時以專案的範本作為描述骨架。
+  - 流程不再依賴 Superpowers，也取消了合併後的 retro。個人仍安裝 Superpowers 的成員，CLAUDE.md 鐵律已寫明它的規劃與執行類 skill 不在本流程使用。
   - 移除了舊版模型設定時：speckit 指令改為跟隨各自選擇的模型，個人偏好寫在 `.claude/settings.local.json`。
 - 提醒使用者開 PR 合併遷移分支。
