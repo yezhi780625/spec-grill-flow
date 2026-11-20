@@ -15,6 +15,7 @@ disable-model-invocation: true
 5. **舊版產物**：下列任一項存在 → 這是 0.7.0 之前的 setup 留下的。總結表列為「待補」，請使用者執行 `/spec-grill-flow:migrate` 處理；setup 不動它們。都沒有 → 跳過。
    - `.claude/settings.json` 有 `"model": "opus"` 與 `"effortLevel": "high"`，或 `.claude/skills/speckit-plan/SKILL.md` 的 frontmatter 有 `model: fable`（0.5.0 之前寫入的模型設定）。
    - `specs/retro-log.md`（0.7.0 起流程不再使用）。
+   - `.specify/extensions.yml` 的 `installed` 有 `git`（0.7.0 起分支由流程建立；migrate 會徵詢移除或保留）。
    - constitution 裡有 `早於或同於` 或 `檢視節奏雙保險`（0.7.0 改寫或移除的條文）。
    - `.specify/feature.json` 已被 git 追蹤（`git ls-files --error-unmatch .specify/feature.json`；spec-kit 1.x 把它當成每個人本機的狀態）。
 6. **.gitignore 保護 settings 分層**：`.claude/settings.json` 是**追蹤中的團隊共用基準**（只放非敏感的共用鍵）；`.claude/settings.local.json` 是**個人覆寫**（模型偏好、權限允許規則），優先權更高，一律不進版控。此步**無條件執行**——權限允許規則與個人的模型偏好都會寫進 local 檔，任何專案都會長出它。判斷原則：偵測一律以 git 本身為準（`git check-ignore -v`），勿只做 `.gitignore` 字面比對——等效樣式（`.claude` 無斜線、`**/.claude/`、上層目錄的 .gitignore）字面比對抓不到，而已用負向樣式（`!.claude/settings.json`）修好的配置又會被誤判；也勿只看 `git status` 乾不乾淨——`-v` 會指出命中規則來自哪個檔案，若來自機器層全域 ignore（`core.excludesFile`、`~/.config/git/ignore`），那只保護該台機器，團隊其他成員沒有，repo 層仍須補上。**依序判斷**：
