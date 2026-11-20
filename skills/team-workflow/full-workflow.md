@@ -246,13 +246,13 @@ spec-kit 1.x 只靠 `.specify/feature.json` 決定 speckit 指令作用在哪個
 - [ ] 未實作 spec 範圍外的功能（scope creep 檢查）
 - [ ] `/speckit-converge` 結果為 Converged（完整通道，結果附在 PR 描述）
 - [ ] spec「未解事項」各項已定案——標「已接受取捨（凍結）」或轉 issue 移出 spec
-- [ ] 代位 grill（AI 執行時）：本分支有 `docs: grill` 開頭的 commit（0.7.2 之前寫下的 `grill:` 開頭也算），且每個都含該輪問題與作者答案原文；有 `docs: grill [補問]` commit 時只檢查補問的 commit
+- [ ] 代位 grill（AI 執行時）：本分支有 `docs: grill` 開頭的 commit（0.7.2 之前寫下的 `grill:` 開頭也算），且每個都含該輪問題與作者答案原文；有 `docs: grill [補問]` commit（或 0.7.2 之前的 `grill: [補問]`）時只檢查補問的 commit
 ```
 
 2. 每條驗收標準優先附上自動測試作為證據；無法自動化的，寫明人工驗證步驟與結果。確認測試先行（constitution 的 Test-First 原則）：新行為的測試 commit 早於對應的實作 commit，抽查時簽出該測試 commit，測試應為紅燈。抽查測試品質以斷言為單位：挑本 PR 新增或修改的斷言，改壞它對應的行為，該斷言必須轉紅——整段 revert 後測試轉紅，不代表每個斷言都有效。永遠成立的斷言視同沒有測試。
 3. 任一條打不了勾 → 打回 Phase 4；若原因是 spec 本身有問題 → 退回 Phase 2（計數見「退回與熔斷」）。代位 grill 問答紀錄那一勾例外，處理方式見下方第 5 點。
 4. 快速通道 PR 加驗：實際 diff 超過 3 檔時，判斷是否應升級通道。完整通道的 converge 那一勾：PR 描述沒有 `Converged` 的結果，或 reviewer 自己重跑 `/speckit-converge` 後附加了任務 → 打回 Phase 4，照常計入打回次數。
-5. **代位 grill 問答紀錄**：AI 代位執行的 grill（輕量通道一律適用），用 `git log origin/main..HEAD --grep '^docs: grill'` 列出本分支的 grill commit（0.7.2 之前寫下的紀錄以 `grill:` 開頭，一樣算，用 `--grep '^grill:'` 找）：至少要有一個，且每個 message 都含該輪問題與作者答案原文。不符 → 由新的 fresh-context subagent 對該 spec 重跑一輪 grill 四維度，commit 主旨以 `docs: grill [補問]` 開頭、內文含問答原文。之後只檢查補問的 commit（`git log origin/main..HEAD --grep '^docs: grill \[補問\]'`）：缺問答原文的舊 commit 無法改寫，不再計入。補問只補紀錄，不計入退回／打回次數與熔斷；補問導致 spec 修改則依原規則計為 P5→P2。本項只能確認紀錄存在且格式正確，無法證明沒有漏掉的輪次。真人主持的 grill 不適用本項。
+5. **代位 grill 問答紀錄**：AI 代位執行的 grill（輕量通道一律適用），用 `git log origin/main..HEAD --grep '^docs: grill'` 列出本分支的 grill commit（0.7.2 之前寫下的紀錄以 `grill:` 開頭，一樣算，用 `--grep '^grill:'` 找）：至少要有一個，且每個 message 都含該輪問題與作者答案原文。不符 → 由新的 fresh-context subagent 對該 spec 重跑一輪 grill 四維度，commit 主旨以 `docs: grill [補問]` 開頭、內文含問答原文。之後只檢查補問的 commit（`git log origin/main..HEAD --grep '^docs: grill \[補問\]'`；0.7.2 之前的補問以 `grill: [補問]` 開頭，一樣算補問，用 `--grep '^grill: \[補問\]'` 找）：缺問答原文的舊 commit 無法改寫，不再計入。補問只補紀錄，不計入退回／打回次數與熔斷；補問導致 spec 修改則依原規則計為 P5→P2。本項只能確認紀錄存在且格式正確，無法證明沒有漏掉的輪次。真人主持的 grill 不適用本項。
 6. **未解事項定案**：合併前，spec「未解事項」段每一項必須定案——標記「已接受的取捨（凍結）」留在 spec，或轉成 issue 移出 spec。不得無狀態滾入下一次修改：未定案的項目會累積成墓地，第十次檢視三十項時 checkbox 就變蓋章了。
 7. 全數通過 → 合併。Spec 文件與程式碼同 repo 留存，作為未來變更的基準。
 

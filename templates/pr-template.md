@@ -8,14 +8,14 @@
 - [ ] 未實作 spec 範圍外的功能（scope creep 檢查）
 - [ ] `/speckit-converge` 結果為 Converged（結果附在 PR 描述）
 - [ ] spec「未解事項」各項已定案——標「已接受取捨（凍結）」或轉 issue 移出 spec
-- [ ] 代位 grill（AI 執行時）：本分支有 `docs: grill` 開頭的 commit（0.7.2 之前寫下的 `grill:` 開頭也算），且每個都含該輪問題與作者答案原文；有 `docs: grill [補問]` commit 時只檢查補問的 commit
+- [ ] 代位 grill（AI 執行時）：本分支有 `docs: grill` 開頭的 commit（0.7.2 之前寫下的 `grill:` 開頭也算），且每個都含該輪問題與作者答案原文；有 `docs: grill [補問]` commit（或 0.7.2 之前的 `grill: [補問]`）時只檢查補問的 commit
 
 <!-- 輕量通道：僅對照本次增修的驗收標準 -->
 - [ ] 本次增修的驗收標準有證據（自動測試連結，或人工驗證步驟與結果）
 - [ ] 該標準的 edge cases 有對應測試
 - [ ] 測試先行有證據：新行為的測試 commit 早於實作 commit；事後新增或修改的斷言附失敗證據（豁免者見下方豁免段）
 - [ ] 未牽動其他驗收標準（若有 → 本 PR 應升級完整通道）
-- [ ] 代位 grill（AI 執行時）：本分支有 `docs: grill` 開頭的 commit（0.7.2 之前寫下的 `grill:` 開頭也算），且每個都含該輪問題與作者答案原文；有 `docs: grill [補問]` commit 時只檢查補問的 commit
+- [ ] 代位 grill（AI 執行時）：本分支有 `docs: grill` 開頭的 commit（0.7.2 之前寫下的 `grill:` 開頭也算），且每個都含該輪問題與作者答案原文；有 `docs: grill [補問]` commit（或 0.7.2 之前的 `grill: [補問]`）時只檢查補問的 commit
 
 <!-- 快速通道：確認證據鏈即可 -->
 - [ ] 「失敗測試 → 修正 → 綠燈」證據鏈完整

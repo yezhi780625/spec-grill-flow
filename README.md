@@ -30,7 +30,7 @@ Phase 0 宣告專案有無真人協作者，何時用人由分流決定——完
 /spec-grill-flow:setup
 ```
 
-必要環境：Node.js、Python 3.11+ 與 uv（spec-kit ≥1.0——指令為 `/speckit-*` skill 形式；2026-11-19 以 1.4 實測，較早的 1.x 版本未測）。流程規定的 commit 訊息（`docs: grill` 開頭的 grill 紀錄、主旨結尾帶任務編號）過得了 commitlint 預設的 config-conventional（2026-11-20 以 commitlint 21.2.4 實測）。本流程不指定模型與 effort，由使用者自行選擇；既有專案（spec-kit 0.x，或跑過 0.7.0 之前任何版本的 setup）升級到 0.7.0 後，請跑一次 `/spec-grill-flow:migrate`：它會清理舊版寫入的模型設定、把 spec-kit 專案檔升到 1.x、同步 CLAUDE.md 段落與 PR template，並詢問如何處理已停用的 retro-log、constitution 舊條文與 spec-kit 的 git extension。已經用 0.7.0 的 migrate 升級、而且還裝著 git extension 的專案，升到 0.7.1 後再跑一次。0.7.0 起不再依賴 Superpowers；已安裝的人可以留著自用：CLAUDE.md 鐵律寫明它的規劃與執行類 skill 不在本流程使用（2026-11-19 以 Superpowers 7.0.2 實測 4 次，都沒有被載入）。
+必要環境：Node.js、Python 3.11+ 與 uv（spec-kit ≥1.0——指令為 `/speckit-*` skill 形式；2026-11-19 以 1.4 實測，較早的 1.x 版本未測）。流程規定的 commit 訊息（`docs: grill` 開頭的 grill 紀錄、主旨結尾帶任務編號）過得了 commitlint 預設的 config-conventional（2026-11-20 以 commitlint 21.2.4 實測）；從較早的版本升到 0.7.2 後，重跑一次 `/spec-grill-flow:setup` 同步專案裡的 PR／MR template——勾選項要找的前綴從 `grill:` 改成了 `docs: grill`，不同步的話 reviewer 會照舊範本找不到紀錄。本流程不指定模型與 effort，由使用者自行選擇；既有專案（spec-kit 0.x，或跑過 0.7.0 之前任何版本的 setup）升級到 0.7.0 後，請跑一次 `/spec-grill-flow:migrate`：它會清理舊版寫入的模型設定、把 spec-kit 專案檔升到 1.x、同步 CLAUDE.md 段落與 PR template，並詢問如何處理已停用的 retro-log、constitution 舊條文與 spec-kit 的 git extension。已經用 0.7.0 的 migrate 升級、而且還裝著 git extension 的專案，升到 0.7.1 後再跑一次。0.7.0 起不再依賴 Superpowers；已安裝的人可以留著自用：CLAUDE.md 鐵律寫明它的規劃與執行類 skill 不在本流程使用（2026-11-19 以 Superpowers 7.0.2 實測 4 次，都沒有被載入）。
 
 ## 內容
 

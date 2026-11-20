@@ -124,10 +124,10 @@ grill 的產出只寫回 spec 本身（不產 ADR、glossary 或其他文件）�
 - [ ] 未實作 spec 範圍外的功能（scope creep 檢查）
 - [ ] `/speckit-converge` 結果為 Converged（完整通道，結果附在 PR 描述）
 - [ ] spec「未解事項」各項已定案——標「已接受取捨（凍結）」或轉 issue 移出 spec
-- [ ] 代位 grill（AI 執行時）：本分支有 `docs: grill` 開頭的 commit（0.7.2 之前寫下的 `grill:` 開頭也算），且每個都含該輪問題與作者答案原文；有 `docs: grill [補問]` commit 時只檢查補問的 commit
+- [ ] 代位 grill（AI 執行時）：本分支有 `docs: grill` 開頭的 commit（0.7.2 之前寫下的 `grill:` 開頭也算），且每個都含該輪問題與作者答案原文；有 `docs: grill [補問]` commit（或 0.7.2 之前的 `grill: [補問]`）時只檢查補問的 commit
 ```
 
-任一條不過 → 打回 Phase 4；根因在 spec → 退回 Phase 2；代位 grill 問答紀錄不符（本分支沒有 `docs: grill` 開頭的 commit——0.7.2 之前的 `grill:` 開頭也算——或有 commit 缺問答原文）→ 由新的 fresh-context subagent 重跑一輪 grill 四維度，commit 主旨以 `docs: grill [補問]` 開頭、內文含問答原文，之後只檢查補問的 commit；只補紀錄不計入退回／打回與熔斷，導致 spec 修改則計為 P5→P2。全過 → 合併（合併前「未解事項」每項須定案：凍結或轉 issue，不得無狀態滾入下一次修改）。確認測試先行：抽查時簽出新行為的測試 commit，測試應為紅燈。抽查測試品質以斷言為單位：挑本 PR 新增或修改的斷言，改壞它對應的行為，該斷言必須轉紅；永遠成立的斷言視同沒有測試。
+任一條不過 → 打回 Phase 4；根因在 spec → 退回 Phase 2；代位 grill 問答紀錄不符（本分支沒有 `docs: grill` 開頭的 commit——0.7.2 之前的 `grill:` 開頭也算——或有 commit 缺問答原文）→ 由新的 fresh-context subagent 重跑一輪 grill 四維度，commit 主旨以 `docs: grill [補問]` 開頭、內文含問答原文，之後只檢查補問的 commit（0.7.2 之前的 `grill: [補問]` 也算補問）；只補紀錄不計入退回／打回與熔斷，導致 spec 修改則計為 P5→P2。全過 → 合併（合併前「未解事項」每項須定案：凍結或轉 issue，不得無狀態滾入下一次修改）。確認測試先行：抽查時簽出新行為的測試 commit，測試應為紅燈。抽查測試品質以斷言為單位：挑本 PR 新增或修改的斷言，改壞它對應的行為，該斷言必須轉紅；永遠成立的斷言視同沒有測試。
 
 - 完整通道的 converge 那一勾：PR 描述沒有 `Converged` 的結果，或 reviewer 重跑 `/speckit-converge` 後附加了任務 → 打回 Phase 4，照常計入打回次數。
 - 快速通道：免逐條對照，確認「失敗測試→修正→綠燈」證據鏈；diff 超過 3 檔時判斷是否應升級通道。
