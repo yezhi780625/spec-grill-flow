@@ -39,7 +39,7 @@ Phase 0 宣告專案有無真人協作者，何時用人由分流決定——完
 - `skills/grill-me/` — spec 錘鍊訪談（vendored from [mattpocock-skills](https://github.com/mattpocock/skills)，MIT）
 - `skills/diagnosing-bugs/` — Phase 4 的除錯法：先重現、找到根因才修（vendored from mattpocock-skills，MIT）
 - `skills/migrate/` — 既有專案跨大版本的遷移（spec-kit 0.x 到 1.x、清理舊版產物）
-- `commands/setup.md` — 一次性專案初始化；plugin 升級後可重跑，以同步 CLAUDE.md 段落與 PR template。專案已有自己的 constitution 時不覆蓋它：流程以原則名稱引用 constitution（不寫條號），setup 與 migrate 會逐條對照範本的原則，缺的徵詢後才補上
+- `commands/setup.md` — 一次性專案初始化；plugin 升級後可重跑，以同步 CLAUDE.md 段落與 PR template。專案已有自己的 constitution 時不覆蓋它：流程以原則名稱引用 constitution（不寫條號），setup 與 migrate 會逐條對照範本的原則，缺的徵詢後才補上，與流程牴觸的條文列出來由使用者決定
 - `templates/` — constitution、CLAUDE.md 鐵律段落、PR template
 
 ## License

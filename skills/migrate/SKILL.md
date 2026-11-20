@@ -20,7 +20,7 @@ disable-model-invocation: true
 | extension | `.specify/extensions.yml` 的 `installed` | 已安裝者為最新 |
 | `feature.json` 是否進版控 | `git ls-files --error-unmatch .specify/feature.json` | 未追蹤 |
 | plugin 產物 | CLAUDE.md 的「交辦流程鐵律」段落、PR／MR template（位置依平台，見 setup 步驟 8；GitLab 專案沒有 `.gitlab/merge_request_templates/Default.md` 即未達目標），各自與本 plugin `templates/` 比對 | 與 template 一致 |
-| constitution 的對照 | 專案的 constitution 與本 plugin `templates/constitution.md` 的 Core Principles I 到 VI 逐條比對（做法見 setup 的「既有 constitution 的對照」） | 六條都有等效的條文 |
+| constitution 的對照 | 專案的 constitution 與本 plugin `templates/constitution.md` 的 Core Principles I 到 VI 逐條比對，並找出與流程牴觸的條文（做法見 setup 的「既有 constitution 的對照」） | 六條都有等效的條文，且沒有牴觸的條文。選擇保留的項目盤點時仍算未達目標，每次重跑都會再問 |
 | 已停用的產物 | `specs/retro-log.md` 是否存在；constitution 是否還有 [legacy-constitution.md](legacy-constitution.md) 列出的舊條文 | 沒有 `specs/retro-log.md`；舊條文都沒有，或已是專案自己改寫過的句子 |
 | 進行中的 feature | `git branch -a --no-merged <預設分支>` 中，相對預設分支有 `specs/` 變更的分支 | 每個都有接續步驟（步驟 7） |
 | `.gitignore` | `git check-ignore -q .specify/extensions/.cache/x`、`git check-ignore -q .claude/settings.local.json` | 兩者都被 repo 層的規則忽略 |
@@ -64,7 +64,7 @@ disable-model-invocation: true
 
 ## 6. 同步 plugin 產物
 
-讀取本 plugin 根目錄的 `commands/setup.md`（本 skill 目錄往上兩層），執行其中的步驟 6 到 8：`.gitignore` 的 settings 分層、CLAUDE.md 段落、PR template。步驟 7 寫 CLAUDE.md 段落之前，先照同一個檔案的「既有 constitution 的對照」處理盤點時不是「有」的原則。
+讀取本 plugin 根目錄的 `commands/setup.md`（本 skill 目錄往上兩層），執行其中的步驟 6 到 8：`.gitignore` 的 settings 分層、CLAUDE.md 段落、PR template。步驟 7 寫 CLAUDE.md 段落之前，先照同一個檔案的「既有 constitution 的對照」處理盤點時不是「有」的原則與牴觸的條文。
 
 接著處理 0.7.0 起停用的產物，每一項都先說明再徵詢：
 
@@ -73,7 +73,7 @@ disable-model-invocation: true
 
 讀不到 `commands/setup.md` → 這三項與 constitution 的對照列「待補」，請使用者在遷移後執行 `/spec-grill-flow:setup`；下面兩項停用產物照常處理，它們不靠 setup。
 
-**完成條件**：`.gitignore` 的 settings 分層、CLAUDE.md 段落、PR template 各自完成或已列「待補」；constitution 的對照六條各有結果（有、補上條文、保留（使用者選擇）），或已列「待補」；retro-log 的結果是完成（刪除或封存）、保留（使用者選擇）或跳過（不存在）；constitution 舊條文三項各有 legacy-constitution.md 定義的結果。
+**完成條件**：`.gitignore` 的 settings 分層、CLAUDE.md 段落、PR template 各自完成或已列「待補」；constitution 的對照六條各有結果（有、補上條文、保留（使用者選擇）），牴觸的條文各有結果（修訂條文、保留（使用者選擇）、無），或已列「待補」；retro-log 的結果是完成（刪除或封存）、保留（使用者選擇）或跳過（不存在）；constitution 舊條文三項各有 legacy-constitution.md 定義的結果。
 
 ## 7. 進行中的 feature
 

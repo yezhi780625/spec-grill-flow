@@ -133,7 +133,7 @@ spec-kit 1.x 只靠 `.specify/feature.json` 決定 speckit 指令作用在哪個
    - 每條驗收標準必須可量測（可自動驗證優先）
    - Spec 未通過 grill 檢核不得進入 plan 階段
 
-   本流程以**原則名稱**引用 constitution（例如 Test-First、根因除錯），不寫條號：專案的 constitution 不一定來自本 plugin 的範本，條號以專案自己的文件為準，名稱不同時以內容對應。專案已有自己的 constitution 時，setup 與 migrate 會逐條對照範本的原則，缺的徵詢後補上（`/spec-grill-flow:setup` 的「既有 constitution 的對照」）。
+   本流程以**原則名稱**引用 constitution（例如 Test-First、根因除錯），不寫條號：專案的 constitution 不一定來自本 plugin 的範本，條號以專案自己的文件為準，名稱不同時以內容對應。專案已有自己的 constitution 時，setup 與 migrate 會逐條對照範本的原則，缺的徵詢後補上，與流程牴觸的條文（例如不准流程自行 commit）列出來由使用者決定（`/spec-grill-flow:setup` 的「既有 constitution 的對照」）。
 3. 在 CLAUDE.md 寫入「交辦流程鐵律」段落（`templates/claude-md-snippet.md`）：spec、plan、tasks 一律用 `/speckit-*`；實作依 Phase 4；其他 plugin 的規劃與執行類 skill 不在本流程使用。CLAUDE.md 每次對話都會載入，所以最容易被跳過的規則放在這裡。
 4. `grill-me` 與 `diagnosing-bugs` 已 vendored 於本 plugin（`skills/grill-me/`、`skills/diagnosing-bugs/`，各附 `.upstream.json`，plugin repo 的 CI 每週比對上游、有差異自動開 PR），安裝 plugin 即有。**勿再手動從 mattpocock-skills 複製進專案的 `.claude/skills/`**——那會形成第二份不受 CI 同步保護的複本，違反單一真相源；也**不安裝 mattpocock-skills 整包**（to-spec、to-tickets、grill-with-docs、implement 等與 spec-kit 及本流程職責重疊）。
 5. 在 PR／MR template 加入 spec 驗收清單區塊（見 Phase 5；位置依平台，setup 會處理）。
