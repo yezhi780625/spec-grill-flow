@@ -54,7 +54,7 @@ description: 團隊 AI 交辦任務流程（Spec-Kit + grill + fresh-context sub
 
 ## Phase 2：錘鍊（grill）
 
-**執行者不得是 spec 作者**——完整通道且有真人：非作者成員主持；其餘：fresh-context subagent（不帶 Phase 1 對話脈絡、repo 可查、adversarial 立場；它無法直接向作者提問，每輪問題由主對話轉給作者，作答後交回同一個 subagent 續問；主對話只能原文轉送，不得改寫、加註或代答；每輪由 subagent commit，message 以 `grill:` 開頭並含問題與作者答案原文，沒改 spec 的輪次用空 commit）。用 `grill-me` 對著 spec 逼問，每一輪修正**直接改 spec 並 commit**——git log 就是訪談紀錄。追問至少涵蓋：
+**執行者不得是 spec 作者**——完整通道且有真人：非作者成員主持；其餘：fresh-context subagent（不帶 Phase 1 對話脈絡、repo 可查、adversarial 立場；它無法直接向作者提問，每輪問題由主對話轉給作者，作答後交回同一個 subagent 續問；主對話只能原文轉送，不得改寫、加註或代答；每輪由 subagent commit，主旨以 `docs: grill` 開頭、內文含問題與作者答案原文，主旨與內文每行都不超過 100 字元（超過就斷行，不改寫），沒改 spec 的輪次用空 commit）。用 `grill-me` 對著 spec 逼問，每一輪修正**直接改 spec 並 commit**——git log 就是訪談紀錄。追問至少涵蓋：
 
 - 每條驗收標準怎麼量測？由誰／什麼工具判定通過？
 - Edge cases 與失敗路徑列了嗎？
@@ -75,7 +75,7 @@ grill 的產出只寫回 spec 本身（不產 ADR、glossary 或其他文件）�
 
 ## Phase 3：規劃
 
-`/speckit-plan` 產技術計畫 → `/speckit-tasks` 拆任務 → `/speckit-analyze` 檢查 spec、plan、tasks 與 constitution 是否一致（唯讀；僅完整通道，輕量通道免完整 plan，不適用），一併 commit。analyze 的 CRITICAL 與 HIGH 發現要回源頭修正後重跑：問題在 plan 或 tasks 就在本階段修；問題在 spec，或過程中發現 spec 有洞 → 退回 Phase 2 補 grill 後再回來（計入退回次數）；不同意的發現附理由記入 spec「未解事項」，不必為它重跑。結果寫進 plan 與 tasks 的 commit message（例如 `analyze: 0 CRITICAL, 0 HIGH`）。
+`/speckit-plan` 產技術計畫 → `/speckit-tasks` 拆任務 → `/speckit-analyze` 檢查 spec、plan、tasks 與 constitution 是否一致（唯讀；僅完整通道，輕量通道免完整 plan，不適用），一併 commit。analyze 的 CRITICAL 與 HIGH 發現要回源頭修正後重跑：問題在 plan 或 tasks 就在本階段修；問題在 spec，或過程中發現 spec 有洞 → 退回 Phase 2 補 grill 後再回來（計入退回次數）；不同意的發現附理由記入 spec「未解事項」，不必為它重跑。結果寫進 plan 與 tasks 那個 commit 的內文（例如 `analyze: 0 CRITICAL, 0 HIGH`），不當主旨的前綴。
 
 `/speckit-tasks` 只在 spec 或 constitution 要求時才產生測試任務。專案的 constitution 沒有等效於 Test-First 的條文時，呼叫 `/speckit-tasks` 要明確要求 TDD。
 
@@ -96,7 +96,7 @@ grill 的產出只寫回 spec 本身（不產 ADR、glossary 或其他文件）�
 **實作規則**（給 subagent）：
 
 - TDD（constitution 的 Test-First 原則）：每個行為先寫測試，執行並看到它失敗，才寫實作。證據有兩種，各管各的範圍：
-  - 新行為：測試的 commit 排在對應實作的 commit 之前，commit 訊息帶任務編號。
+  - 新行為：測試的 commit 排在對應實作的 commit 之前，commit 訊息帶任務編號。commit 訊息照專案的 commit 慣例寫（有 commitlint 就要過得了）；任務編號放主旨結尾的括號裡（例如 `test: <描述> (T012)`），不放開頭。
   - 事後新增或修改的斷言（補強測試、文案或錯誤碼改動後的斷言）：逐個證明它會失敗——把對應的行為改壞、確認該斷言轉紅、再還原——並把改壞了什麼、哪個斷言轉紅寫進 PR 描述。「不包含某字串」這類負向斷言尤其要做：文案一改，它可能永遠成立。
 
   豁免類別（純 UI 樣式／一次性 migration／無邏輯膠水碼）走 Test-First 原則的豁免程序：PR 明寫理由＋替代驗證方式，禁止空測試充數。
@@ -124,10 +124,10 @@ grill 的產出只寫回 spec 本身（不產 ADR、glossary 或其他文件）�
 - [ ] 未實作 spec 範圍外的功能（scope creep 檢查）
 - [ ] `/speckit-converge` 結果為 Converged（完整通道，結果附在 PR 描述）
 - [ ] spec「未解事項」各項已定案——標「已接受取捨（凍結）」或轉 issue 移出 spec
-- [ ] 代位 grill（AI 執行時）：本分支有 `grill:` 開頭的 commit，且每個都含該輪問題與作者答案原文；有 `grill: [補問]` commit 時只檢查補問的 commit
+- [ ] 代位 grill（AI 執行時）：本分支有 `docs: grill` 開頭的 commit（0.7.2 之前寫下的 `grill:` 開頭也算），且每個都含該輪問題與作者答案原文；有 `docs: grill [補問]` commit 時只檢查補問的 commit
 ```
 
-任一條不過 → 打回 Phase 4；根因在 spec → 退回 Phase 2；代位 grill 問答紀錄不符（本分支沒有 `grill:` commit，或有 commit 缺問答原文）→ 由新的 fresh-context subagent 重跑一輪 grill 四維度並commit message 以 `grill: [補問]` 開頭並含問答原文，之後只檢查補問的 commit；只補紀錄不計入退回／打回與熔斷，導致 spec 修改則計為 P5→P2。全過 → 合併（合併前「未解事項」每項須定案：凍結或轉 issue，不得無狀態滾入下一次修改）。確認測試先行：抽查時簽出新行為的測試 commit，測試應為紅燈。抽查測試品質以斷言為單位：挑本 PR 新增或修改的斷言，改壞它對應的行為，該斷言必須轉紅；永遠成立的斷言視同沒有測試。
+任一條不過 → 打回 Phase 4；根因在 spec → 退回 Phase 2；代位 grill 問答紀錄不符（本分支沒有 `docs: grill` 開頭的 commit——0.7.2 之前的 `grill:` 開頭也算——或有 commit 缺問答原文）→ 由新的 fresh-context subagent 重跑一輪 grill 四維度，commit 主旨以 `docs: grill [補問]` 開頭、內文含問答原文，之後只檢查補問的 commit；只補紀錄不計入退回／打回與熔斷，導致 spec 修改則計為 P5→P2。全過 → 合併（合併前「未解事項」每項須定案：凍結或轉 issue，不得無狀態滾入下一次修改）。確認測試先行：抽查時簽出新行為的測試 commit，測試應為紅燈。抽查測試品質以斷言為單位：挑本 PR 新增或修改的斷言，改壞它對應的行為，該斷言必須轉紅；永遠成立的斷言視同沒有測試。
 
 - 完整通道的 converge 那一勾：PR 描述沒有 `Converged` 的結果，或 reviewer 重跑 `/speckit-converge` 後附加了任務 → 打回 Phase 4，照常計入打回次數。
 - 快速通道：免逐條對照，確認「失敗測試→修正→綠燈」證據鏈；diff 超過 3 檔時判斷是否應升級通道。
