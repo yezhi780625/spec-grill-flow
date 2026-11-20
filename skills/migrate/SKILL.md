@@ -17,7 +17,7 @@ disable-model-invocation: true
 | CLI 版本 | `specify version` | ≥1.0 |
 | 專案版本 | `.specify/integration.json` 的 `version`；沒有這個檔記「缺 integration 資料」 | ≥1.0 |
 | 舊版模型設定 | [legacy-model-settings.md](legacy-model-settings.md) 的偵測對象 | 無舊版值 |
-| extension | `.specify/extensions.yml` 的 `installed` | 已安裝者為最新 |
+| extension | `.specify/extensions.yml` 的 `installed` | 沒有 `git`（或使用者選擇保留）；其餘已安裝者為最新 |
 | `feature.json` 是否進版控 | `git ls-files --error-unmatch .specify/feature.json` | 未追蹤 |
 | plugin 產物 | CLAUDE.md 的「交辦流程鐵律」段落、PR／MR template（位置依平台，見 setup 步驟 8；GitLab 專案沒有 `.gitlab/merge_request_templates/Default.md` 即未達目標），各自與本 plugin `templates/` 比對 | 與 template 一致 |
 | 已停用的產物 | `specs/retro-log.md` 是否存在；constitution 是否還有 [legacy-constitution.md](legacy-constitution.md) 列出的舊條文 | 沒有 `specs/retro-log.md`；舊條文都沒有，或已是專案自己改寫過的句子 |
@@ -55,11 +55,15 @@ disable-model-invocation: true
 
 ## 5. extension 與版控狀態
 
-1. 徵詢後執行 `echo y | specify extension update`（這個指令要確認，沒有免確認的旗標）。
-2. 在 repo 層 `.gitignore` 加上 `.specify/extensions/.cache/`（已有等效規則則跳過）。這是 extension 更新留下的目錄快取，spec-kit 自己的 `.specify/.gitignore` 沒有忽略它。
-3. `.specify/feature.json` 已進版控 → 徵詢後 `git rm --cached .specify/feature.json`。1.x 把它當成每個人本機的狀態，升級產生的 `.specify/.gitignore` 已忽略它，但忽略規則對已追蹤的檔案無效。
+1. **git extension**：`installed` 有 `git` → 說明下面的理由並徵詢，建議移除。沒有 → 跳過。
+   - 理由：本流程在 Phase 1 依專案慣例建立分支。這個 extension 在 `/speckit-specify` 之前有一個必跑的 hook，會先開一個 `<編號>-<名稱>` 的分支；它的格式只能加前綴，最後一段一定以編號開頭，配合不了其他命名慣例（例如工單編號）。
+   - 移除 → `echo y | specify extension remove git`。hook 與 `speckit-git-*` skill 會一併移除，設定檔備份到 `.specify/extensions/.backup/git/`。用 remove 而不是 disable：disable 只停用 hook，skill 檔還留在 `.claude/skills/`。
+   - 保留 → 只在專案的分支慣例就是 `<編號>-<名稱>` 時合理：`/speckit-specify` 會先開好分支，Phase 1 的建分支步驟因此跳過。列「保留（使用者選擇）」，重跑時會再問。
+2. 還有其他已安裝的 extension（或上一點選擇保留）→ 徵詢後執行 `echo y | specify extension update`（這個指令要確認，沒有免確認的旗標）。沒有 → 跳過。
+3. 在 repo 層 `.gitignore` 加上 `.specify/extensions/.cache/` 與 `.specify/extensions/.backup/`（已有等效規則則跳過）。前者是 extension 更新留下的目錄快取，後者是移除 extension 時的設定備份，spec-kit 自己的 `.specify/.gitignore` 都沒有忽略。
+4. `.specify/feature.json` 已進版控 → 徵詢後 `git rm --cached .specify/feature.json`。1.x 把它當成每個人本機的狀態，升級產生的 `.specify/.gitignore` 已忽略它，但忽略規則對已追蹤的檔案無效。
 
-**完成條件**：以上三點各有結果（完成、跳過或婉拒）。
+**完成條件**：以上四點各有結果（完成、跳過、婉拒或保留（使用者選擇））；選擇移除時，`.specify/extensions.yml` 裡不再有 `speckit.git`。
 
 ## 6. 同步 plugin 產物
 
