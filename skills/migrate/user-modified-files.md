@@ -4,7 +4,7 @@
 
 | 指令 | 使用者改過也會被覆蓋的檔 |
 |---|---|
-| `specify integration upgrade claude` | extension 的 skill 檔。核心 skill 檔被改過時整個升級中止；共用檔被改過時跳過該檔、留著舊內容（回報 `Preserved`） |
+| `specify integration upgrade claude` | extension 的 skill 檔。核心 skill 檔被改過時整個升級中止；共用檔被改過、或已經存在而 manifest 沒有記錄時，跳過該檔、留著舊內容（回報 `Preserved`） |
 | `specify integration upgrade claude --force` | extension 的 skill 檔、核心 skill 檔、共用檔 |
 | `specify init --here --force --integration claude` | 同上 |
 | `specify extension update`（只在 extension 有新版時） | 有新版的 extension 的 skill 檔；`.specify/extensions/<id>/` 下除了設定檔以外的全部檔；`.specify/extensions.yml` 裡這個 extension 的 hook 設定（重設成預設值，例如 `enabled: false` 變回 `true`） |
@@ -23,7 +23,7 @@
 2. **列出使用者改過的檔**，只看這次要執行的指令會覆蓋的檔。來源有三個：
    - **spec-kit 記錄了雜湊的檔**：`specify integration status --json` 的 `manifests.claude.modified_files`（核心 skill 檔）與 `manifests.speckit.modified_files`（共用檔）。這份清單可靠。缺 integration 資料的專案沒有它（`manifests` 是空的，Findings 有 `integration-state-missing`）。
    - **步驟 3 保留了鍵的檔**。
-   - **spec-kit 沒有記錄雜湊的檔**：extension 的檔；專案裡已經存在、但 manifest 沒有記錄的共用檔（`git ls-files .specify/templates .specify/scripts .specify/.gitignore` 列出的檔裡，不在 `speckit.manifest.json` 的 `files` 的那些——新版會寫入、舊版 manifest 還沒有的檔就落在這裡）；缺 integration 資料的專案則是上表列的全部。這些檔有沒有被改過，工具無從判斷，一律問使用者：把會被覆蓋的檔列給他，說明指令會重新產生它們，問有沒有手改過、想留下的。附上線索——`git log --oneline -- <這些檔的路徑>` 裡不像安裝、升級或整批排版的 commit，以及它們動到的檔。線索不保證齊全（與安裝同一個 commit 的修改就看不出來），所以沒有線索也要問。
+   - **spec-kit 沒有記錄雜湊的檔**：extension 的檔；專案裡已經存在、但 manifest 沒有記錄的共用檔（`git ls-files .specify/templates .specify/scripts .specify/.gitignore` 列出的檔裡，不在 `speckit.manifest.json` 的 `files` 的那些。新版有同名檔才會被覆蓋，例如使用者自建的 `.specify/.gitignore`；使用者自己加的其他檔不會被動到，問的時候說「可能被覆蓋」）；缺 integration 資料的專案則是上表列的全部。這些檔有沒有被改過，工具無從判斷，一律問使用者：把會被覆蓋的檔列給他，說明指令會重新產生它們，問有沒有手改過、想留下的。附上線索——`git log --oneline -- <這些檔的路徑>` 裡不像安裝、升級或整批排版的 commit，以及它們動到的檔。線索不保證齊全（與安裝同一個 commit 的修改就看不出來），所以沒有線索也要問。
 
    `.specify/extensions.yml` 的 hook 設定不必問：執行之後比對得出來，見「執行之後」第 3 點。
 3. **逐檔決定**，每個檔都要有決定。能選什麼依檔案的種類，徵詢前先說明代價：
