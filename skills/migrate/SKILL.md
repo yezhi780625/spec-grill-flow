@@ -31,7 +31,7 @@ disable-model-invocation: true
 
 ## 2. 準備
 
-1. 工作樹有未 commit 的修改 → 請使用者先 commit 或 stash。
+1. 工作樹有未 commit 的修改 → 請使用者先 commit 或 stash。例外：已經在遷移分支上，而且修改落在 `.specify/` 或 `.claude/skills/speckit-*` → 這是上一次沒做完的遷移，不要 commit：commit 之後這些檔就和 spec-kit 記錄的雜湊一致，被覆蓋掉的使用者修改不會再被問到。告知使用者後執行 `git stash -u`，回到這個分支最後一個 commit 的狀態，從中斷的那一步重做。上次選擇不 commit 的遷移也這樣處理：分不出做到哪裡，從頭重做。
 2. 徵詢後，從預設分支建立遷移分支（預設名稱 `chore/spec-grill-flow-migration`）。分支已存在（上次沒做完）→ 切過去接著做。
 3. 徵詢一次：之後每個步驟完成時各 commit 一次。commit 訊息照專案的 commit 慣例寫；專案有 commitlint 時要過得了（例如 `chore: remove spec-kit git extension`）。分開的 commit 讓升級的 diff 看得懂，也是下一步的備份。使用者婉拒 → 不 commit，照常進行。
 4. CLI 低於 1.0 → CLI 是使用者機器上的全域工具，升級由使用者自己執行：給出指令後停下來等他回報，再以 `specify version` 確認。指令是 `uv tool install --force specify-cli` 或 `pipx install --force specify-cli`，用他原本的安裝工具（需 Python 3.11+；0.x 的 `specify self upgrade` 還不能用）。使用者事先說過「一律同意」也一樣在這裡停下。
@@ -47,7 +47,7 @@ disable-model-invocation: true
 ## 4. 升級 spec-kit 專案檔
 
 1. **先讓 formatter 放過 spec-kit 的檔案**：盤點的 formatter 一列未達目標 → 徵詢後把 `.specify/` 與 `.claude/skills/speckit-*/` 加進它的忽略清單（prettier 是 `.prettierignore`）。spec-kit 以檔案雜湊判斷受管檔案有沒有被改過，formatter 多半由 lint-staged 在 commit 時執行。檔案被重排之後 `specify integration status` 停在 WARNING；這次與之後的每次升級，`.claude/skills/speckit-*` 的檔案會擋下整個升級，`.specify/` 下的共用檔則被跳過、留著舊內容（2026-11-20 以 0.8.10 升 1.4.3 實測）。婉拒 → 列「保留（使用者選擇）」，並說明代價：commit 時 formatter 會把剛升級的檔案再排一次，status 回到 WARNING，下次升級遇到同樣的情況。沒有這類 formatter → 跳過。
-2. **先處理使用者改過的檔**：照 [user-modified-files.md](user-modified-files.md) 的「執行之前」列出使用者改過的檔，逐檔取得決定。這一步要執行的指令是 `specify integration upgrade claude`（缺 integration 資料時是 `specify init --here --force --integration claude`）。
+2. **先處理使用者改過的檔**：照 [user-modified-files.md](user-modified-files.md) 的「執行之前」列出使用者改過的檔，逐檔取得決定。列的範圍照表裡 `--force` 與 `init` 那兩格——有檔案被改過時這一步會用到它們：extension 的 skill 檔、核心 skill 檔、共用檔。
 3. **升級**。升級會保留 constitution 與 `specs/`，新增 `speckit-converge`。依上一點的決定選做法，由上往下取第一個符合的：
    - 有核心 skill 檔要保留 → 不升級，這一步列「待補」並說明：要升級就得先放棄那些修改（步驟 3 保留的鍵就是移除它們）。使用者改變主意 → 回到上一點重新決定。
    - 缺 integration 資料（盤點記「缺 integration 資料」）→ 徵詢後執行 `specify init --here --force --integration claude`（這種專案執行 `specify integration upgrade claude` 只會回報 `Integration 'claude' is not installed`）。它保留既有的 constitution，覆寫 speckit skill 檔與共用檔。婉拒 → 這一步列「待補」。
@@ -57,8 +57,8 @@ disable-model-invocation: true
    升級之後：
    - 照 [user-modified-files.md](user-modified-files.md) 的「執行之後」還原或重新套用使用者要留下的修改。
    - 上游已停用的 `speckit-taskstoissues`：`upgrade` 會移除它（向使用者說明）；`init` 不會，徵詢後刪除 `.claude/skills/speckit-taskstoissues/`。
-4. 執行 `specify integration status`。CLI 升級時會提示可加 `--force` 刷新共用檔案；status 為 `OK` 代表共用檔案已是最新，照 status 判斷。
-5. **這一步 commit 之後再查一次** `specify integration status --json`：被改過的檔比 commit 之前（上一點看到的）多，代表有盤點沒偵測到的 formatter 在 commit 時重排了檔案 → 徵詢後把 spec-kit 的檔案加進它的忽略清單，再執行一次 `specify integration upgrade claude --force`、commit，確認沒有再多出被改過的檔。這一次 `--force` 之後，保留或重新套用過修改的檔以 `git restore --source=HEAD -- <檔>` 取回：它們的內容已經在剛才的 commit 裡，所以這裡的來源是 HEAD，不是升級前的 commit。婉拒 → 比照第 1 點列「保留（使用者選擇）」。兩種情況不做這項檢查：第 1 點婉拒忽略清單（多出來的檔是預期結果）；步驟 2 選擇不 commit（在總結提醒使用者 commit 之後自己執行一次 `specify integration status`）。
+4. 執行 `specify integration status --json`，記下 status 與兩份 `modified_files`——這是 commit 之前的基準。CLI 升級時會提示可加 `--force` 刷新共用檔案；status 為 `OK` 代表共用檔案已是最新，照 status 判斷。status 不是 `OK`，也不屬於完成條件裡「保留（使用者選擇）」的情況 → 這一步列「待補」，附上 Findings。
+5. 步驟 2 選擇 commit 時，現在 commit 這一步：升級的結果、還原與重新套用的修改放在同一個 commit，訊息裡寫明保留了哪些檔的修改。**commit 之後再查一次** `specify integration status --json`：`modified_files` 比上一點記下的多，代表有盤點沒偵測到的 formatter 在 commit 時重排了檔案 → 徵詢後把 spec-kit 的檔案加進它的忽略清單，再執行一次 `specify integration upgrade claude --force`、commit，確認沒有再多出被改過的檔。這一次 `--force` 之後，保留或重新套用過修改的檔以 `git restore --source=HEAD -- <檔>` 取回：它們的內容已經在剛才的 commit 裡，所以這裡的來源是 HEAD，不是升級前的 commit。婉拒 → 比照第 1 點列「保留（使用者選擇）」。兩種情況不做這項檢查：第 1 點婉拒忽略清單（多出來的檔是預期結果）；步驟 2 選擇不 commit（在總結提醒使用者 commit 之後自己執行一次 `specify integration status`）。
 
 **完成條件**：`.specify/integration.json` 的 `version` ≥1.0 且 status 為 `OK`；或這一步已列「待補」並附原因。使用者選擇保留時——第 1 點或第 5 點婉拒忽略清單（commit 之後 formatter 會重排剛升級的檔案），或保留了共用檔的修改——這一步列「保留（使用者選擇）」；status 是 `OK`，或是 `WARNING` 且 Findings 只有 `managed-files-modified`，都算完成。「待補」與「保留（使用者選擇）」同時成立時列「待補」。列「待補」時，步驟 5 與 6 也列「待補」並直接到步驟 7：extension 更新與 plugin 產物都以 1.x 的專案檔為前提，先做會讓專案停在新舊混用的狀態。
 
