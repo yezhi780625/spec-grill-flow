@@ -33,10 +33,14 @@ disable-model-invocation: true
 
 1. 工作樹有未 commit 的修改 → 先分辨是不是上一次沒做完的遷移：`git status --short -- .specify/integration.json .specify/integrations .specify/extensions/.registry` 有輸出就是，不論現在在哪個分支（這些檔只有 spec-kit 的升級與 extension 指令會寫）。
    - **是** → spec-kit 的檔不要 commit：commit 之後它們就和 spec-kit 記錄的雜湊一致，被覆蓋掉的使用者修改不會再被問到。告知使用者後依序做：
-     1. 只把這些指令寫過的路徑收進 stash：`git stash push -u -m "spec-grill-flow: 沒做完的遷移" -- .specify ':(exclude).specify/memory' '.claude/skills/speckit-*'`。最後一個 pathspec 只在 `git status --short -- '.claude/skills/speckit-*'` 有輸出時才放：pathspec 對不到任何檔時，這個指令會存了 stash 卻沒清工作樹並回報失敗。失敗時先看 `git stash list`，不要直接重跑。
-     2. 工作樹還有其他修改 → 請使用者先 commit 或 stash。
-     3. 回到步驟 1 重新盤點（剛才的盤點是在髒的工作樹上做的），再從步驟 3 起依序做，每一步照自己的偵測決定跳過或執行。上次選擇不 commit 的遷移分不出做到哪裡，也是這樣從頭依序做。
-     4. 在總結指名這個 stash（`git stash list` 裡的那一筆），說明裡面是上次沒做完的升級結果，也可能夾著使用者自己在這些路徑下還沒 commit 的修改：丟掉之前先用 `git stash show -p --include-untracked <stash>` 看過。
+     1. `git diff --cached --name-only -- .specify/feature.json` 有輸出（步驟 5 把它移出版控之後還沒 commit）→ 先執行 `git restore --staged -- .specify/feature.json`，否則下一個指令會失敗。步驟 5 之後會重做這件事。
+     2. 只把這些指令寫過的路徑收進 stash：`git stash push -u -m "spec-grill-flow: 沒做完的遷移" -- .specify ':(exclude).specify/memory' '.claude/skills/speckit-*'`。最後一個 pathspec 只在 `git status --short -- '.claude/skills/speckit-*'` 有輸出時才放：pathspec 對不到任何檔時，這個指令會存了 stash 卻沒清工作樹並回報失敗。
+     3. 確認收乾淨了：對同一組 pathspec 執行 `git status --short -- <pathspec>`，應該沒有輸出。還有輸出時看 `git stash list`，不要重跑：
+        - 那一筆 stash 已經在（指令印出 `Saved working directory` 之後才失敗）→ 內容已經存好，以 `git restore --source=HEAD --staged --worktree -- <pathspec>` 與 `git clean -fd -- <pathspec>` 把這些路徑清回 HEAD。
+        - 沒有那一筆 → 停下來，把錯誤訊息給使用者看；不要 commit。
+     4. 工作樹還有其他修改 → 請使用者先 commit 或 stash。
+     5. 回到步驟 1 重新盤點（剛才的盤點是在髒的工作樹上做的），接著做本步驟的第 2 到 4 點——要不要 commit 重新徵詢，這是新的對話，不知道上次的選擇——再從步驟 3 起依序做，每一步照自己的偵測決定跳過或執行。上次選擇不 commit 的遷移分不出做到哪裡，也是這樣從頭依序做。skill 檔不在 git 裡的專案（`.claude/` 被 repo 忽略）退不回去：之後步驟 4 列出的核心 skill 檔是上次升級的產物，向使用者說明後覆蓋。
+     6. 在總結指名這個 stash（`git stash list` 裡的那一筆），說明裡面是上次沒做完的升級結果，也可能夾著使用者自己在這些路徑下還沒 commit 的修改：丟掉之前先用 `git stash show -p --include-untracked <stash>` 看過。重新盤點的結果是全部達標、回報「不需遷移」時，也要說明這個 stash。
    - **不是** → 請使用者先 commit 或 stash。
 2. 徵詢後，從預設分支建立遷移分支（預設名稱 `chore/spec-grill-flow-migration`）。分支已存在（上次沒做完）→ 切過去接著做。
 3. 徵詢一次：之後每個步驟完成時各 commit 一次。commit 訊息照專案的 commit 慣例寫；專案有 commitlint 時要過得了（例如 `chore: remove spec-kit git extension`）。分開的 commit 讓升級的 diff 看得懂，也是下一步的備份。使用者婉拒 → 不 commit，照常進行。
@@ -55,12 +59,12 @@ disable-model-invocation: true
 1. **先讓 formatter 放過 spec-kit 的檔案**：盤點的 formatter 一列未達目標 → 徵詢後把 `.specify/` 與 `.claude/skills/speckit-*/` 加進它的忽略清單（prettier 是 `.prettierignore`）。spec-kit 以檔案雜湊判斷受管檔案有沒有被改過，formatter 多半由 lint-staged 在 commit 時執行。檔案被重排之後 `specify integration status` 停在 WARNING；這次與之後的每次升級，`.claude/skills/speckit-*` 的檔案會擋下整個升級，`.specify/` 下的共用檔則被跳過、留著舊內容（2026-11-20 以 0.8.10 升 1.4.3 實測）。婉拒 → 列「保留（使用者選擇）」，並說明代價：commit 時 formatter 會把剛升級的檔案再排一次，status 回到 WARNING，下次升級遇到同樣的情況。沒有這類 formatter → 跳過。
 2. **先處理使用者改過的檔**：照 [user-modified-files.md](user-modified-files.md) 的「執行之前」列出使用者改過的檔，逐檔取得決定。列的範圍照表裡 `--force` 與 `init` 那兩格——有檔案被改過時這一步會用到它們：extension 的 skill 檔、核心 skill 檔、共用檔。
 3. **升級**。升級會保留 constitution 與 `specs/`，新增 `speckit-converge`。依上一點的決定選做法，由上往下取第一個符合的：
-   - 有核心 skill 檔要保留 → 不升級，這一步列「待補」並說明：要升級就得先放棄那些修改（步驟 3 保留的鍵就是移除它們）。使用者改變主意 → 回到上一點重新決定。
+   - 有核心 skill 檔要保留，或有腳本、extension 的檔兩種做法使用者都不接受 → 不升級，這一步列「待補」並說明：要升級就得先放棄那些修改（步驟 3 保留的鍵就是移除它們）或選一種做法。使用者改變主意 → 回到上一點重新決定。
    - 缺 integration 資料（盤點記「缺 integration 資料」）→ 徵詢後執行 `specify init --here --force --integration claude`（這種專案執行 `specify integration upgrade claude` 只會回報 `Integration 'claude' is not installed`）。它保留既有的 constitution，覆寫 speckit skill 檔與共用檔。婉拒 → 這一步列「待補」。
    - `specify integration status --json` 的 `modified_files` 兩個清單都是空的，專案裡也沒有 manifest 沒記錄的既有共用檔（找法見 user-modified-files.md「執行之前」第 2 點）→ `specify integration upgrade claude`。
    - 其餘 → `specify integration upgrade claude --force`。不帶 `--force` 的升級會跳過被改過的共用檔與 manifest 沒記錄的既有共用檔，使用者決定要覆蓋或重新套用的檔就拿不到新版內容。
 
-   這一步列「待補」時，第 1 點加的忽略清單照常 commit，不留在工作樹。
+   這一步列「待補」而步驟 2 選擇 commit 時，第 1 點加的忽略清單照常 commit，不留在工作樹。
 
    升級之後：
    - 照 [user-modified-files.md](user-modified-files.md) 的「執行之後」還原或重新套用使用者要留下的修改。
