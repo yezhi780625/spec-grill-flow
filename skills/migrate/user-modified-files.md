@@ -51,7 +51,7 @@
    - 搬不上去，或新版已經改掉那一段 → 給使用者看兩邊，由他決定。
    - extension 的 skill 檔：同一份修改也寫進它的來源檔。只改 skill 檔的話，下一次 `specify integration upgrade` 從來源檔重新產生它，修改就消失。
    - 搬完後檢查：skill 檔引用的腳本路徑都存在；`.sh` 通過 `bash -n <檔>`，其他語言的腳本用該語言的語法檢查（例如 `python3 -m py_compile <檔>`）。沒過 → 給使用者看，由他決定。
-3. 執行的是 `specify extension update` 時 → 看 `git diff <P> -- .specify/extensions.yml`。使用者原本改過的 hook 設定被重設了（例如 `enabled: false` 變回 `true`）→ 改回使用者的值；指令新增的鍵留著。
+3. 執行的是 `specify extension update` 時 → 看 `git diff <P> -- .specify/extensions.yml`。只處理一種差異：同一個 hook 在 P 是使用者改過的值（例如 `enabled: false`），現在變回預設值 → 改回使用者的值。其他差異不動：指令新增的鍵留著；同一個步驟裡移除 extension 造成的刪除不要加回去。
 4. commit 由呼叫這份文件的步驟做（步驟 2 選擇 commit 時）：指令的結果與上面三點放在同一個 commit，訊息裡寫明保留了哪些檔的修改。上面三點還沒做完就不要 commit——中途停下來時工作樹是髒的，重跑時步驟 2 會認出這是沒做完的遷移，把這些檔退回執行前的內容重做。
 5. **結果**：
    - 保留了共用檔的修改（不論哪種做法）→ `specify integration status` 會是 WARNING，該步驟列「保留（使用者選擇）」。

@@ -35,9 +35,9 @@ disable-model-invocation: true
    - **是** → spec-kit 的檔不要 commit：commit 之後它們就和 spec-kit 記錄的雜湊一致，被覆蓋掉的使用者修改不會再被問到。告知使用者後依序做：
      1. `git diff --cached --name-only -- .specify/feature.json` 有輸出（步驟 5 把它移出版控之後還沒 commit）→ 先執行 `git restore --staged -- .specify/feature.json`，否則下一個指令會失敗。步驟 5 之後會重做這件事。
      2. 只把這些指令寫過的路徑收進 stash：`git stash push -u -m "spec-grill-flow: 沒做完的遷移" -- .specify ':(exclude).specify/memory' '.claude/skills/speckit-*'`。最後一個 pathspec 只在 `git status --short -- '.claude/skills/speckit-*'` 有輸出時才放：pathspec 對不到任何檔時，這個指令會存了 stash 卻沒清工作樹並回報失敗。
-     3. 確認收乾淨了：對同一組 pathspec 執行 `git status --short -- <pathspec>`，應該沒有輸出。還有輸出時看 `git stash list`，不要重跑：
-        - 那一筆 stash 已經在（指令印出 `Saved working directory` 之後才失敗）→ 內容已經存好，以 `git restore --source=HEAD --staged --worktree -- <pathspec>` 與 `git clean -fd -- <pathspec>` 把這些路徑清回 HEAD。
-        - 沒有那一筆 → 停下來，把錯誤訊息給使用者看；不要 commit。
+     3. 確認收乾淨了：對同一組 pathspec 執行 `git status --short -- <pathspec>`，應該沒有輸出。還有輸出時不要重跑，看上一個指令自己的輸出：
+        - 輸出裡有 `Saved working directory`（存好之後才失敗）→ 內容已經在 `git stash list` 最上面那一筆，以 `git restore --source=HEAD --staged --worktree -- <pathspec>` 與 `git clean -fd -- <pathspec>` 把這些路徑清回 HEAD。
+        - 沒有 → 這次沒有存成，不要拿先前留下的同名 stash 當成這一次的。停下來，把錯誤訊息給使用者看；不要 commit。
      4. 工作樹還有其他修改 → 請使用者先 commit 或 stash。
      5. 回到步驟 1 重新盤點（剛才的盤點是在髒的工作樹上做的），接著做本步驟的第 2 到 4 點——要不要 commit 重新徵詢，這是新的對話，不知道上次的選擇——再從步驟 3 起依序做，每一步照自己的偵測決定跳過或執行。上次選擇不 commit 的遷移分不出做到哪裡，也是這樣從頭依序做。skill 檔不在 git 裡的專案（`.claude/` 被 repo 忽略）退不回去：之後步驟 4 列出的核心 skill 檔是上次升級的產物，向使用者說明後覆蓋。
      6. 在總結指名這個 stash（`git stash list` 裡的那一筆），說明裡面是上次沒做完的升級結果，也可能夾著使用者自己在這些路徑下還沒 commit 的修改：丟掉之前先用 `git stash show -p --include-untracked <stash>` 看過。重新盤點的結果是全部達標、回報「不需遷移」時，也要說明這個 stash。
@@ -79,7 +79,7 @@ disable-model-invocation: true
 1. **git extension**：`installed` 有 `git` → 說明下面的理由並徵詢，建議移除。沒有 → 跳過。
    - 理由：本流程在 Phase 1 依專案慣例建立分支。這個 extension 在 `/speckit-specify` 之前有一個必跑的 hook，會先開一個 `<編號>-<名稱>` 的分支；它的格式只能加前綴，最後一段一定以編號開頭，配合不了其他命名慣例（例如工單編號）。
    - 移除的代價：feature 編號之後只看本地的 `specs/` 目錄，不再參考遠端分支；兩個人同時開新 feature 可能拿到同一個編號（目錄名與分支名因後綴不同不會衝突）。徵詢時一併說明。
-   - 移除 → `echo y | specify extension remove git`。hook 與 `speckit-git-*` skill 會一併移除（使用者在這些檔上的修改也跟著消失，徵詢時說明），設定檔備份到 `.specify/extensions/.backup/git/`。用 remove 而不是 disable：disable 只停用 hook，skill 檔還留在 `.claude/skills/`。
+   - 移除 → `echo y | specify extension remove git`。hook、`speckit-git-*` skill 與 `.specify/extensions/git/` 下的檔會一併移除（使用者在這些檔上的修改也跟著消失，徵詢時說明），設定檔備份到 `.specify/extensions/.backup/git/`。用 remove 而不是 disable：disable 只停用 hook，skill 檔還留在 `.claude/skills/`。
    - 保留 → 只在專案的分支慣例就是 `<編號>-<名稱>` 時合理。這時 hook 會從當下的分支開出新分支，Phase 1 要先切到基準分支再執行 `/speckit-specify`（見 team-workflow 的 Phase 1）。列「保留（使用者選擇）」；盤點仍把它算未達目標，重跑時會再問。
 2. 還有其他已安裝的 extension（或上一點選擇保留）→ 徵詢後執行 `echo y | specify extension update`（這個指令要確認，沒有免確認的旗標）。extension 有新版時它會覆蓋 extension 的檔，所以執行前照 [user-modified-files.md](user-modified-files.md) 的「執行之前」處理 extension 的檔，執行後照「執行之後」處理——步驟 4 這次有沒有執行都要做；步驟 4 已經問過的檔不必重問，但修改要再套一次。沒有 → 跳過。
 3. 在 repo 層 `.gitignore` 加上 `.specify/extensions/.cache/`（已有等效規則則跳過）。這是 extension 更新留下的目錄快取，spec-kit 自己的 `.specify/.gitignore` 沒有忽略它。`.specify/extensions/.backup/` 存在時（移除 extension 留下的設定備份）也一併加上。
