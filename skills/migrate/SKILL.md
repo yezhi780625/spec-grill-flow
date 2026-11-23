@@ -47,50 +47,29 @@ disable-model-invocation: true
 ## 4. 升級 spec-kit 專案檔
 
 1. **先讓 formatter 放過 spec-kit 的檔案**：盤點的 formatter 一列未達目標 → 徵詢後把 `.specify/` 與 `.claude/skills/speckit-*/` 加進它的忽略清單（prettier 是 `.prettierignore`）。spec-kit 以檔案雜湊判斷受管檔案有沒有被改過，formatter 多半由 lint-staged 在 commit 時執行。檔案被重排之後 `specify integration status` 停在 WARNING；這次與之後的每次升級，`.claude/skills/speckit-*` 的檔案會擋下整個升級，`.specify/` 下的共用檔則被跳過、留著舊內容（2026-11-20 以 0.8.10 升 1.4.3 實測）。婉拒 → 列「保留（使用者選擇）」，並說明代價：commit 時 formatter 會把剛升級的檔案再排一次，status 回到 WARNING，下次升級遇到同樣的情況。沒有這類 formatter → 跳過。
-2. **升級前列出使用者改過的 spec-kit 檔**。升級指令會重新產生 `.claude/skills/speckit-*`、`.specify/templates/`、`.specify/scripts/` 下的檔案，不會逐檔詢問，所以要在執行前列齊。來源有三個，取聯集：
-   - **雜湊**：`specify integration status --json` 的 `manifests.claude.modified_files`（核心 skill 檔）與 `manifests.speckit.modified_files`（`.specify/` 下的共用檔）。只看升級的訊息不夠：skill 檔被改過時升級會中止，訊息只列 skill 檔；共用檔被改過時升級不擋，只回報 `Preserved` 並留著舊內容；而 `--force` 會把兩類一起覆蓋，沒列在訊息裡的也一樣。
-   - **git 歷史**，給 spec-kit 沒有記錄雜湊的檔用。這種檔有兩類：extension 的 skill 檔（`.claude/skills/speckit-<extension id>-*`，id 取自 `.specify/extensions.yml` 的 `installed`；任何升級與 `specify extension update` 都會重新產生它們，不論有沒有 `--force`）；以及缺 integration 資料的專案的全部檔案（盤點記「缺 integration 資料」；`status --json` 的 `manifests` 是空的，Findings 有 `integration-state-missing`）。以最近一次安裝或升級的 commit 為基準：`B=$(git log -1 --format=%H -- .specify/init-options.json)`，再以 `git diff --diff-filter=M --name-only $B HEAD -- '.claude/skills/speckit-*' .specify/templates .specify/scripts` 列出之後被改過的檔。這次遷移自己的 commit（步驟 3、忽略清單）造成的差異不算；雜湊已涵蓋的檔以雜湊為準。
-   - **步驟 3 保留了鍵的檔**一律列入。
-
-   git 歷史看不到與安裝同一個 commit 的修改，沒有 `.specify/init-options.json` 時也找不到基準。專案有 extension 或缺 integration 資料時，徵詢時明講這個限制，並請使用者指出清單以外他們改過的檔。
-
-   清單是空的，使用者也沒有補充 → 跳到第 4 點。
-3. **逐檔決定**，每個檔都要有決定。能選什麼依檔案的種類，徵詢前先說明代價：
-   - **核心 skill 檔**（缺 integration 資料時：不屬於任何 extension 的 `speckit-*`）→ 覆蓋或保留。保留任何一個，spec-kit 就不能升級，這一步與步驟 5、6 都列「待補」。
-   - **共用檔** → 覆蓋，或保留修改。保留有兩種做法，由使用者選：升級後把修改重新套到新版上（建議；拿得到新版對這個檔的更新），或整檔還原（停在現在的內容）。
-   - **extension 的 skill 檔** → 覆蓋，或升級後把修改重新套到新版上。不提供整檔還原：新版 extension 可能改了腳本的檔名，舊版 skill 檔會指向不存在的腳本（git extension 1.0.0 升 1.0.8 就是這樣，2026-11-23 實測）。
-
-   各檔的判斷：
-   - 步驟 3 保留的鍵 → 保留。
-   - 只有格式差異（formatter 重排過）→ 覆蓋，告知使用者即可，不必逐檔看 diff。兩件事都成立才算：
-     1. **找得到原始版本**：該檔的 git 歷史裡，有一個版本的 SHA-256 等於 manifest 記錄的雜湊（`.specify/integrations/<claude 或 speckit>.manifest.json` 的 `files`）。對 `git log --format=%H -- <檔>` 列出的每個 commit 檢查 `git show <commit>:<檔> | sha256sum`。
-     2. **原始版本排過之後等於現在的檔案**：用專案的 formatter 排那個版本，與工作目錄現在的檔案比對。prettier 的寫法：`git show <該 commit>:<檔> | npx prettier --ignore-path /dev/null --stdin-filepath <檔> | diff -q - <檔>`，沒有輸出即相同。`--ignore-path /dev/null` 不能省：第 1 點剛把這些檔加進忽略清單，少了它 prettier 會原樣輸出，比對結果一律是不同。
-   - 其他本地修改，或找不到原始版本 → 給使用者看 diff，由他選擇覆蓋或保留。找不到原始版本是常見結果：formatter 在 commit 時執行的專案，安裝那次 commit 進歷史的就已經是排過的內容，無從證明只有格式差異；這時沒有 diff 可看，改列出該檔的歷史（`git log --oneline -- <檔>`）。
-   - 沒有雜湊的檔 → 給使用者看 `git diff $B HEAD -- <檔>`，由他選擇。
-4. **升級**。升級會保留 constitution 與 `specs/`，新增 `speckit-converge`。依第 3 點的決定選做法，由上往下取第一個符合的：
-   - 有核心 skill 檔要保留 → 不升級，這一步列「待補」並說明：要升級就得先放棄那些修改（步驟 3 保留的鍵就是移除它們）。使用者改變主意 → 回到第 3 點重新決定。
-   - 缺 integration 資料 → 徵詢後執行 `specify init --here --force --integration claude`（這種專案執行 `specify integration upgrade claude` 只會回報 `Integration 'claude' is not installed`）。它保留既有的 constitution，覆寫 speckit skill 檔與共用檔。婉拒 → 這一步列「待補」。
-   - `modified_files` 兩個清單都是空的 → `specify integration upgrade claude`。
+2. **先處理使用者改過的檔**：照 [user-modified-files.md](user-modified-files.md) 的「執行之前」列出使用者改過的檔，逐檔取得決定。這一步要執行的指令是 `specify integration upgrade claude`（缺 integration 資料時是 `specify init --here --force --integration claude`）。
+3. **升級**。升級會保留 constitution 與 `specs/`，新增 `speckit-converge`。依上一點的決定選做法，由上往下取第一個符合的：
+   - 有核心 skill 檔要保留 → 不升級，這一步列「待補」並說明：要升級就得先放棄那些修改（步驟 3 保留的鍵就是移除它們）。使用者改變主意 → 回到上一點重新決定。
+   - 缺 integration 資料（盤點記「缺 integration 資料」）→ 徵詢後執行 `specify init --here --force --integration claude`（這種專案執行 `specify integration upgrade claude` 只會回報 `Integration 'claude' is not installed`）。它保留既有的 constitution，覆寫 speckit skill 檔與共用檔。婉拒 → 這一步列「待補」。
+   - `specify integration status --json` 的 `modified_files` 兩個清單都是空的 → `specify integration upgrade claude`。
    - 其餘 → `specify integration upgrade claude --force`。
 
    升級之後：
-   - 整檔還原的共用檔 → `git restore --source=HEAD -- <檔>`。
-   - 重新套用修改的檔（共用檔或 extension 的 skill 檔）→ 把使用者的修改搬到新產生的檔上。修改的內容看 `git diff $B HEAD -- <檔>`；看不出改了什麼（與安裝同一個 commit），共用檔改用整檔還原，extension 的 skill 檔給使用者看新舊兩版、由他決定。搬不上去，或新版已經改掉那一段 → 同樣給使用者看兩邊，由他決定。skill 檔搬完要確認裡面引用的腳本路徑都存在。重新套用的修改另外 commit，不和升級放在同一個 commit：下次升級要靠 git 歷史找到它（步驟 2 選擇不 commit 時，在總結提醒使用者分開 commit）。
-   - 結果標籤：保留了共用檔的修改（兩種做法都算）→ status 會是 WARNING，這一步列「保留（使用者選擇）」。只動到 extension 的 skill 檔 → 不影響 status，這一步照常列完成，在總結註明。
+   - 照 [user-modified-files.md](user-modified-files.md) 的「執行之後」還原或重新套用使用者要留下的修改。
    - 上游已停用的 `speckit-taskstoissues`：`upgrade` 會移除它（向使用者說明）；`init` 不會，徵詢後刪除 `.claude/skills/speckit-taskstoissues/`。
-5. 執行 `specify integration status`。CLI 升級時會提示可加 `--force` 刷新共用檔案；status 為 `OK` 代表共用檔案已是最新，照 status 判斷。
-6. **這一步 commit 之後再查一次** `specify integration status --json`：被改過的檔比 commit 之前多，代表有盤點沒偵測到的 formatter 在 commit 時重排了檔案 → 徵詢後把 spec-kit 的檔案加進它的忽略清單，再執行一次 `specify integration upgrade claude --force`（保留或重新套用過修改的檔已在 HEAD，`--force` 之後以 `git restore --source=HEAD -- <檔>` 取回）、commit，確認沒有再多出被改過的檔。婉拒 → 比照第 1 點列「保留（使用者選擇）」。兩種情況不做這項檢查：第 1 點婉拒忽略清單（多出來的檔是預期結果）；步驟 2 選擇不 commit（在總結提醒使用者 commit 之後自己執行一次 `specify integration status`）。
+4. 執行 `specify integration status`。CLI 升級時會提示可加 `--force` 刷新共用檔案；status 為 `OK` 代表共用檔案已是最新，照 status 判斷。
+5. **這一步 commit 之後再查一次** `specify integration status --json`：被改過的檔比 commit 之前多，代表有盤點沒偵測到的 formatter 在 commit 時重排了檔案 → 徵詢後把 spec-kit 的檔案加進它的忽略清單，再執行一次 `specify integration upgrade claude --force`（保留或重新套用過修改的檔已在 HEAD，`--force` 之後以 `git restore --source=HEAD -- <檔>` 取回）、commit，確認沒有再多出被改過的檔。婉拒 → 比照第 1 點列「保留（使用者選擇）」。兩種情況不做這項檢查：第 1 點婉拒忽略清單（多出來的檔是預期結果）；步驟 2 選擇不 commit（在總結提醒使用者 commit 之後自己執行一次 `specify integration status`）。
 
-**完成條件**：`.specify/integration.json` 的 `version` ≥1.0 且 status 為 `OK`；或這一步已列「待補」並附原因。使用者選擇保留時——第 1 點或第 6 點婉拒忽略清單（commit 之後 formatter 會重排剛升級的檔案），或第 4 點保留了共用檔的本地修改——這一步列「保留（使用者選擇）」；status 是 `OK`，或是 `WARNING` 且 Findings 只有 `managed-files-modified`，都算完成。「待補」與「保留（使用者選擇）」同時成立時列「待補」。列「待補」時，步驟 5 與 6 也列「待補」並直接到步驟 7：extension 更新與 plugin 產物都以 1.x 的專案檔為前提，先做會讓專案停在新舊混用的狀態。
+**完成條件**：`.specify/integration.json` 的 `version` ≥1.0 且 status 為 `OK`；或這一步已列「待補」並附原因。使用者選擇保留時——第 1 點或第 5 點婉拒忽略清單（commit 之後 formatter 會重排剛升級的檔案），或保留了共用檔的修改——這一步列「保留（使用者選擇）」；status 是 `OK`，或是 `WARNING` 且 Findings 只有 `managed-files-modified`，都算完成。「待補」與「保留（使用者選擇）」同時成立時列「待補」。列「待補」時，步驟 5 與 6 也列「待補」並直接到步驟 7：extension 更新與 plugin 產物都以 1.x 的專案檔為前提，先做會讓專案停在新舊混用的狀態。
 
 ## 5. extension 與版控狀態
 
 1. **git extension**：`installed` 有 `git` → 說明下面的理由並徵詢，建議移除。沒有 → 跳過。
    - 理由：本流程在 Phase 1 依專案慣例建立分支。這個 extension 在 `/speckit-specify` 之前有一個必跑的 hook，會先開一個 `<編號>-<名稱>` 的分支；它的格式只能加前綴，最後一段一定以編號開頭，配合不了其他命名慣例（例如工單編號）。
    - 移除的代價：feature 編號之後只看本地的 `specs/` 目錄，不再參考遠端分支；兩個人同時開新 feature 可能拿到同一個編號（目錄名與分支名因後綴不同不會衝突）。徵詢時一併說明。
-   - 移除 → `echo y | specify extension remove git`。hook 與 `speckit-git-*` skill 會一併移除（步驟 4 重新套用到 `speckit-git-*` 的修改也跟著消失，徵詢時說明），設定檔備份到 `.specify/extensions/.backup/git/`。用 remove 而不是 disable：disable 只停用 hook，skill 檔還留在 `.claude/skills/`。
+   - 移除 → `echo y | specify extension remove git`。hook 與 `speckit-git-*` skill 會一併移除（使用者在這些檔上的修改也跟著消失，徵詢時說明），設定檔備份到 `.specify/extensions/.backup/git/`。用 remove 而不是 disable：disable 只停用 hook，skill 檔還留在 `.claude/skills/`。
    - 保留 → 只在專案的分支慣例就是 `<編號>-<名稱>` 時合理。這時 hook 會從當下的分支開出新分支，Phase 1 要先切到基準分支再執行 `/speckit-specify`（見 team-workflow 的 Phase 1）。列「保留（使用者選擇）」；盤點仍把它算未達目標，重跑時會再問。
-2. 還有其他已安裝的 extension（或上一點選擇保留）→ 徵詢後執行 `echo y | specify extension update`（這個指令要確認，沒有免確認的旗標）。它會重新產生 extension 的 skill 檔；步驟 4 重新套用過修改的檔，更新後照同樣方式再套一次、確認引用的腳本路徑都存在，同樣另外 commit。沒有 → 跳過。
+2. 還有其他已安裝的 extension（或上一點選擇保留）→ 徵詢後執行 `echo y | specify extension update`（這個指令要確認，沒有免確認的旗標）。extension 有新版時它會覆蓋 extension 的檔，所以執行前照 [user-modified-files.md](user-modified-files.md) 的「執行之前」處理 extension 的檔，執行後照「執行之後」處理——步驟 4 這次有沒有執行都要做；步驟 4 已經問過的檔不必重問，但修改要再套一次。沒有 → 跳過。
 3. 在 repo 層 `.gitignore` 加上 `.specify/extensions/.cache/`（已有等效規則則跳過）。這是 extension 更新留下的目錄快取，spec-kit 自己的 `.specify/.gitignore` 沒有忽略它。`.specify/extensions/.backup/` 存在時（移除 extension 留下的設定備份）也一併加上。
 4. `.specify/feature.json` 已進版控 → 徵詢後 `git rm --cached .specify/feature.json`。1.x 把它當成每個人本機的狀態，升級產生的 `.specify/.gitignore` 已忽略它，但忽略規則對已追蹤的檔案無效。
 
@@ -128,7 +107,7 @@ disable-model-invocation: true
 
 驗證（步驟 4 列「待補」時，前兩項也記「待補」，不算失敗）：
 
-- `specify integration status` 為 `OK`。步驟 4 列「保留（使用者選擇）」時，`WARNING` 且 Findings 只有 `managed-files-modified` 也算通過。
+- `specify integration status` 為 `OK`。`WARNING` 且 Findings 只有 `managed-files-modified` 時，有兩種情況也算通過：步驟 4 列「保留（使用者選擇）」；或步驟 4 這次沒有執行，而被改過的檔（`specify integration status --json` 的 `modified_files`）經使用者確認是先前就決定保留修改的共用檔。
 - `.claude/skills/speckit-converge/SKILL.md` 存在。
 - 步驟 3 的偵測對象重新檢查一次，結果與該步驟記錄的一致。
 
