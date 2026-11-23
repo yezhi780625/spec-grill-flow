@@ -68,12 +68,12 @@ disable-model-invocation: true
    - 其餘 → `specify integration upgrade claude --force`。
 
    升級之後：
-   - 要保留的共用檔與 `speckit-git-*` → 以 `git restore --source=HEAD -- <檔>` 還原，這一步列「保留（使用者選擇）」。
+   - 要保留的共用檔與 `speckit-git-*` → 以 `git restore --source=HEAD -- <檔>` 還原。還原了共用檔 → 這一步列「保留（使用者選擇）」（status 會是 WARNING）；只還原 `speckit-git-*` 不影響 status，這一步照常列完成，在總結註明保留了哪些檔。
    - 上游已停用的 `speckit-taskstoissues`：`upgrade` 會移除它（向使用者說明）；`init` 不會，徵詢後刪除 `.claude/skills/speckit-taskstoissues/`。
 5. 執行 `specify integration status`。CLI 升級時會提示可加 `--force` 刷新共用檔案；status 為 `OK` 代表共用檔案已是最新，照 status 判斷。
 6. **這一步 commit 之後再查一次** `specify integration status --json`：被改過的檔比 commit 之前多，代表有盤點沒偵測到的 formatter 在 commit 時重排了檔案 → 徵詢後把 spec-kit 的檔案加進它的忽略清單，再執行一次 `specify integration upgrade claude --force`（要保留的檔同樣還原）、commit，確認沒有再多出被改過的檔。婉拒 → 比照第 1 點列「保留（使用者選擇）」。兩種情況不做這項檢查：第 1 點婉拒忽略清單（多出來的檔是預期結果）；步驟 2 選擇不 commit（在總結提醒使用者 commit 之後自己執行一次 `specify integration status`）。
 
-**完成條件**：`.specify/integration.json` 的 `version` ≥1.0 且 status 為 `OK`；或這一步已列「待補」並附原因。使用者選擇保留時——第 1 點婉拒忽略清單（commit 之後 formatter 會重排剛升級的檔案），或第 4 點保留了檔案的本地修改——這一步列「保留（使用者選擇）」；status 是 `OK`，或是 `WARNING` 且 Findings 只有 `managed-files-modified`，都算完成。「待補」與「保留（使用者選擇）」同時成立時列「待補」。列「待補」時，步驟 5 與 6 也列「待補」並直接到步驟 7：extension 更新與 plugin 產物都以 1.x 的專案檔為前提，先做會讓專案停在新舊混用的狀態。
+**完成條件**：`.specify/integration.json` 的 `version` ≥1.0 且 status 為 `OK`；或這一步已列「待補」並附原因。使用者選擇保留時——第 1 點婉拒忽略清單（commit 之後 formatter 會重排剛升級的檔案），或第 4 點保留了共用檔的本地修改——這一步列「保留（使用者選擇）」；status 是 `OK`，或是 `WARNING` 且 Findings 只有 `managed-files-modified`，都算完成。「待補」與「保留（使用者選擇）」同時成立時列「待補」。列「待補」時，步驟 5 與 6 也列「待補」並直接到步驟 7：extension 更新與 plugin 產物都以 1.x 的專案檔為前提，先做會讓專案停在新舊混用的狀態。
 
 ## 5. extension 與版控狀態
 
