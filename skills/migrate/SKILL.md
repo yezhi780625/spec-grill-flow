@@ -31,7 +31,9 @@ disable-model-invocation: true
 
 ## 2. 準備
 
-1. 工作樹有未 commit 的修改 → 請使用者先 commit 或 stash。例外：已經在遷移分支上，而且修改落在 `.specify/` 或 `.claude/skills/speckit-*` → 這是上一次沒做完的遷移，不要 commit：commit 之後這些檔就和 spec-kit 記錄的雜湊一致，被覆蓋掉的使用者修改不會再被問到。告知使用者後執行 `git stash -u`，回到這個分支最後一個 commit 的狀態，從中斷的那一步重做。上次選擇不 commit 的遷移也這樣處理：分不出做到哪裡，從頭重做。
+1. 工作樹有未 commit 的修改 → 先分辨是不是上一次沒做完的遷移：`git status --short -- .specify/integration.json .specify/integrations .specify/extensions/.registry` 有輸出就是，不論現在在哪個分支（這些檔只有 spec-kit 的升級與 extension 指令會寫）。
+   - **是** → spec-kit 的檔不要 commit：commit 之後它們就和 spec-kit 記錄的雜湊一致，被覆蓋掉的使用者修改不會再被問到。告知使用者後，只把這些指令寫過的路徑收進 stash：`git stash push -u -m "spec-grill-flow: 沒做完的遷移" -- .specify ':(exclude).specify/memory' '.claude/skills/speckit-*'`。然後回到步驟 1 重新盤點（剛才的盤點是在髒的工作樹上做的），再從中斷的那一步重做。在總結列出這個 stash，說明裡面是上次沒做完的升級結果，確認這次的結果無誤後可以丟掉。
+   - **其餘的修改**（上一點收完之後還剩下的，或根本不是沒做完的遷移）→ 請使用者先 commit 或 stash。
 2. 徵詢後，從預設分支建立遷移分支（預設名稱 `chore/spec-grill-flow-migration`）。分支已存在（上次沒做完）→ 切過去接著做。
 3. 徵詢一次：之後每個步驟完成時各 commit 一次。commit 訊息照專案的 commit 慣例寫；專案有 commitlint 時要過得了（例如 `chore: remove spec-kit git extension`）。分開的 commit 讓升級的 diff 看得懂，也是下一步的備份。使用者婉拒 → 不 commit，照常進行。
 4. CLI 低於 1.0 → CLI 是使用者機器上的全域工具，升級由使用者自己執行：給出指令後停下來等他回報，再以 `specify version` 確認。指令是 `uv tool install --force specify-cli` 或 `pipx install --force specify-cli`，用他原本的安裝工具（需 Python 3.11+；0.x 的 `specify self upgrade` 還不能用）。使用者事先說過「一律同意」也一樣在這裡停下。
@@ -49,7 +51,7 @@ disable-model-invocation: true
 1. **先讓 formatter 放過 spec-kit 的檔案**：盤點的 formatter 一列未達目標 → 徵詢後把 `.specify/` 與 `.claude/skills/speckit-*/` 加進它的忽略清單（prettier 是 `.prettierignore`）。spec-kit 以檔案雜湊判斷受管檔案有沒有被改過，formatter 多半由 lint-staged 在 commit 時執行。檔案被重排之後 `specify integration status` 停在 WARNING；這次與之後的每次升級，`.claude/skills/speckit-*` 的檔案會擋下整個升級，`.specify/` 下的共用檔則被跳過、留著舊內容（2026-11-20 以 0.8.10 升 1.4.3 實測）。婉拒 → 列「保留（使用者選擇）」，並說明代價：commit 時 formatter 會把剛升級的檔案再排一次，status 回到 WARNING，下次升級遇到同樣的情況。沒有這類 formatter → 跳過。
 2. **先處理使用者改過的檔**：照 [user-modified-files.md](user-modified-files.md) 的「執行之前」列出使用者改過的檔，逐檔取得決定。列的範圍照表裡 `--force` 與 `init` 那兩格——有檔案被改過時這一步會用到它們：extension 的 skill 檔、核心 skill 檔、共用檔。
 3. **升級**。升級會保留 constitution 與 `specs/`，新增 `speckit-converge`。依上一點的決定選做法，由上往下取第一個符合的：
-   - 有核心 skill 檔要保留 → 不升級，這一步列「待補」並說明：要升級就得先放棄那些修改（步驟 3 保留的鍵就是移除它們）。使用者改變主意 → 回到上一點重新決定。
+   - 有核心 skill 檔要保留 → 不升級，這一步列「待補」並說明：要升級就得先放棄那些修改（步驟 3 保留的鍵就是移除它們）。使用者改變主意 → 回到上一點重新決定。第 1 點加的忽略清單照常 commit，不留在工作樹。
    - 缺 integration 資料（盤點記「缺 integration 資料」）→ 徵詢後執行 `specify init --here --force --integration claude`（這種專案執行 `specify integration upgrade claude` 只會回報 `Integration 'claude' is not installed`）。它保留既有的 constitution，覆寫 speckit skill 檔與共用檔。婉拒 → 這一步列「待補」。
    - `specify integration status --json` 的 `modified_files` 兩個清單都是空的 → `specify integration upgrade claude`。
    - 其餘 → `specify integration upgrade claude --force`。
@@ -73,7 +75,7 @@ disable-model-invocation: true
 3. 在 repo 層 `.gitignore` 加上 `.specify/extensions/.cache/`（已有等效規則則跳過）。這是 extension 更新留下的目錄快取，spec-kit 自己的 `.specify/.gitignore` 沒有忽略它。`.specify/extensions/.backup/` 存在時（移除 extension 留下的設定備份）也一併加上。
 4. `.specify/feature.json` 已進版控 → 徵詢後 `git rm --cached .specify/feature.json`。1.x 把它當成每個人本機的狀態，升級產生的 `.specify/.gitignore` 已忽略它，但忽略規則對已追蹤的檔案無效。
 
-**完成條件**：以上四點各有結果（完成、跳過、婉拒或保留（使用者選擇））；選擇移除時，`.specify/extensions.yml` 裡不再有 `speckit.git`。
+**完成條件**：以上四點各有結果（完成、跳過、婉拒、待補或保留（使用者選擇））；選擇移除時，`.specify/extensions.yml` 裡不再有 `speckit.git`。
 
 ## 6. 同步 plugin 產物
 
