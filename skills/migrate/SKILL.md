@@ -58,7 +58,7 @@ disable-model-invocation: true
    - 照 [user-modified-files.md](user-modified-files.md) 的「執行之後」還原或重新套用使用者要留下的修改。
    - 上游已停用的 `speckit-taskstoissues`：`upgrade` 會移除它（向使用者說明）；`init` 不會，徵詢後刪除 `.claude/skills/speckit-taskstoissues/`。
 4. 執行 `specify integration status`。CLI 升級時會提示可加 `--force` 刷新共用檔案；status 為 `OK` 代表共用檔案已是最新，照 status 判斷。
-5. **這一步 commit 之後再查一次** `specify integration status --json`：被改過的檔比 commit 之前多，代表有盤點沒偵測到的 formatter 在 commit 時重排了檔案 → 徵詢後把 spec-kit 的檔案加進它的忽略清單，再執行一次 `specify integration upgrade claude --force`（保留或重新套用過修改的檔已在 HEAD，`--force` 之後以 `git restore --source=HEAD -- <檔>` 取回）、commit，確認沒有再多出被改過的檔。婉拒 → 比照第 1 點列「保留（使用者選擇）」。兩種情況不做這項檢查：第 1 點婉拒忽略清單（多出來的檔是預期結果）；步驟 2 選擇不 commit（在總結提醒使用者 commit 之後自己執行一次 `specify integration status`）。
+5. **這一步 commit 之後再查一次** `specify integration status --json`：被改過的檔比 commit 之前（上一點看到的）多，代表有盤點沒偵測到的 formatter 在 commit 時重排了檔案 → 徵詢後把 spec-kit 的檔案加進它的忽略清單，再執行一次 `specify integration upgrade claude --force`、commit，確認沒有再多出被改過的檔。這一次 `--force` 之後，保留或重新套用過修改的檔以 `git restore --source=HEAD -- <檔>` 取回：它們的內容已經在剛才的 commit 裡，所以這裡的來源是 HEAD，不是升級前的 commit。婉拒 → 比照第 1 點列「保留（使用者選擇）」。兩種情況不做這項檢查：第 1 點婉拒忽略清單（多出來的檔是預期結果）；步驟 2 選擇不 commit（在總結提醒使用者 commit 之後自己執行一次 `specify integration status`）。
 
 **完成條件**：`.specify/integration.json` 的 `version` ≥1.0 且 status 為 `OK`；或這一步已列「待補」並附原因。使用者選擇保留時——第 1 點或第 5 點婉拒忽略清單（commit 之後 formatter 會重排剛升級的檔案），或保留了共用檔的修改——這一步列「保留（使用者選擇）」；status 是 `OK`，或是 `WARNING` 且 Findings 只有 `managed-files-modified`，都算完成。「待補」與「保留（使用者選擇）」同時成立時列「待補」。列「待補」時，步驟 5 與 6 也列「待補」並直接到步驟 7：extension 更新與 plugin 產物都以 1.x 的專案檔為前提，先做會讓專案停在新舊混用的狀態。
 

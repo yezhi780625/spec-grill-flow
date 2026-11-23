@@ -7,26 +7,29 @@
 | `specify integration upgrade claude` | extension 的 skill 檔。核心 skill 檔被改過時整個升級中止；共用檔被改過時跳過該檔、留著舊內容（回報 `Preserved`） |
 | `specify integration upgrade claude --force` | extension 的 skill 檔、核心 skill 檔、共用檔 |
 | `specify init --here --force --integration claude` | 同上 |
-| `specify extension update`（只在 extension 有新版時） | 有新版的 extension 的 skill 檔，以及它在 `.specify/extensions/<id>/` 下的 commands 與 scripts（設定檔保留） |
+| `specify extension update`（只在 extension 有新版時） | 有新版的 extension 的 skill 檔；`.specify/extensions/<id>/` 下除了設定檔以外的全部檔；`.specify/extensions.yml` 裡這個 extension 的 hook 設定（重設成預設值，例如 `enabled: false` 變回 `true`） |
 
 名詞：
 
 - **核心 skill 檔**：`.claude/skills/speckit-*` 裡不屬於任何 extension 的檔。
-- **共用檔**：`.specify/templates/`、`.specify/scripts/` 下的檔。
-- **extension 的檔**：`.claude/skills/speckit-<extension id>-*` 與 `.specify/extensions/<extension id>/` 下的 commands、scripts；id 取自 `.specify/extensions.yml` 的 `installed`。
+- **共用檔**：範本（`.specify/templates/` 下的檔）與腳本（`.specify/scripts/` 下的檔）。
+- **extension 的檔**：skill 檔（`.claude/skills/speckit-<extension id>-*`）與 `.specify/extensions/<extension id>/` 下設定檔以外的檔；id 取自 `.specify/extensions.yml` 的 `installed`，設定檔是 `<id>-config.yml`。skill 檔由 `.specify/extensions/<id>/commands/` 下的來源檔產生，`specify integration upgrade` 每次都從來源檔重新產生它們（`speckit-git-commit` 的來源檔是 `speckit.git.commit.md`）。
 
-（以上行為 2026-11-20 至 23 以 0.8.10 的專案搭配 1.4.3 的 CLI 實測。）
+（以上行為 2026-11-20 至 23 以 0.8.10 的專案搭配 1.4.3 的 CLI、git extension 1.0.0 升 1.0.8 實測。）
 
 ## 執行之前
 
-1. **記下現在的 commit**：`P=$(git rev-parse HEAD)`。之後的還原與比對都以 P 為來源，不用 HEAD：中途 commit 之後，HEAD 就不是執行前的內容了。
+1. **記下現在的 commit**：執行 `git rev-parse HEAD`，記下輸出的 SHA，以下稱 P。之後的指令直接代入這個 SHA，不要存成 shell 變數——每次執行指令都是新的 shell，變數不會留著。還原與比對都以 P 為來源，不用 HEAD：commit 之後，HEAD 就不是執行前的內容了。
 2. **列出使用者改過的檔**，只看這次要執行的指令會覆蓋的檔。來源有三個：
    - **spec-kit 記錄了雜湊的檔**：`specify integration status --json` 的 `manifests.claude.modified_files`（核心 skill 檔）與 `manifests.speckit.modified_files`（共用檔）。這份清單可靠。缺 integration 資料的專案沒有它（`manifests` 是空的，Findings 有 `integration-state-missing`）。
    - **步驟 3 保留了鍵的檔**。
    - **spec-kit 沒有記錄雜湊的檔**：extension 的檔；缺 integration 資料的專案則是上表列的全部。這些檔有沒有被改過，工具無從判斷，一律問使用者：把會被覆蓋的檔列給他，說明指令會重新產生它們，問有沒有手改過、想留下的。附上線索——`git log --oneline -- <這些檔的路徑>` 裡不像安裝、升級或整批排版的 commit，以及它們動到的檔。線索不保證齊全（與安裝同一個 commit 的修改就看不出來），所以沒有線索也要問。
+
+   `.specify/extensions.yml` 的 hook 設定不必問：執行之後比對得出來，見「執行之後」第 3 點。
 3. **逐檔決定**，每個檔都要有決定。能選什麼依檔案的種類，徵詢前先說明代價：
    - **核心 skill 檔** → 覆蓋或保留。保留任何一個，spec-kit 就不能升級，步驟 4 與步驟 5、6 都列「待補」。
-   - **共用檔** → 覆蓋，或保留修改。保留有兩種做法，由使用者選：執行後把修改重新套到新版上（建議；拿得到新版對這個檔的更新），或整檔還原（停在現在的內容）。
+   - **範本** → 覆蓋，或保留修改。保留有兩種做法，由使用者選：執行後把修改重新套到新版上（建議；拿得到新版對這個檔的更新），或整檔還原（停在現在的內容）。
+   - **腳本** → 覆蓋，或執行後把修改重新套到新版上。不提供整檔還原：新版的其他腳本會呼叫舊版腳本沒有的函式（把 0.8.10 的 `common.sh` 還原到 1.4.3 的專案，`create-new-feature.sh` 就會失敗）。
    - **extension 的檔** → 覆蓋，或執行後把修改重新套到新版上。不提供整檔還原：新版 extension 可能改了腳本的檔名，舊版 skill 檔會指向不存在的腳本（git extension 1.0.0 升 1.0.8 就是這樣）。
 
    各檔的判斷：
@@ -39,12 +42,16 @@
 
 ## 執行之後
 
-依序做：
+依序做，全部做完才 commit：
 
-1. **整檔還原**的共用檔 → `git restore --source=$P -- <檔>`。
-2. 步驟 2 選擇 commit 時，先 commit 指令產生的結果。重新套用的修改放在下一個 commit，歷史裡才看得出哪些是使用者的修改。
-3. **重新套用**修改的檔 → 比對 `git show $P:<檔>`（執行前、含使用者修改的版本）與新產生的檔，把上面第 3 點確認要留下的修改搬到新檔上。
+1. **整檔還原**的範本 → `git restore --source=<P> -- <檔>`。
+2. **重新套用**修改的檔 → 比對 `git show <P>:<檔>`（執行前、含使用者修改的版本）與新產生的檔，把「執行之前」第 3 點確認要留下的修改搬到新檔上。
    - 搬不上去，或新版已經改掉那一段 → 給使用者看兩邊，由他決定。
-   - skill 檔搬完後，確認它引用的腳本路徑都存在；有不存在的 → 給使用者看，由他決定。
-   - 步驟 2 選擇 commit 時，commit 這些修改。
-4. **結果**：保留了共用檔的修改（兩種做法都算）→ `specify integration status` 會是 WARNING，該步驟列「保留（使用者選擇）」。只動到 extension 的檔 → 不影響 status，該步驟照常列完成。兩種都在總結註明保留了哪些檔的哪些修改。
+   - extension 的 skill 檔：同一份修改也寫進它的來源檔。只改 skill 檔的話，下一次 `specify integration upgrade` 從來源檔重新產生它，修改就消失。
+   - 搬完後檢查：skill 檔引用的腳本路徑都存在；腳本通過 `bash -n <檔>`。沒過 → 給使用者看，由他決定。
+3. 執行的是 `specify extension update` 時 → 看 `git diff <P> -- .specify/extensions.yml`。使用者原本改過的 hook 設定被重設了（例如 `enabled: false` 變回 `true`）→ 改回使用者的值；指令新增的鍵留著。
+4. 步驟 2 選擇 commit 時 → 把指令的結果與上面三點放在同一個 commit，訊息裡寫明保留了哪些檔的修改。中途停下來時工作樹是髒的，重跑時步驟 2 會發現。
+5. **結果**：
+   - 保留了共用檔的修改（不論哪種做法）→ `specify integration status` 會是 WARNING，該步驟列「保留（使用者選擇）」。
+   - 只動到 extension 的檔 → 不影響 status，該步驟照常列完成。
+   - 兩種都在總結寫明保留了哪些檔的哪些修改，並提醒：之後自行執行上表的指令，這些修改會再被覆蓋（改過的共用檔遇到不帶 `--force` 的升級會被跳過，是例外）。
