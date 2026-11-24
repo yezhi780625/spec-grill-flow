@@ -19,11 +19,12 @@ disable-model-invocation: true
 | 舊版模型設定 | [legacy-model-settings.md](legacy-model-settings.md) 的偵測對象 | 無舊版值 |
 | extension | `.specify/extensions.yml` 的 `installed` | 沒有 `git`；其餘已安裝者為最新。選擇保留 `git` 的專案盤點時仍算未達目標，每次重跑都會再問 |
 | `feature.json` 是否進版控 | `git ls-files --error-unmatch .specify/feature.json` | 未追蹤 |
-| plugin 產物 | CLAUDE.md 的「交辦流程鐵律」段落、PR／MR template（位置依平台，見 setup 步驟 8；GitLab 專案沒有 `.gitlab/merge_request_templates/Default.md` 即未達目標），各自與本 plugin `templates/` 比對 | 與 template 一致 |
+| plugin 產物 | CLAUDE.md 的「交辦流程鐵律」段落、PR／MR template（位置依平台，見 setup 步驟 8；GitLab 專案沒有 `.gitlab/merge_request_templates/Default.md` 即未達目標），各自與本 plugin `templates/` 比對。比對只看文字內容，不計空行、行尾空白與換行位置的差異（專案的 formatter 可能重排過） | 與 template 一致 |
 | constitution 的對照 | 專案的 constitution 與本 plugin `templates/constitution.md` 的 Core Principles I 到 VI 逐條比對，並找出與流程牴觸的條文（做法見 setup 的「既有 constitution 的對照」） | 六條都有等效的條文，且沒有牴觸的條文。選擇保留的項目盤點時仍算未達目標，每次重跑都會再問 |
 | 已停用的產物 | `specs/retro-log.md` 是否存在；constitution 是否還有 [legacy-constitution.md](legacy-constitution.md) 列出的舊條文 | 沒有 `specs/retro-log.md`；舊條文都沒有，或已是專案自己改寫過的句子 |
 | 進行中的 feature | `git branch -a --no-merged <預設分支>` 中，相對預設分支有 `specs/` 變更的分支 | 每個都有接續步驟（步驟 7） |
 | `.gitignore` | `git check-ignore -q .specify/extensions/.cache/x`、`git check-ignore -q .claude/settings.local.json`；`.specify/extensions/.backup/` 存在時再查 `git check-ignore -q .specify/extensions/.backup/x` | 都被 repo 層的規則忽略 |
+| formatter | 專案有沒有會改寫 Markdown 的 formatter：`.prettierrc*`、`prettier.config.*`、`package.json` 的 `prettier` 或 `lint-staged`、`.lintstagedrc*`、`.husky/`。有 prettier 時對 `.claude/skills/speckit-plan/SKILL.md` 與 `.specify/templates/plan-template.md` 各執行一次 `npx prettier --file-info <檔>`（一次只能給一個檔） | 沒有這類 formatter，或兩個檔輸出的 `ignored` 都是 `true`。婉拒加入忽略清單的專案盤點時仍算未達目標，每次重跑都會再問 |
 | 工作樹 | `git status --short` | 乾淨 |
 
 **完成條件**：每一列都有查到的值。全部已達目標狀態 → 回報「不需遷移」並結束。
@@ -45,14 +46,18 @@ disable-model-invocation: true
 
 ## 4. 升級 spec-kit 專案檔
 
-1. 執行 `specify integration upgrade claude`。它保留 constitution 與 `specs/`，新增 `speckit-converge`，並移除上游已停用的 `speckit-taskstoissues`（向使用者說明）。
-2. 依結果分支：
-   - **成功** → 下一點。
-   - **`file(s) have been modified since installation`** → 列出被擋的檔案。原因是步驟 3 保留的鍵 → 這一步列「待補」並說明：要升級就得先移除那些鍵，由使用者決定。其他本地修改 → 給使用者看 diff，由他選擇保留（列「待補」）或以 `--force` 覆蓋。
-   - **`Integration 'claude' is not installed`**（缺 integration 資料）→ 徵詢後改用 `specify init --here --force --integration claude`。它保留既有的 constitution，覆寫 speckit skill 檔與共用腳本。
-3. 執行 `specify integration status`。CLI 升級時會提示可加 `--force` 刷新共用檔案；status 為 `OK` 代表共用檔案已是最新，照 status 判斷。
+1. **先讓 formatter 放過 spec-kit 的檔案**：盤點的 formatter 一列未達目標 → 徵詢後把 `.specify/` 與 `.claude/skills/speckit-*/` 加進它的忽略清單（prettier 是 `.prettierignore`）。spec-kit 以檔案雜湊判斷受管檔案有沒有被改過，formatter 一重排它們，`specify integration status` 就停在 WARNING，升級也會出問題（見下一點）。婉拒 → 列「保留（使用者選擇）」，並說明代價：commit 時 formatter 會把剛升級的檔案再排一次，下次升級遇到同樣的情況。沒有這類 formatter → 跳過。
+2. **看有沒有被改過的受管檔案**：執行 `specify integration status --json`，看 `manifests` 底下兩份 `modified_files`（`claude` 是 skill 檔，`speckit` 是 `.specify/` 下的共用檔）。要在升級前看，升級的訊息不能當依據：skill 檔被改過時升級會中止，訊息只列 skill 檔；只有共用檔被改過時升級照樣成功，但跳過那些檔、留著舊版內容。
+   - 兩份都是空的 → `specify integration upgrade claude`。
+   - 有被改過的檔 → 把清單給使用者看，一次問完：這些檔多半是 formatter 重排的；`--force` 會把清單上的檔全部換成新版，手改的內容會消失。
+     - 沒有要保留的手改內容 → `specify integration upgrade claude --force`。
+     - 有要保留的（步驟 3 保留的鍵也算）→ 不升級，這一步列「待補」並說明：要升級就得放棄那些修改，或升級後自己把修改加回去，由使用者決定。
 
-**完成條件**：`.specify/integration.json` 的 `version` ≥1.0 且 status 為 `OK`；或這一步已列「待補」並附原因。列「待補」時，步驟 5 與 6 也列「待補」並直接到步驟 7：extension 更新與 plugin 產物都以 1.x 的專案檔為前提，先做會讓專案停在新舊混用的狀態。
+   升級會保留 constitution 與 `specs/`，新增 `speckit-converge`，並移除上游已停用的 `speckit-taskstoissues`（向使用者說明）。
+3. 輸出 **`Integration 'claude' is not installed`**（缺 integration 資料）→ 徵詢後改用 `specify init --here --force --integration claude`。它保留既有的 constitution，覆寫 speckit skill 檔與共用檔。這種專案沒有雜湊紀錄，上一點看不出哪些檔被改過，所以徵詢時要說明：手改過這些檔的話，內容會被換掉。
+4. 執行 `specify integration status`。CLI 升級時會提示可加 `--force` 刷新共用檔案；status 為 `OK` 代表共用檔案已是最新，照 status 判斷。
+
+**完成條件**：`.specify/integration.json` 的 `version` ≥1.0 且 status 為 `OK`；或這一步已列「待補」並附原因。第 1 點婉拒時這一步列「保留（使用者選擇）」：commit 之後 formatter 會重排剛升級的檔案，status 變成 `WARNING`、Findings 只有 `managed-files-modified`，也算完成。列「待補」時，步驟 5 與 6 也列「待補」並直接到步驟 7：extension 更新與 plugin 產物都以 1.x 的專案檔為前提，先做會讓專案停在新舊混用的狀態。
 
 ## 5. extension 與版控狀態
 
@@ -86,8 +91,10 @@ disable-model-invocation: true
 
 對盤點列出的每個進行中分支，在總結裡給出接續步驟。留在遷移分支上，由使用者自己切換：
 
-1. 遷移分支合併後，把預設分支合併進該 feature 分支。該分支改過 `.specify/feature.json` 時，合併會在這個檔案出現 modify/delete 衝突（遷移把它改成不追蹤）：執行 `git rm --cached .specify/feature.json` 後完成合併，本機的檔案會留著。
-2. 寫入 `.specify/feature.json`，內容為 `{"feature_directory":"specs/<該 feature 的目錄>"}`。
+1. 遷移分支合併後，把預設分支合併進該 feature 分支。遷移把 `.specify/feature.json` 改成不追蹤，所以這個檔在合併時有兩種結果：
+   - 該分支改過它 → 出現 modify/delete 衝突。執行 `git rm --cached .specify/feature.json` 後完成合併，本機的檔案會留著。
+   - 該分支沒改過它 → 合併不會有任何提示，直接把它從工作目錄刪掉。
+2. 兩種結果都重新寫入 `.specify/feature.json`，內容為 `{"feature_directory":"specs/<該 feature 的目錄>"}`。
 3. 執行 `bash .specify/scripts/bash/check-prerequisites.sh --json --paths-only`，確認輸出的 `FEATURE_DIR` 是該 feature 的目錄。
 4. 從原本所在的 Phase 繼續。完整通道且尚未開 PR 的 feature，適用新增的 `/speckit-analyze`（Phase 3）與 `/speckit-converge`（Phase 4 結尾）。
 
@@ -97,7 +104,7 @@ disable-model-invocation: true
 
 驗證（步驟 4 列「待補」時，前兩項也記「待補」，不算失敗）：
 
-- `specify integration status` 為 `OK`。
+- `specify integration status` 為 `OK`。是 `WARNING` 且 Findings 只有 `managed-files-modified` 時：步驟 4 第 1 點婉拒了忽略清單 → 算通過；沒有婉拒 → commit 時有盤點沒偵測到的 formatter 重排了剛升級的檔案，回步驟 4 從第 1 點重做（把它的忽略清單補上，再以 `--force` 換回新版）。
 - `.claude/skills/speckit-converge/SKILL.md` 存在。
 - 步驟 3 的偵測對象重新檢查一次，結果與該步驟記錄的一致。
 
@@ -107,7 +114,7 @@ disable-model-invocation: true
 - **進行中 feature 的接續步驟**（步驟 7）。
 - **給團隊的說明**：
   - 每位成員合併遷移後，各自把 `specify` CLI 升到 1.x。
-  - speckit 指令靠 `.specify/feature.json` 找 feature：每次開始一項工作就重設它（見 team-workflow 的分流），新建的 worktree 要先寫入它。
+  - speckit 指令靠 `.specify/feature.json` 找 feature：每次開始一項工作就重設它（見 team-workflow 的分流），新建的 worktree 要先寫入它。把預設分支合併進進行中的分支時，這個檔可能被默默刪掉，合併後重新寫入。
   - feature branch 由流程在 Phase 1 建立，命名照專案慣例；不需要 spec-kit 的 git extension。移除它之後，feature 編號只看本地的 `specs/` 目錄，同時開新 feature 的人可能拿到同一個編號。
   - 完整通道新增 Phase 3 的 `/speckit-analyze` 與 Phase 4 結尾的 `/speckit-converge`。
   - Phase 4 改由主 agent 派 fresh-context subagent 實作，一個 agent 一個 worktree：新行為的測試 commit 排在實作之前，事後新增或修改的斷言附失敗證據；任務在完成它的 PR 裡勾選；原因不清楚的 bug 用 `diagnosing-bugs`。
