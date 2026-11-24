@@ -24,7 +24,7 @@ disable-model-invocation: true
 | 已停用的產物 | `specs/retro-log.md` 是否存在；constitution 是否還有 [legacy-constitution.md](legacy-constitution.md) 列出的舊條文 | 沒有 `specs/retro-log.md`；舊條文都沒有，或已是專案自己改寫過的句子 |
 | 進行中的 feature | `git branch -a --no-merged <預設分支>` 中，相對預設分支有 `specs/` 變更的分支 | 每個都有接續步驟（步驟 7） |
 | `.gitignore` | `git check-ignore -q .specify/extensions/.cache/x`、`git check-ignore -q .claude/settings.local.json`；`.specify/extensions/.backup/` 存在時再查 `git check-ignore -q .specify/extensions/.backup/x` | 都被 repo 層的規則忽略 |
-| formatter | 專案有沒有會改寫 Markdown 的 formatter：`.prettierrc*`、`prettier.config.*`、`package.json` 的 `prettier` 或 `lint-staged`、`.lintstagedrc*`、`.husky/`。`.husky/` 與 lint-staged 只是線索：它們的設定裡真的有對 `*.md` 執行會改寫檔案的指令才算（只跑 commitlint 或 eslint 的不算）。有 prettier 時對 `.claude/skills/speckit-plan/SKILL.md` 與 `.specify/templates/plan-template.md` 各執行一次 `npx prettier --file-info <檔>`（一次只能給一個檔） | 沒有這類 formatter，或兩個檔輸出的 `ignored` 都是 `true`。婉拒加入忽略清單的專案盤點時仍算未達目標，每次重跑都會再問 |
+| formatter | 專案有沒有會改寫 Markdown 的 formatter：`.prettierrc*`、`prettier.config.*`、`package.json` 裡的 `prettier`（設定或相依套件）或 `lint-staged`、`.lintstagedrc*`、`.husky/`。`.husky/` 與 lint-staged 只是線索：它們的設定裡真的有對 `*.md` 執行會改寫檔案的指令才算（只跑 commitlint 或 eslint 的不算）。有 prettier 時對 `.claude/skills/speckit-plan/SKILL.md` 與 `.specify/templates/plan-template.md` 各執行一次 `npx prettier --file-info <檔>`（一次只能給一個檔） | 沒有這類 formatter，或兩個檔輸出的 `ignored` 都是 `true`。婉拒加入忽略清單的專案盤點時仍算未達目標，每次重跑都會再問 |
 | 工作樹 | `git status --short` | 乾淨 |
 
 **完成條件**：每一列都有查到的值。全部已達目標狀態 → 回報「不需遷移」並結束。
@@ -54,10 +54,10 @@ disable-model-invocation: true
      - 有要保留的（步驟 3 保留的鍵也算）→ 不升級，這一步列「待補」並說明：要升級就得放棄那些修改，或升級後自己把修改加回去，由使用者決定。
 
    升級會保留 constitution 與 `specs/`，新增 `speckit-converge`，並移除上游已停用的 `speckit-taskstoissues`（向使用者說明）。
-3. **缺 integration 資料的專案**（盤點的記錄；這種專案執行 `specify integration upgrade claude` 只會回報 `Integration 'claude' is not installed`）→ 徵詢後改用 `specify init --here --force --integration claude`。它保留既有的 constitution，覆寫 speckit skill 檔與共用檔。這種專案沒有雜湊紀錄，上一點看不出哪些檔被改過，所以徵詢時要說明：手改過這些檔的話，內容會被換掉。
+3. **缺 integration 資料的專案**（盤點的記錄；這種專案執行 `specify integration upgrade claude` 只會回報 `Integration 'claude' is not installed`）→ 徵詢後改用 `specify init --here --force --integration claude`。它保留既有的 constitution，覆寫 speckit skill 檔與共用檔，但不會移除 `speckit-taskstoissues`（徵詢後刪除 `.claude/skills/speckit-taskstoissues/`）。這種專案沒有雜湊紀錄，上一點看不出哪些檔被改過，所以徵詢時要說明：手改過這些檔的話，內容會被換掉。
 4. 執行 `specify integration status`。CLI 升級時會提示可加 `--force` 刷新共用檔案；status 為 `OK` 代表共用檔案已是最新，照 status 判斷。
 
-**完成條件**：`.specify/integration.json` 的 `version` ≥1.0 且 status 為 `OK`；或這一步已列「待補」並附原因。第 1 點婉拒時這一步列「保留（使用者選擇）」：commit 之後 formatter 會重排剛升級的檔案，status 變成 `WARNING`、Findings 只有 `managed-files-modified`，也算完成。列「待補」時，步驟 5 與 6 也列「待補」並直接到步驟 7：extension 更新與 plugin 產物都以 1.x 的專案檔為前提，先做會讓專案停在新舊混用的狀態。
+**完成條件**：`.specify/integration.json` 的 `version` ≥1.0 且 status 為 `OK`；或這一步已列「待補」並附原因。第 1 點婉拒、其餘完成時，這一步列「保留（使用者選擇）」並註明已升級（之後的 `WARNING` 見步驟 8）；同時有「待補」時列「待補」。列「待補」時，步驟 5 與 6 也列「待補」並直接到步驟 7：extension 更新與 plugin 產物都以 1.x 的專案檔為前提，先做會讓專案停在新舊混用的狀態。
 
 ## 5. extension 與版控狀態
 
@@ -104,7 +104,7 @@ disable-model-invocation: true
 
 驗證（步驟 4 列「待補」時，前兩項也記「待補」，不算失敗）：
 
-- `specify integration status` 為 `OK`。是 `WARNING` 且 Findings 只有 `managed-files-modified` 時：步驟 4 第 1 點婉拒了忽略清單 → 算通過；沒有婉拒 → commit 時有盤點沒偵測到的 formatter 重排了剛升級的檔案：找出是哪一個（看 commit hook 做了什麼），徵詢後把 `.specify/` 與 `.claude/skills/speckit-*/` 加進它的忽略清單，再執行 `specify integration upgrade claude --force`、commit，重新驗證這一項。
+- `specify integration status` 為 `OK`。是 `WARNING` 且 Findings 只有 `managed-files-modified` 時：步驟 4 第 1 點婉拒了忽略清單 → 算通過；沒有婉拒 → commit 時有盤點沒偵測到的 formatter 重排了剛升級的檔案：找出是哪一個（看 commit hook 做了什麼），徵詢後把 `.specify/` 與 `.claude/skills/speckit-*/` 加進它的忽略清單，再執行 `specify integration upgrade claude --force`、commit，重新驗證這一項。徵詢時說明會以 `--force` 把被重排的檔換回新版；婉拒 → 比照步驟 4 第 1 點婉拒，算通過。
 - `.claude/skills/speckit-converge/SKILL.md` 存在。
 - 步驟 3 的偵測對象重新檢查一次，結果與該步驟記錄的一致。
 
