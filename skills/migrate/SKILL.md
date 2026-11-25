@@ -23,7 +23,7 @@ disable-model-invocation: true
 | constitution 的對照 | 專案的 constitution 與本 plugin `templates/constitution.md` 的 Core Principles I 到 VI 逐條比對，並找出與流程牴觸的條文（做法見 setup 的「既有 constitution 的對照」） | 六條都有等效的條文，且沒有牴觸的條文。選擇保留的項目盤點時仍算未達目標，每次重跑都會再問 |
 | 已停用的產物 | `specs/retro-log.md` 是否存在；constitution 是否還有 [legacy-constitution.md](legacy-constitution.md) 列出的舊條文 | 沒有 `specs/retro-log.md`；舊條文都沒有，或已是專案自己改寫過的句子 |
 | 人力宣告與修訂核准人 | constitution 的 Governance 段有沒有寫明這兩項：專案有無真人協作者、修訂核准人的實際姓名。以內容判斷，寫法不同不算缺（舊版的 Owner 行填了核准人姓名也算有）；留著 `<角括號>` placeholder 的算沒有 | 兩項都有 |
-| 進行中的 feature | 先 `git fetch`，再看 `git branch -a --no-merged origin/<預設分支>` 中，相對 `origin/<預設分支>` 有 `specs/` 變更的分支。本地的預設分支可能落後遠端，拿它比會把已合併的分支算成進行中。沒有遠端或 fetch 失敗 → 改用本地的預設分支，並告訴使用者這份清單可能含已合併的分支 | 每個都有接續步驟（步驟 7） |
+| 進行中的 feature | 先 `git fetch`，再看 `git branch -a --no-merged origin/<預設分支>` 中，相對 `origin/<預設分支>` 有 `specs/` 變更的分支。本地的預設分支可能落後遠端，拿它比會把已合併的分支算成進行中。遠端不叫 `origin` 就換成它的名稱；沒有遠端、fetch 失敗或 `origin/<預設分支>` 不存在 → 改用本地的預設分支，並告訴使用者這份清單可能含已合併的分支 | 每個都有接續步驟（步驟 7） |
 | `.gitignore` | `git check-ignore -q .specify/extensions/.cache/x`、`git check-ignore -q .claude/settings.local.json`；`.specify/extensions/.backup/` 存在時再查 `git check-ignore -q .specify/extensions/.backup/x` | 都被 repo 層的規則忽略 |
 | formatter | 專案有沒有會改寫 Markdown 的 formatter：`.prettierrc*`、`prettier.config.*`、`package.json` 裡的 `prettier`（設定或相依套件）或 `lint-staged`、`.lintstagedrc*`、`.husky/`。`.husky/` 與 lint-staged 只是線索：它們的設定裡真的有對 `*.md` 執行會改寫檔案的指令才算（只跑 commitlint 或 eslint 的不算）。有 prettier 時對 `.claude/skills/speckit-plan/SKILL.md` 與 `.specify/templates/plan-template.md` 各執行一次 `npx prettier --file-info <檔>`（一次只能給一個檔） | 沒有這類 formatter，或兩個檔輸出的 `ignored` 都是 `true`。婉拒加入忽略清單的專案盤點時仍算未達目標，每次重跑都會再問 |
 | 工作樹 | `git status --short` | 乾淨 |
@@ -82,7 +82,7 @@ disable-model-invocation: true
 1. **`specs/retro-log.md`**：流程已取消合併後的 retro，不再讀寫這個檔。徵詢使用者：刪除（`git rm`），或封存作為歷史紀錄（`git mv specs/retro-log.md specs/retro-log-archive.md`）。封存後 setup 與 migrate 不再偵測到它，重跑不會再問。兩者都婉拒 → 原樣留著，列「保留（使用者選擇）」，重跑時會再問。
 2. **constitution 的舊條文**：照 [legacy-constitution.md](legacy-constitution.md) 逐項比對並徵詢。constitution 是專案自己的文件，使用者婉拒就原樣保留。
 
-最後補上人力宣告與修訂核准人（排在舊條文之後：舊版的 Owner 行改寫後就是修訂核准人那一行）。盤點這一列未達目標 → 照 `commands/setup.md` 的步驟 4 問一次，缺哪一項問哪一項；把要加進 Governance 段的那幾行給使用者看過再寫入，修訂程序照同一個檔案「既有 constitution 的對照」第 3 點的「修訂照專案自己的 Governance 進行」。使用者婉拒 → 列「保留（使用者選擇）」，重跑時會再問。
+最後補上人力宣告與修訂核准人（排在舊條文之後：舊版的 Owner 行改寫後就是修訂核准人那一行）。盤點這一列未達目標 → 照 `commands/setup.md` 的步驟 4 問一次，缺哪一項問哪一項；把要加進 Governance 段的那幾行給使用者看過再寫入，修訂程序照同一個檔案「既有 constitution 的對照」第 3 點的「修訂照專案自己的 Governance 進行」，與同一次執行的對照、舊條文修改併為同一次修訂，版號只升一次。使用者婉拒 → 列「保留（使用者選擇）」，重跑時會再問。
 
 讀不到 `commands/setup.md` → 這三項、constitution 的對照、人力宣告與修訂核准人列「待補」，請使用者在遷移後執行 `/spec-grill-flow:setup`；兩項停用產物照常處理，它們不靠 setup。
 
