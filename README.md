@@ -13,7 +13,7 @@
                                                    └─ 快速通道：──────────────────────────────→ [P4 實作] → [P5 驗收]
 ```
 
-專案初始化時宣告有無真人協作者，何時用人由分流決定——完整通道真人 grill（兼知識擴散）、輕量通道與無真人時由 fresh-context agent 代位。實作由主 agent 派 fresh-context subagent 執行，model 與 effort 由主 agent 判斷。內建退回熔斷。
+專案初始化時宣告有無真人協作者，何時用人由分流決定——完整通道先邀真人 grill（兼知識擴散），輕量通道、無真人或等不到真人時由 fresh-context agent 代位。實作由主 agent 派 fresh-context subagent 執行，model 與 effort 由主 agent 判斷。內建退回熔斷。
 
 核心原則：spec 文件是唯一真相源。完整說明見 [skills/team-workflow/full-workflow.md](skills/team-workflow/full-workflow.md)。
 
