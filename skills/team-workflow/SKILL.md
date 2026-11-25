@@ -18,7 +18,7 @@ description: 團隊 AI 交辦任務流程（Spec-Kit + grill + fresh-context sub
 
 **階段編號只指本流程**：Phase 1 到 5 是本流程的階段（定義、錘鍊、規劃、實作、驗收），專案初始化不編號。`/speckit-plan` 內部也把自己的步驟叫 Phase 0（research）與 Phase 1（design），plan 範本的 Constitution Check 寫「Must pass before Phase 0 research」，並把 tasks.md 標成「Phase 2 output」——那是 plan 文件裡的小節，與本流程的階段無關。專案 constitution 的 gate 或 Constitution Check 寫到 Phase 0 時，指的是 plan 的那一個；Governance 裡「修訂核准人（Phase 0 填上）」或「Owner（Phase 0 填齊）」是本 plugin 0.7.3 之前寫進去的句子，指的是專案初始化。
 
-**人力與 grill 執行者**（專案初始化時宣告專案有無真人；用不用人由分流決定）：完整通道且有真人 → 先邀真人 grill（非作者主持，兼知識擴散——同事從此知道這個 feature 為什麼存在，AI 無法替代）；作者判斷等不到 → 改由 AI 代位，並在 spec 的 Grill 檢核段寫明原因（理由只能是等不到，「AI 也審得好」不算）；其餘 → **fresh-context 獨立 subagent** 代位——可自由讀取 repo，但不共享產生受審產物的對話脈絡，prompt 指定挑錯立場。通道升級時 grill 執行者自動升級。
+**人力與 grill 執行者**（專案初始化時宣告專案有無真人；用不用人由分流決定）：完整通道且有真人 → 先邀真人 grill（非作者主持，兼知識擴散——同事從此知道這個 feature 為什麼存在，AI 無法替代）；作者本人判斷等不到 → 改由 AI 代位，決定時就在 spec 的 Grill 檢核段寫明原因（理由只能是等不到，「AI 也審得好」不算）；其餘 → **fresh-context 獨立 subagent** 代位——可自由讀取 repo，但不共享產生受審產物的對話脈絡，prompt 指定挑錯立場。通道升級時 grill 執行者自動升級。
 
 **模型與 effort 不由本流程指定**：主對話的模型與 effort 由使用者以 `/model`、`/effort` 選擇，個人偏好寫在 `.claude/settings.local.json`。派出 subagent（代位 grill、Phase 4 實作、代位驗收）時，model 與 effort 由主 agent 依任務判斷決定；不指定時沿用主對話的設定。
 
@@ -161,7 +161,7 @@ grill 的產出只寫回 spec 本身（不產 ADR、glossary 或其他文件）�
 | 症狀 | 對策 |
 |---|---|
 | 把解決方案當目標，做完才發現不是 PM 要的 | 提案一律先過目標確認（`steelman-requirement`）；「bug」但 spec 未描述該期望行為 → 視為提案照跑 |
-| AI 做出來的不是想要的 | 檢查 grill 執行者是否獨立於 spec 作者（非作者主持／fresh-context agent） |
+| AI 做出來的不是想要的 | 檢查 grill 執行者是否獨立於 spec 作者（非作者主持／fresh-context agent）；完整通道有真人卻由 AI 代位的，spec 要有寫明的原因 |
 | AI 回報完成但驗收失敗 | Phase 3 起驗收標準就要對應測試任務（`/speckit-analyze` 檢查）；開 PR 前跑 `/speckit-converge` |
 | 流程被私下繞過，或分流越放越寬 | 沒有定期檢視 | 只能在 PR 驗收時發現；反覆出現就提 PR 修訂本流程或 constitution |
 | spec 和程式碼對不上 | 執行「改需求必退 Phase 2」 |
